@@ -252,12 +252,22 @@ export const NEAR_KEEP = 2; // s, a design choice
 // people a helper braced at the rider's hip was always at least 4.8 times as far as the rider
 // (scratchpad probe-tiebreak.mjs, 5 to 30 poses a second), so 1.5 leaves room for real pose noise.
 export const TIE_RATIO = 1.5;
-// Design choice, from the synthetic people (scratchpad builderC/dist.mjs): the rider's 12 main points
-// stay within 0.24 of a torso length of an earlier pose of his at any two pedal positions, even
-// sitting 20 to 35 mm off where he sat; every helper tried, braced or leaning in at the hip, was at
-// least 0.43 away. 0.33 sits between. Used only where a wrong pick is the risk: a lone pose at the
-// rider's spot just after someone else was there, and finding the rider again after losing him.
-export const RELOCK_GATE = 0.33;
+// Design choice, from the synthetic people (scratchpad fixR3b/dist.mjs): the rider's 12 main points
+// stay within 0.21 of a torso length of an earlier pose of his at any two pedal positions, and within
+// 0.245 sitting 20 to 35 mm off where he sat. Of 5058 helper shapes in riding posture inside
+// TRACK_GATE (braced, leaning in at the hip, a hand on the saddle, the stem or the hoods), the nearest
+// came within 0.279 of some pose of his: leaning in at the hip with the camera-side hand on the hoods,
+// where his hand is. An earlier sweep without that hand had every helper at least 0.43 away, and the
+// gate at 0.33. 0.25 sits between. Used where a wrong pick is the risk: a lone pose at the rider's
+// spot, which may be someone else in a frame where the pose model missed the rider, and finding the
+// rider again after losing him.
+export const RELOCK_GATE = 0.25;
+// Design choice, from the same synthetic people (QA round 3b, scratchpad qaR3-2/gate.mjs): helpers
+// leaning in at the hip with BOTH hands on the hoods come within 0.235 to 0.265 of the rider's pose,
+// inside RELOCK_GATE, and none of them sits like a rider (isSeated); the one helper shape that does sit
+// like a rider stays at 0.269 or more. The rider's own pose with a glitched straight thigh (not seated)
+// is 0.17 from his last one. So a lone pose that does not sit like a rider is taken only within 0.20.
+export const UNSEATED_GATE = 0.2;
 
 // Everyone in one frame, once each (samePerson), with what pickRider needs to know about them.
 function people(poses, W, H, side) {
@@ -302,16 +312,18 @@ function tieBreak(near, live, W, H) {
  *           kept after it went stale), and clearly (TIE_RATIO) nearer than any other: for a rider who
  *           went out of view while someone who could look like him is about.
  *   'none'  never: the app is still finding out who the rider is (followCandidates).
- * Returns { lm, index, ambiguous, others, count, aero, track }:
+ * Returns { lm, index, ambiguous, others, count, aero, seatedOthers, track }:
  *   lm, index: the rider's landmarks and their place in poses, or null when nobody is the rider or
  *   the choice is not clear. ambiguous: two poses could each be the rider, so this frame must not
  *   be measured. others: how many other people the phone sees clearly (clearlyVisible). count: how
  *   many people it found at all. aero: how many of them sit very low, like on aero bars (isAero).
+ *   seatedOthers: how many people other than the one picked sit like a rider (isSeated).
  * Once locked, the rider is the pose in riding posture (isRiding) whose hips and shoulders are each
  * within TRACK_GATE of the last ones, so the choice cannot jump to someone else mid-stroke. Two such
- * poses there: tieBreak. One alone there just after someone else was right at the rider's hip (in the
- * last NEAR_KEEP seconds): taken only if it is within RELOCK_GATE of the rider's last landmarks, since
- * it could be them, in a frame where the pose model missed the rider.
+ * poses there: tieBreak. One alone there: taken only if it is within RELOCK_GATE of the rider's last
+ * landmarks (UNSEATED_GATE when it does not sit like a rider), since it could be someone else in a
+ * frame where the pose model missed the rider; if someone else was right at the rider's hip in the
+ * last NEAR_KEEP seconds, that frame is ambiguous.
  */
 export function pickRider(poses, track, t, W, H, side = null, { lock = 'any' } = {}) {
   const ps = people(poses, W, H, side);
@@ -323,9 +335,15 @@ export function pickRider(poses, track, t, W, H, side = null, { lock = 'any' } =
     const crowded = live.nearT != null && t - live.nearT <= NEAR_KEEP;
     if (near.length > 1) ({ pick, ambiguous } = tieBreak(near, live, W, H));
     else if (near.length === 1) {
+      // One pose there: taken only if it is close to the rider's last pose, whoever was about. A helper
+      // who comes to the rider's hip on a frame where the pose model misses the rider is the only pose
+      // there, and nobody was at the hip before; taken then, they were followed from the next frame on.
+      // Not taken, it is not called a choice between two (ambiguous) unless someone else was just there.
+      // A pose that does not sit like a rider (isSeated) must be closer still (UNSEATED_GATE): a friend
+      // leaning in with both hands on the hoods comes within RELOCK_GATE of his pose, but never sits.
       const p = near[0];
-      const ok = !crowded || (live.lm ? poseDistance(p.lm, live.lm, W, H) <= RELOCK_GATE * live.scale : p.seated);
-      if (ok) pick = p; else ambiguous = true;
+      const ok = live.lm ? poseDistance(p.lm, live.lm, W, H) <= (p.seated ? RELOCK_GATE : UNSEATED_GATE) * live.scale : !crowded || p.seated;
+      if (ok) pick = p; else if (crowded) ambiguous = true;
     }
   } else if (lock === 'any' || lock === 'alone') {
     const seated = ps.filter(p => p.seated);
@@ -344,6 +362,7 @@ export function pickRider(poses, track, t, W, H, side = null, { lock = 'any' } =
   const nearT = nearNow ? t : live?.nearT ?? null;
   return {
     lm: pick?.lm ?? null, index: pick?.index ?? null, ambiguous, others, count: ps.length, aero: ps.filter(p => p.aero).length,
+    seatedOthers: ps.filter(p => p !== pick && p.seated).length,
     // A frame without a clear rider keeps the old track until it is TRACK_KEEP old; after that the
     // track is kept as it was (stale), so lock 'near' can still compare with the rider's last pose.
     track: pick ? trackFrom(pick.lm, t, W, H, nearT) : live ? { ...live, nearT } : track || null,
@@ -745,12 +764,13 @@ export function advise(still, pedal, setup = null) {
     // as signs of a long, low front end. Both usually mean the bars are close, not far: the shoulder
     // angle opens as the hands go further forward, and bent elbows mean the bars are in easy reach.
     // So this counts only the tool's own thresholds that do point to a long, low front: a back
-    // under 40, a shoulder over 95 and elbows forced straight (under 8).
+    // under 40, a shoulder over 95 and elbows forced straight (under 8), each only when the screen
+    // shows that angle as out of range (FRONT_SIGNS).
     const t = round(upper?.torso), sh = round(upper?.shoulder), e = round(upper?.elbow);
     const flags = [];
-    if (upper?.torso < 40) flags.push(['torso', `your back is low (${t}°, target 40 to 50)`, 'your back is low']);
-    if (upper?.shoulder > 95) flags.push(['shoulder', `your arms reach far forward (shoulder ${sh}°, target 80 to 95)`, 'your arms reach far forward']);
-    if (upper?.elbow < 8) flags.push(['elbow', `your elbows are locked straight (${e}°, target 15 to 30)`, 'your elbows are locked straight']);
+    if (FRONT_SIGNS.torso(upper?.torso)) flags.push(['torso', `your back is low (${t}°, target 40 to 50)`, 'your back is low']);
+    if (FRONT_SIGNS.shoulder(upper?.shoulder)) flags.push(['shoulder', `your arms reach far forward (shoulder ${sh}°, target 80 to 95)`, 'your arms reach far forward']);
+    if (FRONT_SIGNS.elbow(upper?.elbow)) flags.push(['elbow', `your elbows are locked straight (${e}°, target 15 to 30)`, 'your elbows are locked straight']);
     if (flags.length >= 2) {
       const cap = (x) => x[0].toUpperCase() + x.slice(1);
       const reason = `${cap(list(flags.map(f => f[1])))}, so the front of the bike is long and low.`;
@@ -781,8 +801,15 @@ export function advise(still, pedal, setup = null) {
 }
 
 const NAMES = { torso: 'back angle', elbow: 'elbow bend', shoulder: 'shoulder angle' };
-// The three signs of a long, low front end that advise() counts (its thresholds, from fit-rules.md).
-const FRONT_SIGNS = [['torso', (v) => v < 40], ['shoulder', (v) => v > 95], ['elbow', (v) => v < 8]];
+// The three signs of a long, low front end that advise() counts (its thresholds, from fit-rules.md),
+// each only past GREEN_TOL: within 2.5 degrees of a target the screen calls a reading in range, so a
+// back at 38 or a shoulder at 97 is not a sign there either (grade(), measures()). Locked elbows,
+// under 8, are already more than 2.5 below the 15 to 30 target.
+const FRONT_SIGNS = {
+  torso: (v) => v < TARGETS.torso[0] - GREEN_TOL,
+  shoulder: (v) => v > TARGETS.shoulder[1] + GREEN_TOL,
+  elbow: (v) => v < 8,
+};
 
 // "inside the 30 to 40 target", or, for a reading inside the 2.5 degree tolerance but outside the
 // range itself, "within 2.5 degrees of the 30 to 40 target". Never call 41 "inside" 30 to 40.
@@ -1521,7 +1548,7 @@ export function areas(r, rows) {
     // change" under it would pull against one change at a time. Fine to ride, and compared next time.
     // Only a low back, a shoulder over 95 and locked elbows are signs of a long, low front end (see
     // advise()); a closed shoulder or bent elbows are not, so they are not called half of a bars change.
-    const signs = FRONT_SIGNS.filter(([k, test]) => off.includes(NAMES[k]) && test(r[k])).length;
+    const signs = Object.entries(FRONT_SIGNS).filter(([k, test]) => off.includes(NAMES[k]) && test(r[k])).length;
     const tail = r.verdict !== 'ok' ? ' Bar changes wait until the saddle height is settled.'
       : signs ? ' That is one sign of a long, low front end, but the handlebars only need to move when two signs point the same way. That is fine to ride.'
       : ' That is fine to ride.';

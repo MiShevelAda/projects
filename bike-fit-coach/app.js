@@ -7,10 +7,11 @@
 // knees bent, a hand to the stem, so they sit like a rider) adds a second made-up person, there
 // from the start; &late=<s> has the rider get on s seconds into the "get on the bike" step, and
 // &back=<s> s into each later one (3 by default); &pedal=wrong pedals the wrong way for the setup,
-// &pedal=stop stops the pedals 4 s after the timing starts; &away=<s> takes the rider out of view
-// for s seconds while holding still; &slide=<px>: after a picture correction the phone is turned or
-// slid along without tilting it, and the rider gets back on <px> further along in the picture;
-// &unfixed: moving the phone does not fix the picture, so the same check asks again.
+// &pedal=stop stops the pedals 4 s after the timing starts, &pedal=none never turns them; &away=<s>
+// takes the rider out of view for s seconds while holding still; &slide=<px>: after a picture
+// correction the phone is turned or slid along without tilting it, and the rider gets back on <px>
+// further along in the picture; &unfixed: moving the phone does not fix the picture, so the same
+// check asks again; &arrive=<step>: a helper comes to the rider's hip in that step (see makeSim).
 
 import * as fit from './fit.js';
 
@@ -391,8 +392,9 @@ const HANDLERS = {
   mount: {
     enter(t, reason) {
       // Nothing is followed from the phone step, and the rider is found afresh: the phone may have
-      // moved, and whoever was in view meanwhile is not the rider just because they were there.
-      track = null;
+      // moved, and whoever was in view meanwhile is not the rider just because they were there. Back
+      // from a break the phone has not moved, so where he was still counts (lockMode).
+      if (reason !== 'rest') track = null;
       cands = [];
       crowd.since = crowd.last = null;
       session.mounts = (session.mounts || 0) + 1;
@@ -407,6 +409,11 @@ const HANDLERS = {
         el.skip.hidden = !session.fixKey || skipped.has(session.fixKey);
         return;
       }
+      // Back from holding still after a break: someone sits like a rider somewhere new, him back on
+      // the bike, or a friend who crouched at it while he rests. Nothing new is said. Someone else
+      // was seen (that is why it came here), so who the rider is is found by who turns the pedals, and
+      // meanwhile he is also found back where he was, as while holding still (lockMode).
+      if (reason === 'rest') { ph.fromRest = true; ph.needId = true; return; }
       const lvl = session.levelled ? 'Level. ' : '';
       if (session.mounts > 1) {
         // Back again after moving the phone: the short version.
@@ -438,6 +445,8 @@ const HANDLERS = {
         Voice.say(AERO_LINE);
         return;
       }
+      // Back from a break and found where he was (lockMode 'near'): him, as while holding still.
+      if (ph.fromRest && !ph.idDone && !ph.fallback && rider) ph.idDone = true;
       if (ph.needId && !ph.idDone && !(ph.fallback && rider)) { identityTick(t); return; }
       if (!ph.idDone && quiet(t) < 6) return; // time to walk over and get on, once the instruction has been heard
       if (rider) {
@@ -512,12 +521,35 @@ const HANDLERS = {
     enter() {
       startRecording();
       ph.seenSecs = 0;
+      ph.crowdBefore = warnings.has('crowd');
       Voice.say('Put the pedal nearest the phone at its lowest point, pedal arm pointing straight down, foot the way it sits when you ride. Then hold still.');
     },
-    tick({ t, lm, side, W, H, ang, rider }) {
+    tick({ t, lm, side, W, H, ang, rider, pick }) {
+      // Who else sits like a rider while he is followed here: a friend crouching at the bike, say.
+      if (pick.lm) ph.seatedWith = Math.max(ph.seatedWith || 0, pick.seatedOthers);
       if (!rider) {
         // A frame or two without the rider during a capture is the tracker, not the rider moving.
         if (ph.cap) { ph.cap.gone ??= t; if (t - ph.cap.gone > 0.3) ph.cap = null; return; }
+        // A break, which the first line of lost() invites. With a friend, or anyone else seen, he is
+        // only looked for near where he was (lockMode 'near'), so back on the bike further along (a new
+        // grip by the friend, the bike rolled) he would never be found. So once he has been out of
+        // sight for OFF_SECS, and for a second more someone new sits like a rider (more of them than
+        // while he was followed, so a friend already crouching there does not count) and is not taken
+        // near where he was, the flow goes back to the mount step, which finds him afresh, as after a
+        // picture correction (with a friend, or anyone else seen, by asking him to turn the pedals).
+        // Not while two could each be the rider: the helper lines speak then. The 1 s is a design
+        // choice, as in identityTick.
+        ph.lostSince ??= t;
+        const newcomer = nearOnly() && !pick.lm && !pick.ambiguous && pick.seatedOthers > (ph.seatedWith || 0);
+        if (newcomer) ph.newSince ??= t; else ph.newSince = null;
+        if (t - ph.lostSince > OFF_SECS && ph.newSince != null && t - ph.newSince > 1) {
+          // Nothing from this step is kept (the held-still reading is taken again), so the moments it
+          // lost cost nothing: the person not taken was most likely him, and "someone else in the
+          // picture made some moments unclear" would not be true.
+          if (!ph.crowdBefore) warnings.delete('crowd');
+          go('mount', t, 'rest');
+          return;
+        }
         lost(t);
         return giveUpStill(t);
       }
@@ -606,8 +638,22 @@ const HANDLERS = {
           Voice.say(session.still ? 'I could not see the pedals turning, so I can only give you the held-still reading.'
             : 'I could not see the pedals turning, so there is not enough to measure this time.');
           finish();
+        } else if (pain && ph.pauseLine != null) {
+          // With pain he was told to stop if his knee hurts, so pedals not seen turning (he never
+          // started, or stopped before the timing did, or the phone saw too few frames to tell) are
+          // never met with "keep pedalling": the pain line, then 5 s later the end, as when he stops
+          // after the timing started, with what there is.
+          if (t - ph.pauseLine > 5) {
+            Beep.chime();
+            Voice.say('Stop. You can relax.', { interrupt: true });
+            Voice.say(session.still ? 'I could not see the pedals turning, so I can only give you the held-still reading.'
+              : 'I could not see the pedals turning, so there is not enough to measure this time.');
+            if (session.setup === 'friend') Voice.say('Friend, keep holding the bike until the rider is off.');
+            finish();
+          }
         } else if (!gone && !wrong && quiet(t) > 10) {
-          if (!Voice.say(`I cannot see the pedals turning. Keep pedalling ${dir}, slowly and steadily.`, { key: 'nopedal', every: 10, max: 2 })) {
+          if (pain) { ph.pauseLine = t; Voice.say('If it hurts, stop. I will use what I have.', { max: 2 }); }
+          else if (!Voice.say(`I cannot see the pedals turning. Keep pedalling ${dir}, slowly and steadily.`, { key: 'nopedal', every: 10, max: 2 })) {
             Voice.say('Take your time. Pedal again when you are ready, or tap Stop.', { key: 'nopedal', every: 10, max: 2 });
           }
         }
@@ -624,8 +670,10 @@ const HANDLERS = {
       // Stopped: "Keep pedalling" at most twice in a row (a design choice), then the line that lets
       // him stop. With pain or numbness that keeps coming back, stopping ends the step with what there
       // is, 5 s later. Otherwise it waits, up to the step's existing extra 20 s (a design choice).
+      // With pain he was told to stop if his knee hurts, so stopping is never met with "keep
+      // pedalling": the pain line comes first.
       if (rider && paused) {
-        if (ph.keepN < 2) { if (Voice.say(`Keep pedalling ${dir}.`, { key: 'keep', every: 3 })) ph.keepN++; }
+        if (!pain && ph.keepN < 2) { if (Voice.say(`Keep pedalling ${dir}.`, { key: 'keep', every: 3 })) ph.keepN++; }
         else if (ph.pauseLine == null && quiet(t) > 0.3) {
           ph.pauseLine = t;
           Voice.say(pain ? 'If it hurts, stop. I will use what I have.' : 'Take your time. Pedal again when you are ready, or tap Stop.', { max: 2 });
@@ -662,7 +710,8 @@ const HANDLERS = {
         el.timer.hidden = true;
         // "A little slower" only when the strokes were too fast for the phone; otherwise just more.
         const fast = summary.strokesSeen > summary.strokes || summary.framesPerTurn < fit.MIN_FRAMES_PER_STROKE;
-        if (!ph.said.more && !gone) { ph.said.more = 1; Voice.say(fast ? 'Keep going, a little slower. A few more turns.' : 'Keep going. A few more turns.'); }
+        // Not to a rider with pain who has stopped: the pain line above has said it ends with what there is.
+        if (!ph.said.more && !gone && !(pain && paused)) { ph.said.more = 1; Voice.say(fast ? 'Keep going, a little slower. A few more turns.' : 'Keep going. A few more turns.'); }
         return;
       }
       endPedal(summary);
@@ -730,7 +779,17 @@ function identityTick(t) {
     return;
   }
   const newcomer = cands.some(c => c.since > ph.askT + 2 && t - c.t < 0.5);
+  if (newcomer) ph.satAfter = true;
   if (ph.askN === 1 && quiet(t) > 1 && (t - ph.askT > 15 || newcomer)) { ask(t); return; }
+  // After a break (ph.fromRest) the one sitting like a rider may be a friend who crouched at the bike
+  // while he rests, and both questions went to them. So unless someone sat down after a question,
+  // they lead to no way-out line: the step waits for him as when nobody is on the bike (nag, which
+  // ends with the way out), and finds him back where he was (lockMode). Someone who sits down after
+  // both questions is asked again, as anyone getting on, once.
+  if (ph.fromRest && ph.askN >= 2 && !ph.fallback) {
+    if (newcomer && !ph.reasked && quiet(t) > 1) { ph.reasked = true; ph.askN = 0; ask(t); return; }
+    if (!ph.satAfter) { if (t - ph.askT > 15 && quiet(t) > (ph.nags ? 14 : 20)) nag(); return; }
+  }
   if (ph.askN >= 2 && !ph.fallback && t - ph.askT > 15 && quiet(t) > 1) ph.fallback = t;
   if (ph.fallback && quiet(t) > 1) Voice.say(WHO_STOP, { key: 'whostop', every: 20, max: 2 });
 }
@@ -746,16 +805,23 @@ function identify(poses, t, W, H) {
 }
 // How a rider may be found when none is being followed (fit.pickRider). Never in the phone step, so
 // nothing locks while the rider walks about. Outside the mount step, with a friend in the setup or
-// anyone else seen in this session, only near where the rider last was ('near'): someone who sits like
-// a rider is never taken just because they are the only one left in view.
-function lockMode() {
+// anyone else seen in this session (nearOnly), only near where the rider last was ('near'): someone
+// who sits like a rider is never taken just because they are the only one left in view. With nobody
+// else seen yet (a wall or a trainer), anywhere, since he may get back on further along, but not in
+// the first OFF_SECS after he was last followed: a pose model that missed him for a second or two
+// used to hand the track to someone who came to his hip meanwhile sitting like a rider, and in that
+// time he cannot have got off and back on.
+const nearOnly = () => session?.setup === 'friend' || !!session?.crowd;
+function lockMode(t) {
   if (phase === 'phone') return 'none';
   if (phase === 'mount') {
     if (!ph.needId) return 'any';
     if (ph.idDone) return 'near';
-    return ph.fallback ? 'alone' : 'none';
+    if (ph.fallback) return 'alone';
+    return ph.fromRest ? 'near' : 'none';
   }
-  return session?.setup === 'friend' || session?.crowd ? 'near' : 'any';
+  if (nearOnly()) return 'near';
+  return track?.lm && t - track.t < OFF_SECS ? 'near' : 'any';
 }
 
 // The screen is upright although the phone should be sideways: first "turn it", then the rotation
@@ -772,7 +838,8 @@ function uprightScreen(t, mayBeUpright) {
 }
 
 // Design choice: off the bike for 3 s after a picture correction, the rider is found afresh (frame
-// tick). Three times the 1 s after which the rider followed is let go (fit.TRACK_KEEP), so a pose
+// tick); so too after a break while holding still, once someone new sits like a rider (still tick).
+// Three times the 1 s after which the rider followed is let go (fit.TRACK_KEEP), so a pose
 // model that misses him for a moment on the bike does not send the flow back.
 const OFF_SECS = 3;
 
@@ -918,7 +985,7 @@ function step(poses, t, W, H, simRider = null) {
   if (phase === 'mount' && ph.needId && !ph.idDone) identify(poses, t, W, H);
   // The rider, out of everyone in the picture (fit.pickRider). Once the camera-side leg is locked,
   // each pose is judged on that side.
-  let pick = fit.pickRider(poses, track, t, W, H, phase === 'still' || phase === 'pedal' ? sideCache.side : null, { lock: lockMode() });
+  let pick = fit.pickRider(poses, track, t, W, H, phase === 'still' || phase === 'pedal' ? sideCache.side : null, { lock: lockMode(t) });
   track = pick.track;
   if (pick.count > 1 || pick.ambiguous) { if (session && phase !== 'phone') session.crowd = true; }
   // Getting on with someone else in view, or two people who could each be the rider: nobody is
@@ -1728,8 +1795,12 @@ el.skip.addEventListener('click', () => {
 // standing in view beside the back of the bike, facing the phone, one hand on the saddle; &helper=lean
 // one side-on at the rider's hip, leaning in with bent knees, almost in riding posture; &helper=braced
 // one half-crouched behind the rider's hip, knees bent 35, leaning 45, a hand to the stem, who sits
-// like a rider. The poses come in a shuffled order, as a real pose model may give them, and the frame
-// says which one is the rider so wrong picks can be counted (debug.wrongPicks). The made-up rider does
+// like a rider. &arrive=<step> has a helper come to the rider's hip during that step and stay
+// (&ah=bars, the default: leaning in, the camera-side hand on the hoods where the rider's hand is;
+// &ah=braced: as &helper=braced), and for the first &miss=<s> seconds (default: the first frame) the
+// pose model finds only the helper, not the rider. The poses come in a shuffled order, as a real pose
+// model may give them, and the frame says which one is the rider (-1: he is not among them) so wrong
+// picks can be counted (debug.wrongPicks). The made-up rider does
 // what the voice asks: turns the pedals twice once the question who the rider is has begun to play,
 // and after a correction of the picture gets off, moves the phone (so it has to be levelled again,
 // unless &slide) and gets back on.
@@ -1740,9 +1811,15 @@ async function makeSim() {
   const late = Number(params.get('late')) || 3;
   const back = Number(params.get('back')) || 3;
   const away = Number(params.get('away')) || 0;
+  const awayShift = Number(params.get('awayshift')) || 0;
   const pedalMode = params.get('pedal');
   const slide = Number(params.get('slide')) || 0;
   const unfixed = params.has('unfixed');
+  const arriveIn = params.get('arrive');
+  const arriving = { bars: { at: -200, frontal: false, lean: 30, kneeBend: 20, depth: 0.9, reach: [540, 640] },
+    braced: { at: -650, frontal: false, lean: 45, kneeBend: 35, depth: 0.9, reach: [450, 700] } }[params.get('ah') || 'bars'];
+  const arriveMiss = Number(params.get('miss')) || 0.01;
+  const restPose = params.get('restpose') === 'braced';
   const shuffle = seeded(5);
   Tilt.available = true;
   Tilt.landscape = true;
@@ -1763,36 +1840,57 @@ async function makeSim() {
     Tilt.roll = 0.3;
     if (phase === 'phone' && s.tilted) Object.assign(s, { moved: true, tilted: false, fixed: !unfixed });
     const offBike = s.off != null && !s.moved && t - s.off >= 1; // off the bike, at the phone
+    // &away=<s>: once a session, 1 s into holding still, he gets off for that long to rest, then gets
+    // back on, &awayshift=<px> further along in the picture if set (the bike rolled, or the friend
+    // took a new grip). Back from the break he is on the bike, also if the app went back to getting on.
+    if (phase === 'still' && away && s.awayAt == null && dt > 1) Object.assign(s, { awayAt: t, awayStill: phaseT0 });
+    const resting = s.awayAt != null && t - s.awayAt < away;
     let lm = null;
-    const o = { noise: 1.2, hipShift: low ? [0, -35] : [0, 0] };
+    // farGap: the camera at an angle until the phone has been moved (farGap in synth.js), in every
+    // step he is on the bike, as a real phone at an angle would see him.
+    const o = { noise: 1.2, hipShift: low ? [0, -35] : [0, 0], farGap: s.fixed ? 0 : -80 };
     // Forwards turns the crank clockwise (synth.js). &pedal=wrong pedals the other way, to try the
     // "pedal forwards" line.
     const way = (session?.setup === 'trainer' ? -1 : 1) * (pedalMode === 'wrong' ? -1 : 1);
-    if (phase === 'mount' && !offBike && dt > (session.mounts > 1 ? back : late)) {
+    if (phase === 'mount' && !offBike && (ph.fromRest || dt > (session.mounts > 1 ? back : late))) {
       // Asked to turn the pedals: two turns in 3 s, 2 s after the question began to play. Only a
       // question he heard: one that was never said leaves him sitting still.
       const heard = ph.askT != null ? debug.started.findLast(x => x.t >= ph.askT && /^Rider: .*turn the pedals/.test(x.text)) : null;
       const a = heard ? t - heard.t - 2 : -1;
       lm = synthPose(a > 0 && a < 3 ? (way * 2 * Math.PI * a) / 1.5 : 0, o);
     }
-    if (phase === 'frame' && !offBike) lm = synthPose(0, { ...o, farGap: s.fixed ? 0 : -80 });
+    if (phase === 'frame' && !offBike) lm = synthPose(0, o);
     if (phase === 'still') {
-      const sd = away && dt > 1 ? (dt < 1 + away ? null : dt - away) : dt;
-      if (sd != null) lm = synthPose(sd < 5 ? 0 : -Math.PI / 2, o);
+      const sd = s.awayStill === phaseT0 ? dt - away : dt;
+      lm = synthPose(sd < 5 ? 0 : -Math.PI / 2, o);
     }
     if (phase === 'pedal') {
       let th = -Math.PI / 2 + way * (dt < 2 ? 0 : (2 * Math.PI * (dt - 2)) / 1.1);
-      // &pedal=stop: the crank stops 4 s after the timing started.
+      // &pedal=stop: the crank stops 4 s after the timing started. &pedal=none: it never turns.
       if (pedalMode === 'stop' && ph.started && t - ph.started > 4) th = s.frozen ??= th;
+      if (pedalMode === 'none') th = -Math.PI / 2;
       lm = synthPose(th, o);
     }
     if (lm && slide && s.moved) lm = lm.map(p => ({ ...p, x: p.x + slide / 1280 }));
+    if (resting) lm = null;
+    if (lm && awayShift && s.awayAt != null) lm = lm.map(p => ({ ...p, x: p.x + awayShift / 1280 }));
+    if (arriveIn && lm && phase === arriveIn) s.arrT ??= t;
+    if (s.arrT != null && t - s.arrT < arriveMiss) lm = null; // the pose model misses him as the helper arrives
     const poses = lm ? [lm] : [];
+    if (s.arrT != null) poses.push(synthHelper({ ...arriving, noise: 1.2 }));
     if (helper === 'visible') poses.push(synthHelper({ at: -520, reach: [-300, 745], noise: 1.2 }));
     if (helper === 'lean') poses.push(synthHelper({ at: -260, frontal: false, lean: 40, kneeBend: 25, depth: 0.95, noise: 1.2 }));
     if (helper === 'braced') poses.push(synthHelper({ at: -650, frontal: false, lean: 45, kneeBend: 35, depth: 0.9, reach: [450, 700], noise: 1.2 }));
+    // &restpose=braced: while he is away on his break, the friend half-crouches at the bike as
+    // &helper=braced does (in place of &helper's pose, or into view if there is none); once he is
+    // back, as before.
+    if (restPose && resting) {
+      const i = poses.findIndex(x => x !== lm);
+      if (i >= 0) poses.splice(i, 1);
+      poses.push(synthHelper({ at: -650, frontal: false, lean: 45, kneeBend: 35, depth: 0.9, reach: [450, 700], noise: 1.2 }));
+    }
     if (poses.length > 1 && shuffle() < 0.5) poses.reverse();
-    return { poses, W: 1280, H: 720, rider: lm ? poses.indexOf(lm) : null };
+    return { poses, W: 1280, H: 720, rider: lm ? poses.indexOf(lm) : -1 };
   };
   return s;
 }

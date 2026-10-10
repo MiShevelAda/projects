@@ -1012,6 +1012,43 @@ test('the summary status agrees with the areas', () => {
   assert.equal(areasOf(null, { strokes: 12, kneeFlex: 35, torso: 36, elbow: 7, shoulder: 98 }).reach.grade, 'red');
 });
 
+test('the handlebars advice only counts angles the screen shows as out of range', () => {
+  // Round 2 found "Raise the handlebars" (Needs attention) from a back at 38 and a shoulder at 97,
+  // while both rows said "within 2.5° of the target ... counts as in range" and "No change needed.".
+  const edge = { strokes: 12, strokesSeen: 12, kneeFlex: 36, torso: 38, elbow: 20, shoulder: 97 };
+  const r = fit.advise(null, edge);
+  assert.equal(r.change, null);
+  assert.notEqual(fit.headline(r).what, 'Raise the handlebars');
+  assert.equal(areasOf(null, edge).reach.status, 'Good');
+  // Just past the tolerance on both: two signs, and both rows say so.
+  const past = fit.advise(null, { ...edge, torso: 37.4, shoulder: 97.6 });
+  assert.equal(past.change?.kind, 'bars');
+  // Every combination around the edges: a sign counts exactly when its row is out of range, on the
+  // side that means a long, low front, and the bars change comes exactly when two signs count.
+  const sideOf = (row) => (row.grade === 'green' || row.grade === 'na' ? 'in' : 'out');
+  for (const torso of [34, 37, 37.4, 37.5, 37.6, 38, 39.9, 40, 45]) for (const shoulder of [90, 95, 95.1, 97.4, 97.5, 97.6, 98, 101])
+    for (const elbow of [5, 7.9, 8, 10, 12.4, 12.5, 12.6, 20]) {
+      const p = { strokes: 12, strokesSeen: 12, kneeFlex: 36, torso, elbow, shoulder };
+      const res = fit.advise(null, p);
+      const rows = Object.fromEntries(fit.measures(res, p).map(x => [x.key, x]));
+      const out = { torso: sideOf(rows.torso) === 'out' && torso < 40, shoulder: sideOf(rows.shoulder) === 'out' && shoulder > 95, elbow: elbow < 8 };
+      const n = Object.values(out).filter(Boolean).length;
+      const at = `torso ${torso}, shoulder ${shoulder}, elbow ${elbow}`;
+      assert.equal(res.change?.kind === 'bars', n >= 2, at);
+      if (res.change?.kind === 'bars') {
+        assert.deepEqual(res.change.flags, ['torso', 'shoulder', 'elbow'].filter(k => out[k]), at);
+        for (const k of res.change.flags) {
+          assert.notEqual(rows[k].status, 'Good', `${at}: ${k} is part of the change`);
+          assert.ok(!/counts as in range/.test(rows[k].why), `${at}: ${rows[k].why}`);
+          assert.equal(rows[k].step, 'Part of the main change: raise the handlebars.', at);
+        }
+      }
+      const reach = fit.areas(res, Object.values(rows))[1];
+      // The Fair reason calls an angle one sign of a long, low front only when it is one.
+      if (!res.change && reach.grade === 'amber') assert.equal(/That is one sign of a long, low front end/.test(reach.why), n === 1, `${at}: ${reach.why}`);
+    }
+});
+
 // ── slow pedalling with pose noise, and too few frames a turn ─────────────────────────────────
 function rideAt(fps, rev, { secs = 22, noise = 5, seed = 1 } = {}) {
   const rand = seeded(seed * 7 + fps), p0 = rand() * 2 * Math.PI, out = [];

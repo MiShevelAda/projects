@@ -50,10 +50,11 @@ If a step does not work, the voice tells you what to try, and every step has a w
 voice names when a step is not working: Skip for the level check; Skip, and then carrying on without
 it, after 3 tries of the same picture check in one session (even if you move the phone in between);
 Stop when it cannot see you. No sentence is said more than twice in a session: after that, the next
-line is a different one or the way out. The exception is getting back on after you moved the phone:
-that step starts again each time, so its lines do too ("I cannot see you on the bike yet", and the
-turn-the-pedals question below), at most twice each time. A limit for the whole session left the
-third time on the bike in silence. If you tap Stop, the home screen opens with "Stopped. Nothing
+line is a different one or the way out. The exception is getting back on after you moved the phone,
+or after a break while holding still (see "Two people in the picture"): those steps start again each
+time, so their lines do too ("I cannot see you on the bike yet", the turn-the-pedals question below,
+the picture check and holding still), at most twice each time. A limit for the whole session left
+the third time on the bike in silence. If you tap Stop, the home screen opens with "Stopped. Nothing
 was saved.", and "Your last change is still waiting to be checked." when one is.
 
 ## Three ways to hold the bike
@@ -150,13 +151,31 @@ and the app picks the rider:
   main body points are nearer the rider's last ones wins, when the other is at least 1.5 times as
   far (a design choice). On the made-up people a braced helper was always at least 4.8 times as far.
 - **Never a doubtful frame.** If two people could each be the rider, nobody is measured in that
-  frame. Right after someone else was at your hip, a lone person there is taken only if they are
-  close to your last pose (within a third of a torso length on average, a design choice: on the
-  made-up people the rider stayed within a quarter of one at any pedal position, and every helper
-  tried was more than four tenths away). After you were out of view, you are found again the same
-  way, near where you were; someone who only looks like a rider is never taken because they are the
-  only one left. The model can also list the same person twice (it did in testing, about 10 pixels
-  apart), and the app counts that as one.
+  frame. A lone person at your spot is taken only if they are close to your last pose (within a
+  quarter of a torso length on average, a design choice: on the made-up people the rider stayed
+  within 0.21 of one between any two pedal positions, and within 0.245 sitting 2 to 3.5 cm off where
+  he sat; of 5058 made-up helper shapes at the rider's hip, the nearest, leaning in with the hand
+  nearest the phone on top of the brake lever where the rider's hand is, came to 0.28). The pose
+  model can miss you in the very frame a friend comes to your hip; the friend used to be taken then,
+  and followed for the rest of the session. An earlier gate of a third of a torso length still let
+  that friend through, because the helpers tried for it never had a hand where yours is. A friend
+  with both hands on the hoods comes closer still (0.235 to 0.265), as close as you come to yourself,
+  but never sits like a rider; so a lone person who does not sit like a rider must be within a fifth
+  of a torso length (a design choice: your own pose with the thigh glitched straight was 0.17). If someone
+  else was at your hip in the last 2 seconds (a design choice), such a frame counts as one where two
+  people could each be the rider. After you were out of view, you are found again the same way, near
+  where you were; someone who only looks like a rider is never taken because they are the only one
+  left. With a wall or a trainer and nobody else seen yet, you are found anywhere in the picture
+  (you may get back on further along), but not in the first 3 seconds after the app last saw you
+  (the same design choice as below): a model that missed you for a second or two used to hand you
+  over to someone who came to your hip meanwhile sitting like a rider, and in that time you cannot
+  have got off and back on. Not solved, with a wall or a trainer: after those 3 seconds anyone
+  sitting like a rider is taken as you, so a model that misses you for longer, or a friend never
+  seen before who crouches at the bike while you are away, is measured as you; and a friend who
+  crouches at the bike before you get on is taken as you if you are not on the bike about 7 seconds
+  after the instruction ends (made-up sessions `setup=trainer&helper=braced&late=12` and
+  `setup=wall&helper=braced&back=30`). The model can also list the same person twice (it did in
+  testing, about 10 pixels apart), and the app counts that as one.
 - **After you moved the phone, found afresh.** When a picture check asks you to get off and move the
   phone, where you were in the picture means nothing any more: a phone turned or slid along, without
   being tilted, does not set off the level check, and "near where you were" would never find you
@@ -165,6 +184,21 @@ and the app picks the rider:
   the bike, silently: you were already told to get back on, and the correction stays on the screen.
   With a friend, or anyone else seen, it then asks you to turn the pedals again. Skip is still on the
   screen meanwhile, for that picture check.
+- **After a break while holding still, found afresh too.** With a friend, or anyone else seen, a
+  rider who gets back on a little further along (the friend takes a new grip, the bike rolls) is not
+  near where he was, and used to be waited for for ever. So once you have been out of sight for 3
+  seconds and, for a second more (a design choice), someone new sits like a rider somewhere else in
+  the picture, it goes back to getting on the bike, silently, and asks you to turn the pedals again;
+  then it checks the picture and you hold still once more. "Someone new" means more people sitting
+  like a rider than while you were followed there, so a friend already crouching at the bike does
+  not count. Nothing from the interrupted step is used, so it does not count towards "less exact".
+  The one sitting down can also be a friend who crouches at the bike while you rest. So meanwhile
+  you are still found back where you were, as while holding still, and the two questions lead to "I
+  cannot tell who is on the bike" only if someone sat down after one of them; otherwise it waits for
+  you with the lines for nobody on the bike ("I cannot see you on the bike yet ..."), and if you sit
+  down somewhere else after both, you are asked once more. Before, a friend crouching only during
+  your break used both questions while you were off the bike, and the session stopped with "Tap Stop
+  on the screen", or measured the friend.
 - **The voice says so.** Once the rider is known and someone else is clearly in view for more than
   about 2 seconds, it says "Friend: stand behind the rider, on the far side of the bike, out of the
   camera's view as much as you can." With a wall or a trainer: "I can see another person. If they
@@ -255,7 +289,8 @@ between one bottom and the next. If you pedal too fast for the phone, it asks yo
 counts the turns by the ankle going up and down, so pose noise at the bottom of a slow turn does not
 make it ask a slow rider to go slower.
 
-Bar advice only comes once the saddle height is right, and only when two of three signs agree.
+Bar advice only comes once the saddle height is right, and only when two of three signs agree, each
+from an angle the results show as out of range.
 
 **If less was exact than usual**, the results say what and give one step: "Less exact this time:
 the light was low. To be sure before you change anything, film again in more light." Copy results
@@ -265,14 +300,20 @@ uses the same words.
 
 - **The pedalling time counts only while the pedals turn.** The countdown reads "Paused" after 3
   seconds without movement, and "Ten seconds left" never comes while you are stopped.
-- "Keep pedalling" is said at most twice in a row. Then: "Take your time. Pedal again when you are
-  ready, or tap Stop." It waits up to 20 more seconds (the step's existing extra time) and then
+- "Keep pedalling" is said at most twice in a row, and never after a Yes to the pain question (see
+  below). Then: "Take your time. Pedal again when you are ready, or tap Stop." It waits up to 20
+  more seconds (the step's existing extra time) and then
   finishes with what it has. Only the part before you stopped is measured: a foot held still would
   otherwise look like fast pedal strokes.
 - **With a Yes to the pain question**, the pedalling instruction ends "If your knee hurts, stop
   pedalling. I will use what I have.", and stopping gets "If it hurts, stop. I will use what I
-  have." It finishes 5 seconds later, with a pedalling reading if it saw 5 strokes, else the
-  held-still one.
+  have." straight away: nothing asks you to keep going ("Keep pedalling", "Keep going", "Pedal
+  again"). It finishes 5 seconds later, with a pedalling reading if it saw 5 strokes, else the
+  held-still one. The same when the pedals are never seen turning (you did not start because it
+  hurts, or the phone gets too few frames a second to see it): 10 seconds after the instruction
+  that line comes in place of "I cannot see the pedals turning. Keep pedalling ...", and 5 seconds
+  later "Stop. You can relax." and "I could not see the pedals turning, so I can only give you the
+  held-still reading." (or "... there is not enough to measure this time.").
 - "Keep going, a little slower" only when the strokes were too fast for the phone; otherwise "Keep
   going. A few more turns." "Stop. Well done, you can relax." only for a full reading; otherwise
   "Stop. You can relax." On a trainer or rollers it first says "On rollers, put your hand back on
@@ -280,7 +321,8 @@ uses the same words.
   the pedalling instruction there also says "On rollers, put your hand on the wall first."
 - **Holding still, if you get off to rest**, the first line is "Take your time. Get back on when you
   are ready. I will wait." The 45 seconds after which it goes on without a still reading count only
-  the time you are in view.
+  the time you are in view. With a friend, or anyone else seen, getting back on somewhere else in
+  the picture sends it back to getting on the bike (see "Two people in the picture").
 
 ## Checking a change you made
 
@@ -331,8 +373,12 @@ or not sure: ask a bike shop." is a design choice.
 
 One difference from AI Bike Fit. Its front-end rule counts a closed shoulder (under 80) and bent
 elbows (over 30) as signs of a long, low front end. Both usually mean the bars are close, not far,
-so this app counts only a low back (under 40), a shoulder over 95 and locked elbows (under 8). Two
-of the three must agree before it suggests raising the bars.
+so this app counts only a low back (under 40), a shoulder over 95 and locked elbows (under 8). The
+back and the shoulder count only when they are more than 2.5 degrees past those numbers, because
+within 2.5 degrees the results call a reading in range: a back at 38 and a shoulder at 97 used to
+give "Raise the handlebars" next to two rows saying "No change needed." Locked elbows, under 8, are
+already more than 2.5 below the elbow target. Two of the three must agree before it suggests raising
+the bars.
 
 ## Pain or numbness
 
@@ -398,7 +444,9 @@ results.
 - `npm test` runs the measuring maths tests, the offline-cache checks, checks on what the app
   says and shows, and whole `?sim` sessions in Node on a virtual clock (`test/flow.test.mjs`, which
   starts `test/flow-runner.mjs` once per session; Node 20 or newer). The runner can be used on its
-  own: `node test/flow-runner.mjs "setup=friend&slide=70"` prints the session as JSON.
+  own: `node test/flow-runner.mjs "setup=friend&slide=70"` prints the session as JSON. `pain` in its
+  query taps Yes to the pain question first (the page itself never takes that answer from the
+  address), and `fps=3` sets the made-up camera's frames a second (30 by default).
 - Add `?sim` to the address to walk the whole flow with a made-up rider and no camera.
   `?sim&low` makes the saddle too low. `&setup=trainer`, `&setup=wall` or `&setup=friend` answers
   "How will your bike stay up?" (also without `?sim`; a choice made on the page replaces it in the
@@ -408,7 +456,12 @@ results.
   sits like a rider; each is there from the start. `&late=12` has the rider get on 12 seconds into
   the "get on" step, and `&back=30` 30 seconds into each later one (3 by default). `&pedal=wrong`
   pedals the wrong way for the setup, `&pedal=stop` stops the pedals 4 seconds after the timing
-  starts, and `&away=40` takes the rider out of view for 40 seconds while holding still. `&slide=70`:
+  starts, `&pedal=none` never turns them, and `&away=40` takes the rider out of view for 40 seconds
+  while holding still, once a session; with `&awayshift=80` he gets back on 80 pixels further along
+  in the picture, and with `&restpose=braced` the friend half-crouches at the bike while he is away.
+  `&arrive=still` (or any other step) has a helper come to the rider's hip in that step and stay,
+  leaning in with a hand on top of the brake lever (`&ah=braced`: the braced helper), and the pose
+  model miss the rider on that first frame (`&miss=1.5`: for 1.5 seconds). `&slide=70`:
   after a picture correction, the phone is turned or slid along without being tilted, and the rider
   gets back on 70 pixels further along in the picture. `&unfixed`: moving the phone never fixes the
   picture, so the same check asks three times and is then skipped. The made-up rider does what the
@@ -416,8 +469,8 @@ results.
   never said leaves it sitting still), and after a picture correction it gets off, moves the phone
   (which then has to be levelled again, unless `&slide`) and gets back on. On a trainer it pedals
   forwards.
-- `window.__bfc` in the browser has the counts the tests read: `wrongPicks` (frames where the
-  made-up helper was measured; must be 0), `ambiguous` and `ambiguousBy` (frames nobody was measured
+- `window.__bfc` in the browser has the counts the tests read: `wrongPicks` (frames where someone
+  other than the made-up rider was measured, also when the rider was not in the picture; must be 0), `ambiguous` and `ambiguousBy` (frames nobody was measured
   in, by step), `asks` and `identified` (the turn-the-pedals question), `said` (every line queued)
   and `started` (every line as it began playing, with the caption shown then).
 - The voice: lines are queued and spoken one at a time, and the caption on the run screen changes

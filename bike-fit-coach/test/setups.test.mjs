@@ -96,23 +96,157 @@ test('rider selection stays on the rider from frame to frame, whatever the order
   assert.ok(picked >= 20 * fps - lone - 2, `picked ${picked} of ${20 * fps - lone}`);
 });
 
-test('a lone pose at the rider\'s spot in riding posture is followed, unless someone else was just there', () => {
-  // Stands for a rider whose thigh hangs unusually straight at the bottom of the stroke: in riding
-  // posture (isRiding), but not sitting like a rider (isSeated), so it could not lock on there.
+test('a lone pose at the rider\'s spot is followed only when it is close to the rider\'s last pose', () => {
+  // A rider whose thigh hangs unusually straight at the bottom of the stroke: his own pose with the
+  // knee point straight under the hip, as the pose model can put it for a frame. In riding posture
+  // (isRiding), but not sitting like a rider (isSeated), so it could not lock on there.
   const rider = synthPose(0);
-  const unseated = synthHelper({ at: -260, frontal: false, lean: 40, kneeBend: 25, depth: 0.95 });
+  const straight = synthPose(-Math.PI / 2);
+  straight[25] = { ...straight[25], x: straight[23].x };
+  const a = fit.frameAngles(straight, 'L', W, H);
+  assert.ok(fit.isRiding(a) && !fit.isSeated(a), `thigh ${a.thighFwd}, knee ${a.kneeFlex}`);
   const first = fit.pickRider([rider], null, 0, W, H);
-  assert.equal(fit.pickRider([unseated], first.track, 0.2, W, H).lm, unseated);
-  assert.equal(fit.pickRider([unseated], null, 0.2, W, H).lm, null); // never to lock on
+  assert.equal(fit.pickRider([straight], first.track, 0.2, W, H).lm, straight);
+  assert.equal(fit.pickRider([straight], null, 0.2, W, H).lm, null); // never to lock on
+  // A helper leaning in at the rider's hip, in riding posture, on a frame where the pose model missed
+  // the rider: never taken, whether or not anyone was at the hip before. It used to be taken whenever
+  // nobody had been there in the last NEAR_KEEP seconds, and then followed for the rest of the session.
+  const leaning = synthHelper({ at: -260, frontal: false, lean: 40, kneeBend: 25, depth: 0.95 });
+  const arrives = fit.pickRider([leaning], first.track, 0.2, W, H);
+  assert.equal(arrives.lm, null);
+  assert.equal(arrives.ambiguous, false, 'one pose seen, and nobody else was at the hip: not two who could each be the rider');
   // Someone else was right at the rider's hip a moment ago: the lone pose could be them.
-  let p = fit.pickRider([rider, unseated], null, 0, W, H);
+  let p = fit.pickRider([rider, leaning], null, 0, W, H);
   assert.equal(p.lm, rider);
-  const alone = fit.pickRider([unseated], p.track, 0.2, W, H);
+  const alone = fit.pickRider([leaning], p.track, 0.2, W, H);
   assert.equal(alone.lm, null);
   assert.equal(alone.ambiguous, true);
-  // Followed alone for longer than NEAR_KEEP, it counts again.
+  assert.equal(fit.pickRider([straight], p.track, 0.2, W, H).lm, straight, 'close to his last pose: still him');
+  // Followed alone for longer than NEAR_KEEP, the helper is still not taken.
   for (let t = 0.5; t <= fit.NEAR_KEEP + 0.5; t += 0.5) p = fit.pickRider([rider], p.track, t, W, H);
-  assert.equal(fit.pickRider([unseated], p.track, fit.NEAR_KEEP + 0.7, W, H).lm, unseated);
+  assert.equal(fit.pickRider([leaning], p.track, fit.NEAR_KEEP + 0.7, W, H).lm, null);
+});
+
+test('a helper who arrives at the rider\'s hip on a frame where the model misses the rider is never measured', () => {
+  // Round 2's probe: the rider pedals alone for 5 s, then a helper comes to his hip, and from then on
+  // the pose model misses the rider in some frames (only the helper is returned). Once taken, the
+  // helper used to be followed for the rest of the session.
+  const helpers = {
+    lean: { at: -260, frontal: false, lean: 40, kneeBend: 25, depth: 0.95 },
+    steady: { at: -350, frontal: false, lean: 50, kneeBend: 20, depth: 0.92, reach: [-220, 760] },
+    braced: { at: -650, frontal: false, lean: 45, kneeBend: 35, depth: 0.9, reach: [450, 700] },
+  };
+  for (const fps of [3, 10, 30]) for (const [name, h] of Object.entries(helpers)) for (let seed = 1; seed <= 40; seed++) {
+    const rand = seeded(seed * 7 + fps);
+    let track = fit.trackFrom(synthPose(-Math.PI / 2), 0, W, H), riderFrames = 0, both = 0;
+    for (let i = 0; i < 20 * fps; i++) {
+      const t = i / fps;
+      const rider = synthPose(-Math.PI / 2 + (2 * Math.PI * t) / 1.5, { noise: 1.2, rand });
+      const helper = synthHelper({ ...h, noise: 1.2, rand });
+      // The frame the helper arrives on, the model returns only the helper; after that, about one in seven.
+      const missed = i === 5 * fps || (i > 5 * fps && rand() < 0.15);
+      const poses = i < 5 * fps ? [rider] : missed ? [helper] : rand() < 0.5 ? [rider, helper] : [helper, rider];
+      const p = fit.pickRider(poses, track, t, W, H, 'L', { lock: 'near' });
+      track = p.track;
+      assert.notEqual(p.lm, helper, `${name}, ${fps} poses/s, seed ${seed}: the helper measured at ${t.toFixed(2)} s`);
+      if (i > 5 * fps && !missed) { both++; if (p.lm === rider) riderFrames++; }
+    }
+    assert.ok(riderFrames >= 0.9 * both, `${name}, ${fps} poses/s, seed ${seed}: the rider measured in ${riderFrames} of ${both} frames`);
+  }
+});
+
+// Helpers leaning in at the rider's hip with the camera-side hand on the hoods, where the rider's
+// hand is: the nearest to the rider of 5058 helper shapes tried (scratchpad fixR3b/dist.mjs), the
+// first one the QA round 3 shape. The fifth sits like a rider.
+const HOODS = [
+  { at: -200, frontal: false, lean: 30, kneeBend: 20, depth: 0.9, reach: [540, 640] },
+  { at: -200, frontal: false, lean: 30, kneeBend: 20, depth: 0.95, reach: [540, 640] },
+  { at: -150, frontal: false, lean: 30, kneeBend: 10, depth: 0.85, reach: [540, 640] },
+  { at: -100, frontal: false, lean: 30, kneeBend: 10, depth: 0.9, reach: [540, 640] },
+  { at: -200, frontal: false, lean: 30, kneeBend: 30, depth: 1, reach: [540, 640] },
+  { at: -260, frontal: false, lean: 40, kneeBend: 10, depth: 1, reach: [540, 640] },
+];
+
+test('a helper leaning in at the hip with a hand on the hoods is never taken on a frame where the model misses the rider', () => {
+  // QA round 3: such a helper comes within 0.28 of a torso length of the rider, inside the old 0.33
+  // gate, so on the frame they arrived and the model missed the rider they were taken, and then
+  // followed for the rest of the session.
+  const deg = (d) => (d * Math.PI) / 180;
+  for (const h of HOODS) for (let a = 0; a < 360; a += 15) {
+    const first = fit.pickRider([synthPose(deg(a))], null, 0, W, H, 'L');
+    assert.ok(first.lm, `the rider at ${a}°`);
+    const p = fit.pickRider([synthHelper(h)], first.track, 0.1, W, H, 'L', { lock: 'near' });
+    assert.equal(p.lm, null, `${JSON.stringify(h)}: taken after the rider at ${a}°`);
+  }
+  // Sessions: the rider alone for 4 to 6 s, then the helper arrives on a frame the model misses the
+  // rider, and after that the model misses him in one frame in twenty, pedalling or holding still.
+  for (const still of [false, true]) for (const fps of [3, 10, 30]) for (const [n, h] of HOODS.entries()) for (let seed = 1; seed <= 12; seed++) {
+    const rand = seeded(seed * 13 + fps + n);
+    const arrive = 4 + 2 * rand();
+    let track = fit.trackFrom(synthPose(-Math.PI / 2), 0, W, H), first = true;
+    for (let t = 0; t < 12; t += 1 / fps) {
+      const rider = synthPose(still ? -Math.PI / 2 : -Math.PI / 2 + (2 * Math.PI * t) / 1.5, { noise: 1.2, rand });
+      const helper = synthHelper({ ...h, noise: 1.2, rand });
+      let poses;
+      if (t < arrive) poses = [rider];
+      else if (first) { poses = [helper]; first = false; }
+      else poses = rand() < 0.05 ? [helper] : rand() < 0.5 ? [rider, helper] : [helper, rider];
+      const p = fit.pickRider(poses, track, t, W, H, 'L', { lock: 'near' });
+      track = p.track;
+      assert.notEqual(p.lm, helper, `${JSON.stringify(h)}, ${fps} poses/s, ${still ? 'still' : 'pedalling'}, seed ${seed}: the helper measured at ${t.toFixed(2)} s`);
+    }
+  }
+});
+
+test('a helper leaning in at the hip with BOTH hands on the hoods is never taken on a frame where the model misses the rider', () => {
+  // QA round 3b: with the far hand on the hoods too, these helpers come within 0.235 to 0.265 of a
+  // torso length of the rider, inside RELOCK_GATE. None of them sits like a rider (isSeated), so they
+  // must pass the stricter UNSEATED_GATE, which they never do.
+  const bothHoods = (h, o = {}) => {
+    const lm = synthHelper({ ...h, ...o });
+    lm[14] = { ...lm[13], x: lm[13].x - 12 / W }; lm[16] = { ...lm[15], x: lm[15].x - 12 / W };
+    return lm;
+  };
+  const SHAPES = [...HOODS, { at: -200, frontal: false, lean: 30, kneeBend: 25, depth: 1, reach: [540, 640] },
+    { at: -150, frontal: false, lean: 35, kneeBend: 15, depth: 0.95, reach: [460, 670] }];
+  const deg = (d) => (d * Math.PI) / 180;
+  for (const h of SHAPES) for (let a = 0; a < 360; a += 15) {
+    const first = fit.pickRider([synthPose(deg(a))], null, 0, W, H, 'L');
+    const p = fit.pickRider([bothHoods(h)], first.track, 0.1, W, H, 'L', { lock: 'near' });
+    assert.equal(p.lm, null, `${JSON.stringify(h)}, both hands: taken after the rider at ${a}°`);
+  }
+  for (const still of [false, true]) for (const fps of [3, 10, 30]) for (const [n, h] of SHAPES.entries()) for (let seed = 1; seed <= 8; seed++) {
+    const rand = seeded(seed * 17 + fps + n);
+    const arrive = 4 + 2 * rand();
+    let track = fit.trackFrom(synthPose(-Math.PI / 2), 0, W, H), first = true;
+    for (let t = 0; t < 12; t += 1 / fps) {
+      const rider = synthPose(still ? -Math.PI / 2 : -Math.PI / 2 + (2 * Math.PI * t) / 1.5, { noise: 1.2, rand });
+      const helper = bothHoods(h, { noise: 1.2, rand });
+      let poses;
+      if (t < arrive) poses = [rider];
+      else if (first) { poses = [helper]; first = false; }
+      else poses = rand() < 0.05 ? [helper] : rand() < 0.5 ? [rider, helper] : [helper, rider];
+      const p = fit.pickRider(poses, track, t, W, H, 'L', { lock: 'near' });
+      track = p.track;
+      assert.notEqual(p.lm, helper, `${JSON.stringify(h)}, both hands, ${fps} poses/s, ${still ? 'still' : 'pedalling'}, seed ${seed}: the helper measured at ${t.toFixed(2)} s`);
+    }
+  }
+});
+
+test('the rider is followed from any pedal position to any other, and found again sitting a little off', () => {
+  // The gate a lone pose must pass (RELOCK_GATE) must still let the rider through: from one frame to
+  // the next at any pose rate, the crank can be anywhere, and back on after a break he may sit 20 to
+  // 35 mm off where he sat.
+  const deg = (d) => (d * Math.PI) / 180;
+  for (let a = 0; a < 360; a += 15) for (let b = 0; b < 360; b += 15) {
+    const first = fit.pickRider([synthPose(deg(a))], null, 0, W, H, 'L');
+    const next = synthPose(deg(b), { noise: 1.2, rand: seeded(a + b) });
+    assert.equal(fit.pickRider([next], first.track, 0.1, W, H, 'L', { lock: 'near' }).lm, next, `${a}° then ${b}°`);
+    for (const hipShift of [[20, 0], [-20, 0], [0, 20], [0, -20], [35, 0], [-35, 0]]) {
+      const back = synthPose(deg(b), { hipShift });
+      assert.equal(fit.pickRider([back], first.track, 5, W, H, 'L', { lock: 'near' }).lm, back, `${a}° then ${b}° sitting ${hipShift} mm off`);
+    }
+  }
 });
 
 test('the rider followed is let go after a second, and someone elsewhere is never taken meanwhile', () => {

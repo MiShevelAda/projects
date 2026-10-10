@@ -2,10 +2,16 @@
 // and prints what happened as JSON. It is a separate process (test/flow.test.mjs starts one per
 // session) because it replaces the page's globals: the clock, the timers and the frame loop.
 //   node test/flow-runner.mjs "setup=friend&slide=70" [max seconds, default 600]
+// "pain" in the query is for the runner, not the page: it taps Yes to the pain question before Start
+// (the app never takes that answer from the address), e.g. "pain&setup=wall&pedal=stop".
 // No speech engine, so the voice goes by its own estimate of the speaking time, as in the headless
 // test browser. Everything the page would show is a plain object; only what the checks need is read.
 
+// "fps=<n>" is for the runner too: the made-up camera's frames a second (30 by default).
 const query = process.argv[2] || '';
+const pain = query.split('&').includes('pain');
+const fpsArg = query.split('&').find(x => x.startsWith('fps='));
+const pageQuery = query.split('&').filter(x => x && x !== 'pain' && x !== fpsArg).join('&');
 const maxSecs = Number(process.argv[3]) || 600;
 const realSetTimeout = setTimeout;
 const tick = () => new Promise(r => realSetTimeout(r, 0));
@@ -75,7 +81,7 @@ globalThis.document = {
 globalThis.window = globalThis;
 Object.assign(globalThis, { innerWidth: 844, innerHeight: 390, devicePixelRatio: 1, scrollTo: noop, matchMedia: () => ({ matches: false }) });
 Object.defineProperty(globalThis, 'navigator', { value: { userAgent: 'node', platform: 'Linux', maxTouchPoints: 0, standalone: false }, configurable: true, writable: true });
-globalThis.location = { search: `?sim${query ? '&' + query : ''}`, pathname: '/', href: 'http://localhost/' };
+globalThis.location = { search: `?sim${pageQuery ? '&' + pageQuery : ''}`, pathname: '/', href: 'http://localhost/' };
 globalThis.history = { replaceState: noop };
 const store = new Map();
 globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
@@ -84,12 +90,13 @@ globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null)
 await import(new URL('../app.js', import.meta.url).href);
 const $ = (id) => document.getElementById(id);
 const bfc = globalThis.__bfc;
+if (pain) $('painYes').click();
 $('start').click();
 // start() waits for the made-up rider's module to load, on the real event loop.
 for (let i = 0; i < 500 && !bfc.phase(); i++) await tick();
 let endAt = null;
 const phases = [];
-const FPS = 30; // frames a second of the made-up camera (a design choice for the test)
+const FPS = Number(fpsArg?.slice(4)) || 30; // frames a second of the made-up camera (a design choice for the test)
 while (clock < maxSecs) {
   clock += 1 / FPS;
   runTimers();
