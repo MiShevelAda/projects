@@ -8,6 +8,19 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### Simpler and better than the competitor: one thing at a time on the surface, professional underneath
+
+> **"Not sure what's needed I want to make ot simpler and better"**
+
+Said after he sent eight screenshots of Bike Fast Fit Elite's demo (side and front video analysis,
+bike measurements, dense charts), and after the session listed what that app measures that ours does
+not. **The rule underneath, as the session reads it:** match a professional fit in what is measured,
+beat the competitor in how little the rider has to understand. The app may measure more (front or
+rear view, ankle, knee over pedal, hands, millimetres), but the rider still sees and hears one thing
+to change at a time, in plain words, with the expert numbers kept in a report for a fitter. Every
+extra step must earn its place: an extra view is asked for only when it can change the advice, and is
+never needed for a first result. He left what is needed to the team.
+
 ### The goal: compete with a professional in-person bike fit, good enough that a fitter rates it 9 out of 10
 
 > **"The goal of this app is really to compete with professional bike fitting done in person so also hand position is important also also additional videos from back should be taken so let the team work out the needs to be the best app in the appstore if I decide to make ot appstore ready it needs to be as professional so a bike fitter would rank or 9/10"**
