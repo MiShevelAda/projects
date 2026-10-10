@@ -86,7 +86,7 @@ test('How to Set Up: the guide video at the top, open, above the setup question 
   const video = card.match(/<video id="guideVideo"[^>]*>/)?.[0] || '';
   for (const a of ['src="assets/setup-guide.mp4"', 'poster="assets/setup-guide-poster.jpg"', ' controls', ' playsinline', 'preload="none"']) assert.ok(video.includes(a), a);
   assert.match(card, /<button id="soundTest" class="secondary" type="button">Test the Sound<\/button>/);
-  assert.match(text, /No sound\? Switch off silent mode and turn the volume up\./);
+  assert.match(text, /No sound\? Turn the volume up and switch off silent mode\. Keep silent mode off during the check too/);
   // His ruling: the better voice comes built in; the rider is never asked to change phone settings for it.
   assert.ok(!/Spoken Content|download a (better )?voice|Premium|Enhanced/i.test(text));
   // The other way of filming is still there, as it was.
