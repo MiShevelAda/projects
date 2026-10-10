@@ -8,6 +8,29 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### The phone stays on the chair, turned round so the screen faces the rider; not on the floor
+
+> **"also check if we can lean the phone on teh floor with the front camera on facing us to see the instructions this is how apple has it consider poth options and what teh best one is apple puts it on the floor in portrait format check with the team what the best waay would be"**
+
+A four-agent panel (geometry simulation, iPhone engineering, UX, judge) compared today's spot, Apple's
+floor lean in portrait, the front camera on the chair, and the front camera propped upright on the
+floor. Offered: *Chair, screen facing me* (recommended) / *Chair, screen away (today)* / *Floor like
+Apple*. **He picked "Chair, screen facing me".**
+
+**The rule underneath.** Follow Apple where it carries over to a bike; where Apple's placement would
+make the numbers wrong, keep the accurate spot and bring the Apple part to it. Here the Apple part is
+seeing the screen, and the spot is the chair: on the floor the back and arm angles read 2 to 3
+degrees wrong (three independent calculations agree), while the front camera on the chair has exactly
+today's geometry.
+
+**What it means.** Sideways, upright, level, on a chair with a box, about 3 m away, opposite the
+pedals. One question at the start picks the camera: screen facing the rider (front) or away (rear).
+**The rear camera stays the default until his phone test shows the front one reads the same**,
+because the front sensor gathers less light and has fixed focus on the iPhone 13 and older. From 3 m
+the screen shows only big things (a coloured border, one word, a countdown, the result); the voice
+still says everything, and during the hold and the pedalling it asks for eyes ahead. No floor mode,
+no portrait mode. Panel output: session scratchpad `camera-panel/` (not committed).
+
 ### Road bikes only, one history, and the flexibility test waits for the bike check
 
 Three questions from round 2's product lead, each with the session's recommendation first. He
