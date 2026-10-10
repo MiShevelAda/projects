@@ -8,6 +8,24 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### The screen question, no Excellent for now, and no voice commands for now
+
+Three questions, each with the session's recommendation first. He picked the recommendation every
+time:
+
+| Question | Offered | He picked |
+|---|---|---|
+| How the app asks which way the phone's screen faces | "Where will the screen face?" (Towards me / Away from me) / "See the screen from the bike?" / "Turn the screen towards you?" | **"Where will the screen face?"** |
+| An "Excellent" rating like Apple's | Not for now / After two matching checks / Yes, like Apple | **Not for now** |
+| Talking to the app ("repeat", "skip", "stop") | Not now / Yes, build it | **Not now** |
+
+**What it means.** The setup screen asks "Where will the screen face?" with Towards me and Away from
+me. The status words stay Needs attention / Fair / Good: a phone camera cannot tell the middle of a
+range from its edge, and repeat checks have not been measured yet, so Excellent waits for that
+evidence. No voice commands: the check is hands-free already, and in Safari spoken commands would
+most likely go to Apple's servers, which breaks the on-phone promise. This closes the voice-commands
+question left open in the Heart entry below.
+
 ### Like Apple's, the check shows on video how to place the phone, and an avatar shows when you are in position
 
 > **"It tells you and shows video how to position the phone and on the screen there's and avatar that tells you of you're in the right position"**
