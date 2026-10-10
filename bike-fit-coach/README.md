@@ -7,6 +7,11 @@ triathlon position on aero bars.
 
 **Open it on your phone:** https://mishevelada.github.io/projects/bike-fit-coach/
 
+**First time?** At the top of the home screen, **How to Set Up** is a short drawn guide, spoken and
+captioned: how the bike stays up, where the phone goes, and what happens after Start. Under it,
+**Test the Sound** plays one recorded line. If you hear nothing, switch off silent mode and turn the
+volume up.
+
 ## Using it
 
 1. Open the link in Safari on an iPhone, or Chrome on Android.
@@ -23,8 +28,8 @@ triathlon position on aero bars.
    answer is never saved. A Yes adds a note first in the results (see "Pain or numbness" below); it
    does not change the advice.
 5. Tap **Start** and allow the camera and the motion sensors (an iPhone asks twice). A rider who has
-   filmed before finds Start on the first screen; the setup steps fold into **Show the setup steps
-   again**.
+   filmed before gets the short version: the setup steps fold into **Show the setup steps again**,
+   and Start sits one short scroll down, under the setup guide.
 6. Follow the voice. It first says which setup you chose ("You chose: bike leaning on a wall. If
    that is wrong, tap Stop now."), and the run screen shows it under the step names. On a trainer it
    asks you to check the bike is level. It asks you to stand the phone sideways on something 60 to
@@ -481,6 +486,14 @@ results.
   only works over HTTPS or on localhost.
 - When anything in `vendor/` or `models/` changes, change the cache name in `sw.js` (the test says
   what it must contain), or phones keep the old engine.
+- Sound on an iPhone: every tap that leads to speech calls `unlockSound()` first, inside the tap
+  (the audio session, then a silent sample for the beeps, then one almost silent word for the
+  voice). The spoken voice and the beeps follow the silent switch (likely, not tested on a phone);
+  **Test the Sound** is a recorded clip in an `<audio>` element, which plays even on silent. The
+  voice is a Premium or Enhanced American or British voice when one is installed on the phone.
+- `assets/setup-guide.mp4` is built from the phone placement drawing, one render of the bike and
+  title cards, narrated by Heart (Kokoro `af_heart`). Video and sound clips are never cached by
+  `sw.js`: they are asked for in byte ranges, which it does not cut out of cached files.
 
 | File | What it is |
 |---|---|
@@ -488,7 +501,8 @@ results.
 | `app.js` | Camera, voice, tilt sensor and the step-by-step flow |
 | `fit.js` | The measuring maths and the words of the results, with no browser code, so it can be tested |
 | `sw.js` | Offline support from the first visit: the engine and the model are cached when it installs (that first visit may download them twice) |
-| `test/` | Tests, and the made-up rider and helper they use (`setups.test.mjs`: the three setups, picking the rider, and checks on what app.js says; `flow.test.mjs`: whole simulated sessions, run by `flow-runner.mjs`) |
+| `assets/` | The setup guide video and its poster, the sound check clip (`voice/`), and the older Camera app clip under "Another way" |
+| `test/` | Tests, and the made-up rider and helper they use (`setups.test.mjs`: the three setups, picking the rider, and checks on what app.js says; `flow.test.mjs`: whole simulated sessions, run by `flow-runner.mjs`; `sound.test.mjs`: the sound on an iPhone and the setup guide) |
 
 ## Credits
 

@@ -21,7 +21,8 @@ const $ = (id) => document.getElementById(id);
 const el = Object.fromEntries(['home', 'run', 'results', 'start', 'status', 'cam', 'overlay', 'say', 'sayNote', 'runSetup', 'phoneList', 'steps', 'chips', 'skip', 'stop', 'timer',
   'histCard', 'history', 'homeScreenTip', 'rOverall', 'rWhat', 'rWhy', 'rDisagree', 'rWarn', 'rList', 'keepVideo', 'shotCard', 'rShot', 'again', 'speak', 'saveVideo', 'copy', 'done',
   'retestCard', 'retestText', 'retestStart', 'histLatest', 'painNo', 'painYes', 'rPain', 'rCompare', 'rMade', 'rMadeAsk', 'rMadeSaved', 'rMadeYes', 'rMadeNo',
-  'hMade', 'hMadeQ', 'hMadeStart', 'setupCard', 'setupQ', 'setupErr', 'rSetup', 'rHow', 'rHowQ', 'stopped', 'stoppedWait', 'stepsFold']
+  'hMade', 'hMadeQ', 'hMadeStart', 'setupCard', 'setupQ', 'setupErr', 'rSetup', 'rHow', 'rHowQ', 'stopped', 'stoppedWait', 'stepsFold',
+  'guideVideo', 'soundTest', 'soundClip', 'soundErr']
   .map(id => [id, $(id)]));
 const now = () => performance.now() / 1000;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -39,6 +40,17 @@ const PAD = SIM ? 0.2 : 0.5; // seconds after each line
 // friend and one for the rider, so each can hear that the other's instruction is over.
 const TURN_GAP = 1.5;
 const speaker = (text) => (/^Friend\b/.test(text) ? 'friend' : 'rider');
+// The voice to speak with: a Premium, then an Enhanced American or British English voice when one is
+// installed on the phone (they sound less robotic), otherwise as before: British English on the
+// phone, then other English on the phone, then any English.
+function bestVoice(vs) {
+  const local = (v, re) => re.test(v.lang) && v.localService;
+  const tier = (word) => vs.find(v => local(v, /^en[-_](US|GB)/i) && new RegExp(word, 'i').test(`${v.name} ${v.voiceURI}`));
+  return tier('premium') || tier('enhanced')
+    || vs.find(v => local(v, /^en[-_]GB/i))
+    || vs.find(v => local(v, /^en[-_](US|AU|IE|GB)/i))
+    || vs.find(v => /^en/i.test(v.lang)) || null;
+}
 const Voice = {
   last: new Map(), count: new Map(), voice: null, engine: false,
   q: [], cur: null, gen: 0, lastEnd: 0, lastSpeaker: null, doneAt: 0,
@@ -46,20 +58,20 @@ const Voice = {
     this.engine = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
     if (!this.engine) return;
     el.say.removeAttribute('aria-live'); // it is spoken already; VoiceOver would say it twice
-    const pick = () => {
-      const vs = speechSynthesis.getVoices();
-      this.voice = vs.find(v => /^en[-_]GB/i.test(v.lang) && v.localService)
-        || vs.find(v => /^en[-_](US|AU|IE|GB)/i.test(v.lang) && v.localService)
-        || vs.find(v => /^en/i.test(v.lang)) || null;
-    };
+    const pick = () => { this.voice = bestVoice(speechSynthesis.getVoices()); };
     pick();
     speechSynthesis.addEventListener?.('voiceschanged', pick);
   },
-  unlock() { // iOS only lets a page speak after a tap, so the Start tap says something silent
+  // iOS only lets a page speak after a tap, so a tap that leads to speech says one short word,
+  // almost silently. Not empty and not at volume 0: iOS may not count either as speaking.
+  unlock() {
     if (!this.engine) return;
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0;
-    speechSynthesis.speak(u);
+    try {
+      const u = new SpeechSynthesisUtterance('Hi');
+      u.volume = 0.01;
+      if (this.voice) { u.voice = this.voice; u.lang = this.voice.lang; }
+      speechSynthesis.speak(u);
+    } catch { /* the lines still show on the screen */ }
   },
   est(text) { return text.split(/\s+/).length / RATE + PAD; },
   busy() { return !!this.cur || this.q.length > 0; },
@@ -157,8 +169,15 @@ const Voice = {
 // ── beeps, for the spirit level ───────────────────────────────────────────────────────────────
 const Beep = {
   ctx: null,
+  // From a tap: start (or wake) the audio and play one silent sample, which is what iOS waits for.
   init() {
-    try { this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)(); this.ctx.resume?.(); } catch { this.ctx = null; }
+    try { this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)(); this.ctx.resume?.(); } catch { this.ctx = null; return; }
+    try {
+      const s = this.ctx.createBufferSource();
+      s.buffer = this.ctx.createBuffer(1, 1, this.ctx.sampleRate);
+      s.connect(this.ctx.destination);
+      s.start(0);
+    } catch { /* the beeps may stay quiet; the voice does not depend on them */ }
   },
   tone(freq = 660, dur = 0.07, vol = 0.22) {
     const c = this.ctx;
@@ -175,6 +194,16 @@ const Beep = {
   },
   chime() { this.tone(660, 0.12); setTimeout(() => this.tone(990, 0.2), 140); },
 };
+
+// Every tap that leads to sound calls this first, before anything waits, because iOS allows sound
+// only from inside a tap: the audio session first (so the silent switch does not mute the page,
+// where the browser supports it), then the beeps, then the voice (speech: false for a tap that
+// plays a recording, so the unlock word does not speak over it).
+function unlockSound(speech = true) {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* not supported */ }
+  Beep.init();
+  if (speech) Voice.unlock();
+}
 
 // ── tilt sensor: is the phone sideways and level? ─────────────────────────────────────────────
 const Tilt = {
@@ -270,7 +299,7 @@ function askSetup() {
   el.setupErr.hidden = false;
   el.setupCard.scrollIntoView({ block: 'center' });
   el.setupQ.focus({ preventScroll: true });
-  Voice.unlock();
+  unlockSound();
   Voice.say('First, tell me how your bike will stay up.');
   return true;
 }
@@ -1267,10 +1296,10 @@ async function start() {
   el.stopped.hidden = true;
   el.rShot.removeAttribute('src');
   if (session) session.stillShot = null;
-  Voice.unlock();
-  // Web Audio is muted by the silent switch unless the page asks for playback (not in every browser).
-  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* not supported */ }
-  Beep.init();
+  // The guide video and the sound check stop, so they do not talk over the coach.
+  el.guideVideo.pause?.();
+  el.soundClip.pause?.();
+  unlockSound();
   const tiltReady = SIM ? Promise.resolve(true) : Tilt.request();
   el.start.disabled = true;
   el.again.disabled = true;
@@ -1534,7 +1563,7 @@ function madeHere(mm) {
   el.rMadeAsk.hidden = true;
   el.rMadeSaved.hidden = false;
   el.rMadeSaved.textContent = m.saved ? fit.madeNote(m.made) : 'This browser is not keeping your sessions, so I cannot check it next time.';
-  if (m.saved && m.made.mm > fit.MADE_STEP_MAX) { Voice.unlock(); Voice.say(fit.madeNote(m.made)); }
+  if (m.saved && m.made.mm > fit.MADE_STEP_MAX) { unlockSound(); Voice.say(fit.madeNote(m.made)); }
   if (before) start();
 }
 
@@ -1562,7 +1591,7 @@ function madeHome(mm) {
   if (!e) return;
   const m = markMade(e.at, e.suggested, mm);
   if (!m) { card('h').err.hidden = false; return; }
-  if (m.saved && m.made.mm > fit.MADE_STEP_MAX) { setStatus(fit.madeNote(m.made)); Voice.unlock(); Voice.say(fit.madeNote(m.made)); }
+  if (m.saved && m.made.mm > fit.MADE_STEP_MAX) { setStatus(fit.madeNote(m.made)); unlockSound(); Voice.say(fit.madeNote(m.made)); }
   if (before) start();
 }
 
@@ -1729,8 +1758,19 @@ el.done.addEventListener('click', () => {
   show('home');
   setStatus(landmarker || SIM ? 'Ready.' : '');
 });
+// "Test the Sound": a recorded clip in one shared audio element. An iPhone plays a media element
+// even on silent, which the spoken voice and the beeps may not do (likely, not tested on a phone).
+el.soundTest.addEventListener('click', () => {
+  el.guideVideo.pause();
+  unlockSound(false);
+  el.soundErr.hidden = true;
+  try { el.soundClip.currentTime = 0; } catch { /* not loaded yet: it starts at 0 anyway */ }
+  const played = el.soundClip.play();
+  played?.catch?.((e) => { if (e?.name !== 'AbortError') el.soundErr.hidden = false; });
+});
+el.guideVideo.addEventListener('play', () => el.soundClip.pause());
 // "Say it again": the longer version, with the reason and the other angles.
-el.speak.addEventListener('click', () => { Voice.unlock(); if (lastResult) Voice.say(fit.spokenSummary(lastResult, { pain, long: true }), { interrupt: true }); });
+el.speak.addEventListener('click', () => { unlockSound(); if (lastResult) Voice.say(fit.spokenSummary(lastResult, { pain, long: true }), { interrupt: true }); });
 for (const p of ['r', 'h']) {
   const c = card(p), save = p === 'r' ? madeHere : madeHome;
   for (const b of c.mmRow.querySelectorAll('[data-mm]')) {

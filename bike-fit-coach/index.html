@@ -51,6 +51,12 @@
   .status { color: var(--muted); font-size: 14px; margin: 8px 0 0; text-align: center; }
   .status.err { color: var(--bad); }
   video.howto { width: 100%; max-width: 100%; border-radius: 10px; background: #000; display: block; }
+  /* The setup guide at the top of the home screen, with the sound check under it. */
+  .guide video.howto { aspect-ratio: 16 / 9; height: auto; }
+  .guide .guideLine { margin: 0 0 10px; }
+  .soundRow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
+  .soundRow p { margin: 0; flex: 1 1 12em; }
+  .guide .err { margin: 8px 0 0; }
   details.other summary { cursor: pointer; font-weight: 600; }
   details.other[open] summary { margin-bottom: 10px; }
   .history { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -180,6 +186,21 @@
   <section class="card stopped" id="stopped" role="status" hidden>
     <p><b>Stopped. Nothing was saved.</b></p>
     <p id="stoppedWait">Your last change is still waiting to be checked.</p>
+  </section>
+
+  <section class="card guide" id="guideCard" aria-labelledby="guide-h">
+    <h2 id="guide-h">How to Set Up</h2>
+    <p class="small guideLine">Watch this first. It shows where the bike and the phone go.</p>
+    <video id="guideVideo" class="howto" src="assets/setup-guide.mp4" poster="assets/setup-guide-poster.jpg" controls playsinline preload="none" aria-label="How to set up: where the bike and the phone go, with captions"></video>
+    <div class="soundRow">
+      <button id="soundTest" class="secondary" type="button">Test the Sound</button>
+      <p class="small">No sound? Switch off silent mode and turn the volume up.</p>
+    </div>
+    <p id="soundErr" class="small err" role="status" hidden>The sound did not play. Tap Test the Sound again.</p>
+    <audio id="soundClip" preload="none">
+      <source src="assets/voice/sound-check.m4a" type="audio/mp4">
+      <source src="assets/voice/sound-check.mp3" type="audio/mpeg">
+    </audio>
   </section>
 
   <section class="card setup" id="setupCard" aria-labelledby="setup-h">

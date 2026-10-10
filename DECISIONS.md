@@ -8,6 +8,22 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### Sound you can test, a setup video at the top, and a better voice built in, not from his settings
+
+> **"Don't hear sounds and not explanation video on how to set up everything"**
+
+> **"Needs to be build in should be easier from customer experience"**
+
+The first, while testing the live app on his iPhone. **What it changed**, as a hotfix to the live
+app: every tap that leads to speech wakes the sound first, inside the tap; a **Test the Sound**
+button plays a recorded clip in Heart's voice; and a narrated, captioned drawn guide, **How to Set
+Up**, sits at the top of the home screen, marked "Drawn guide. A video with real people is coming."
+
+The second overruled a session's proposal to tell the rider to download a Premium voice in the
+iPhone's Settings. **The app never asks the rider to change phone settings for a better voice.** It
+still uses a Premium or Enhanced voice when one happens to be installed, and the natural voice comes
+built in, as the recorded Heart lines (the Heart entry below).
+
 ### The screen question, no Excellent for now, and no voice commands for now
 
 Three questions, each with the session's recommendation first. He picked the recommendation every

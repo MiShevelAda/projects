@@ -6,7 +6,14 @@
 // model sha256, both from NOTICE.md. Change it whenever anything in vendor/ or models/ changes, so
 // old engine files are dropped together. (test/sw.test.mjs fails if it falls out of step.)
 const CACHE = 'bfc-v2-mp0.10.35-4eaa5eb7';
-const CORE = ['./', './index.html', './app.js', './fit.js', './manifest.webmanifest', './icons/icon-192.png', './vendor/mediapipe/vision_bundle.mjs'];
+const CORE = ['./', './index.html', './app.js', './fit.js', './manifest.webmanifest', './icons/icon-192.png', './vendor/mediapipe/vision_bundle.mjs',
+  './assets/setup-guide-poster.jpg'];
+// Video and sound clips are never cached: the browser asks for them in byte ranges, Safari expects a
+// ranged answer (206) back, and this worker does not cut ranges out of cached files, so they always
+// come from the network.
+// Among them the setup guide (./assets/setup-guide.mp4) and the sound check
+// (./assets/voice/sound-check.m4a, ./assets/voice/sound-check.mp3).
+const MEDIA = /\.(mp4|m4a|mp3)$/;
 
 // The engine and the model, about 20 MB. On the first visit the page loads them before this worker
 // controls it, so caching them only on use left them out until the second visit. The page registers
@@ -46,7 +53,7 @@ const keep = (req, res) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== location.origin) return;
-  if (/\.mp4$/.test(url.pathname)) return; // video uses range requests; leave it to the network
+  if (MEDIA.test(url.pathname)) return; // range requests: leave them to the network (MEDIA, above)
   // Engine and model files (the .js glue, the .wasm, the bundle and the model) always come from the
   // same cache generation, so a phone never mixes new glue code with an old engine.
   if (url.pathname.includes('/vendor/') || url.pathname.includes('/models/') || /\.png$/.test(url.pathname)) {
