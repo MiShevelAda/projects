@@ -6,7 +6,7 @@ Skills every session in this repo can use. The skill check in `CLAUDE.md` looks 
 
 | Skill | From | Why it is here |
 |---|---|---|
-| `karpathy-guidelines` | `multica-ai/andrej-karpathy-skills`, commit `2c60614` (2026-04-20), MIT, copied verbatim on 2026-10-10 at Alex's request | Four coding habits that fit this repo's history: state assumptions, minimum code, surgical changes, a test that proves the goal. Text only: no scripts, no hooks |
+| `karpathy-guidelines` | `multica-ai/andrej-karpathy-skills`, commit `2c60614` (2026-04-20), MIT by its README's own "License: MIT" line (the repo has no LICENSE file), copied verbatim on 2026-10-10 at Alex's request | Four coding habits that fit this repo's history: state assumptions, minimum code, surgical changes, a test that proves the goal. Text only: no scripts, no hooks |
 
 **These are ours now.** Nothing updates them; re-copy upstream to update, never edit in place.
 
