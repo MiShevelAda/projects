@@ -1,0 +1,51 @@
+# Publishes every app in this repo to GitHub Pages on every push to main. An app is a top-level
+# folder with an index.html. Tests run first; if any fail, nothing deploys and the last good site stays live.
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test every project that has tests
+        run: |
+          for d in */; do
+            if [ -f "$d/package.json" ] && node -e "process.exit(require('./$d/package.json').scripts?.test ? 0 : 1)"; then
+              echo "== $d"
+              (cd "$d" && npm test)
+            fi
+          done
+
+      - name: Assemble the site
+        run: node .github/build-site.mjs
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

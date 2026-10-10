@@ -3,7 +3,7 @@
 Checks your road bike position with your phone camera and talks you through it out loud, so you
 can stay on the bike while it works. No trainer needed.
 
-**Open it on your phone:** https://mishevelada.github.io/bike-fit-coach/
+**Open it on your phone:** https://mishevelada.github.io/projects/bike-fit-coach/
 
 ## Using it
 
