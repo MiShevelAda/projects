@@ -57,7 +57,7 @@
   .history li { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 15px; }
   .latest { margin: 0 0 14px; display: grid; gap: 8px; font-weight: 700; }
   .pills { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pill.sm { font-size: 12px; letter-spacing: 0; text-transform: none; padding: 2px 8px; }
+  .pill.sm { font-size: 14px; letter-spacing: 0; text-transform: none; padding: 2px 8px; }
   .history li:first-child { border-top: 0; padding-top: 0; }
   .small { font-size: 14px; color: var(--muted); }
 
@@ -97,12 +97,56 @@
   .note.compare { border-left-color: var(--accent); }
   .retest { border-color: var(--accent); }
   .retest p { margin: 0; font-size: 17px; }
+  .retest p.small { font-size: 14px; }
   .made { display: grid; gap: 10px; }
   .made > div { display: grid; gap: 10px; }
   .made .q { margin: 0; font-size: 17px; font-weight: 700; }
   .made p { margin: 0; }
   .mm { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  /* How the bike stays up: three large choices, one per line. */
+  .setup .q { margin: 0 0 12px; font-size: 21px; font-weight: 800; line-height: 1.2; }
+  .choices { display: grid; gap: 10px; }
+  .choice { appearance: none; display: grid; gap: 2px; text-align: left; min-height: 64px; padding: 14px 16px; border-radius: var(--r); border: 2px solid var(--line); background: var(--bg); cursor: pointer; }
+  .choice b { font-size: 19px; }
+  .choice span { font-size: 14px; color: var(--muted); }
+  .choice[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--bg)); }
+  .choice[aria-pressed="true"] b::after { content: "  ✓"; color: var(--accent); }
+  .setupLine { margin: 0; color: var(--muted); font-size: 15px; }
   .mm input { width: 5.5em; font: inherit; font-size: 18px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  /* The change card: big millimetre buttons, nothing chosen beforehand. */
+  .mmChoices { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .mmChoices .secondary { min-height: 52px; font-size: 18px; font-weight: 800; padding: 10px 4px; }
+  .err { color: var(--bad); }
+  /* Start before choosing how the bike stays up: the card says so where the eye is. */
+  .card.needs { outline: 3px solid var(--bad); outline-offset: 2px; }
+  .setup .needsLine { margin: 0 0 12px; color: var(--bad); font-weight: 700; }
+  .stopped { border-color: var(--warn); }
+  .stopped p { margin: 0; }
+  .stopped p + p { margin-top: 6px; }
+  .card .primary.inCard { margin-top: 12px; font-size: 17px; padding: 13px 18px; }
+  .pain-note { margin: 6px 0 0; flex-basis: 100%; }
+  /* The setup steps, folded away for a rider who has filmed before; open, with no fold, the first time. */
+  .fold > summary { cursor: pointer; font-weight: 700; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); }
+  .fold[open] > summary { margin-bottom: 16px; }
+  .fold.first > summary { display: none; }
+  .fold > .card + .card { margin-top: 16px; }
+  .latest .nothing { color: var(--good); }
+  /* A rider who has filmed before knows the choices: the short version, so Start is on the first screen. */
+  .returning .ledeLong, .returning #setup-h, .returning .choice span { display: none; }
+  .returning .choice { min-height: 48px; padding: 10px 14px; }
+  .returning .setup .q { margin-bottom: 10px; }
+  details.howto { margin-top: 4px; }
+  details.howto summary { cursor: pointer; font-weight: 700; color: #6fb0ff; }
+  details.howto ol { margin: 8px 0 6px; padding-left: 22px; display: grid; gap: 4px; }
+  details.howto p { margin: 4px 0 0; }
+  .refile { display: grid; gap: 8px; margin-top: 10px; }
+  .refile .secondary { text-align: left; }
+  /* The run screen: how the bike is held, under the step pills; the last correction under the line
+     being said; the three points of the phone step. */
+  .runSetup { margin: 0; font-size: 13px; font-weight: 700; color: var(--muted); }
+  #sayNote { margin: 0; font-size: clamp(14px, 2.4vmin + 4px, 20px); font-weight: 600; color: #ffd27a; max-width: 900px; text-shadow: 0 1px 3px #000; }
+  .phoneList { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 8px; }
+  .phoneList li { font-size: clamp(13px, 2vmin + 4px, 17px); font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #0009; border: 1px solid #ffffff40; }
 
   /* ── running: the camera view ── */
   #run { position: fixed; inset: 0; background: #000; overflow: hidden; }
@@ -129,47 +173,69 @@
 <main id="home" class="page">
   <header>
     <h1>Bike Fit Coach</h1>
-    <p class="lede">Checks your saddle height and riding position through the phone camera. It talks you through every step, so you can stay on the bike. About 3 minutes.</p>
+    <p class="lede ledeLong">Checks your road bike position with your phone camera and talks you through it, so you can stay on the bike. A few minutes.</p>
+    <p class="lede">For road bikes with drop handlebars. It cannot check a time trial or triathlon position on aero bars.</p>
   </header>
 
-  <section class="card retest" id="retestCard" aria-labelledby="retest-h" hidden>
-    <h2 id="retest-h">Film again</h2>
-    <p id="retestText"></p>
+  <section class="card stopped" id="stopped" role="status" hidden>
+    <p><b>Stopped. Nothing was saved.</b></p>
+    <p id="stoppedWait">Your last change is still waiting to be checked.</p>
   </section>
 
-  <section class="card" aria-labelledby="need-h">
-    <h2 id="need-h">Before you start</h2>
-    <ul class="checklist">
-      <li>Turn the volume up and switch off silent mode. Everything is spoken.</li>
-      <li>When you tap Start, an iPhone asks twice: for the camera and for motion. Tap Allow both times. Motion is how it knows the phone is level.</li>
-      <li>Rotation lock off. Open Control Centre (swipe down from the top-right corner) and check the lock with the circle arrow is not lit.</li>
-      <li>Bike almost upright, with its far side lightly against a wall. Or a helper on the far side, hidden behind you.</li>
-      <li>About 3 m of space beside the bike, and something 60 to 80 cm high for the phone, such as a chair with a box on it.</li>
-      <li>Light on you, not a window behind you.</li>
-      <li>Normal riding kit and shoes. No trainer needed.</li>
-    </ul>
-  </section>
-
-  <label class="toggle card" for="keepVideo">
-    <input type="checkbox" id="keepVideo">
-    <span>Keep a video of each session<br><span class="small">Off: no video is kept. One still picture is shown on the results screen and is not saved. On: you can save the clip at the end and send it for the full analysis.</span></span>
-  </label>
-
-  <section class="card small" id="homeScreenTip" hidden>
-    <p style="margin:0">Add this to your Home Screen: tap Share, then Add to Home Screen. In Safari, your past sessions can be deleted if you do not open this page for 7 days.</p>
+  <section class="card setup" id="setupCard" aria-labelledby="setup-h">
+    <h2 id="setup-h">First question</h2>
+    <p id="setupQ" class="q" tabindex="-1">How will your bike stay up?</p>
+    <p id="setupErr" class="needsLine" hidden>First, tell me how your bike will stay up.</p>
+    <div class="choices" role="group" aria-labelledby="setupQ">
+      <button id="setupTrainer" class="choice" type="button" data-setup="trainer" aria-pressed="false"><b>On a trainer or rollers</b><span>You pedal forwards for 30 seconds.</span></button>
+      <button id="setupWall" class="choice" type="button" data-setup="wall" aria-pressed="false"><b>Leaning on a wall</b><span>You pedal backwards for 20 seconds.</span></button>
+      <button id="setupFriend" class="choice" type="button" data-setup="friend" aria-pressed="false"><b>A friend holds it</b><span>You pedal backwards for 20 seconds.</span></button>
+    </div>
   </section>
 
   <div>
     <div class="ask" role="group" aria-labelledby="pain-q">
-      <p id="pain-q">Do you get pain or numbness when you ride?</p>
+      <p id="pain-q">Do you get pain or numbness that keeps coming back when you ride?</p>
       <div class="row">
-        <button id="painNo" class="secondary" type="button" aria-pressed="true">No</button>
+        <button id="painNo" class="secondary" type="button" aria-pressed="false">No</button>
         <button id="painYes" class="secondary" type="button" aria-pressed="false">Yes</button>
       </div>
+      <p class="small pain-note">I ask every time. Your answer is not saved.</p>
     </div>
     <button id="start" class="primary" type="button" disabled>Loading…</button>
     <p id="status" class="status" role="status">Getting the pose model ready.</p>
   </div>
+
+  <section class="card retest" id="retestCard" aria-labelledby="retest-h" hidden>
+    <h2 id="retest-h">Film again</h2>
+    <p id="retestText"></p>
+    <button id="retestStart" class="primary inCard" type="button">Start</button>
+  </section>
+
+  <section class="card retest made" id="hMade" aria-labelledby="hmade-h" hidden>
+    <h2 id="hmade-h" style="margin:0">Your last change</h2>
+    <div>
+      <p id="hMadeQ" class="q" tabindex="-1"></p>
+      <div id="hMadeMmRow" class="mmChoices" role="group" aria-labelledby="hMadeQ">
+        <button class="secondary" type="button" data-mm="5">5 mm</button>
+        <button class="secondary" type="button" data-mm="10">10 mm</button>
+        <button class="secondary" type="button" data-mm="15">15 mm</button>
+        <button id="hMadeOther" class="secondary" type="button" data-mm="other">Other</button>
+      </div>
+      <div id="hMadeOtherRow" class="mm" hidden>
+        <label for="hMadeMm">How far</label>
+        <input id="hMadeMm" type="number" min="1" max="50" step="1" inputmode="numeric" placeholder="mm">
+        <button id="hMadeSave" class="secondary" type="button">Save</button>
+      </div>
+      <p id="hMadeErr" class="small err" hidden>Type how many millimetres it moved, a whole number from 1 to 50.</p>
+      <div class="row">
+        <button id="hMadeYes" class="secondary" type="button">Yes, I made it</button>
+        <button id="hMadeNo" class="secondary" type="button">Later: I will ask when you come back.</button>
+      </div>
+      <p id="hMadeTip" class="small">Tip: mark the seat post with tape before you move it, so you know how far it went.</p>
+      <button id="hMadeStart" class="primary inCard" type="button">Start</button>
+    </div>
+  </section>
 
   <section class="card" aria-labelledby="hist-h" id="histCard" hidden>
     <h2 id="hist-h">Your sessions on this phone</h2>
@@ -177,15 +243,44 @@
     <ul id="history" class="history"></ul>
   </section>
 
-  <section class="card" aria-labelledby="what-h">
-    <h2 id="what-h">What it checks</h2>
-    <ul class="checklist">
-      <li>Your saddle height first, then your reach and bar height.</li>
-      <li>About 3 minutes.</li>
-      <li>You need: a wall or a helper, something 60 to 80 cm high for the phone, and 3 m of space.</li>
-      <li>You hold the pedal at the bottom for 3 seconds, then pedal backwards for 20 seconds.</li>
-      <li>No video is kept unless you switch it on above.</li>
-    </ul>
+  <label class="toggle card" for="keepVideo">
+    <input type="checkbox" id="keepVideo">
+    <span>Keep a video of each session<br><span class="small">Off: no video is kept. One still picture is shown on the results screen and is not saved. On: you can save the clip at the end and send it for the full analysis.</span></span>
+  </label>
+
+  <details class="fold" id="stepsFold" open>
+    <summary>Show the setup steps again</summary>
+    <section class="card" aria-labelledby="need-h">
+      <h2 id="need-h">Before you start</h2>
+      <ul class="checklist">
+        <li data-for="none">Choose how your bike will stay up, above. The steps here change to match.</li>
+        <li data-for="trainer" hidden>Level the bike first. The middle of the front wheel should be as high off the floor as the middle of the back wheel. A trainer that holds the back wheel lifts it, so if the front sits lower, put a riser block or a thick book under the front wheel.</li>
+        <li data-for="trainer" hidden>On rollers, set up with a wall on the far side, away from the phone, so you can hold on while you get on, hold still, and start and stop pedalling.</li>
+        <li data-for="wall" hidden>A wall on the far side of the bike, away from the phone. Lean the bike only a little, with the bars straight.</li>
+        <li data-for="wall" hidden>Squeeze the front brake gently to keep the bike still. Only the hand nearest the phone needs to be on top of the brake lever (the hood).</li>
+        <li data-for="friend" hidden>Your friend stands up straight on the far side, away from the phone, next to the saddle, and holds the bike still. Where they hold it is up to them, as long as they do not crouch.</li>
+        <li>Turn the volume up and switch off silent mode. Everything is spoken.</li>
+        <li>When you tap Start, an iPhone asks twice: for the camera and for motion. Tap Allow both times. Motion is how it knows the phone is level.</li>
+        <li>Rotation lock off. Open Control Centre (swipe down from the top-right corner, or up from the bottom on an iPhone with a Home button) and check the lock with the circle arrow is not lit.</li>
+        <li>About 3 m of space beside the bike, and something 60 to 80 cm high for the phone, such as a chair with a box on it.</li>
+        <li>Light on you, not a window behind you.</li>
+        <li>Normal riding kit and shoes.</li>
+      </ul>
+    </section>
+    <section class="card" aria-labelledby="what-h">
+      <h2 id="what-h">What it checks</h2>
+      <ul class="checklist">
+        <li>Your saddle height first, then your reach and bar height, on a road bike with drop handlebars.</li>
+        <li>A few minutes.</li>
+        <li>You need: a trainer or rollers, a wall or a friend to keep the bike up, something 60 to 80 cm high for the phone, and 3 m of space.</li>
+        <li>You hold the pedal at its lowest point for 3 seconds, then pedal: forwards for 30 seconds on a trainer or rollers, backwards for 20 seconds against a wall or with a friend holding the bike.</li>
+        <li>No video is kept unless you switch it on above.</li>
+      </ul>
+    </section>
+  </details>
+
+  <section class="card small" id="homeScreenTip" hidden>
+    <p style="margin:0">Add this to your Home Screen: tap Share, then Add to Home Screen. In Safari, your past sessions can be deleted if you do not open this page for 7 days.</p>
   </section>
 
   <section class="card small" aria-labelledby="priv-h">
@@ -207,7 +302,14 @@
     <div class="steps" id="steps">
       <span data-step="phone">Phone</span><span data-step="mount">You</span><span data-step="frame">Picture</span><span data-step="still">Still</span><span data-step="pedal">Pedal</span>
     </div>
+    <p id="runSetup" class="runSetup"></p>
     <p id="say" aria-live="polite"></p>
+    <p id="sayNote" hidden></p>
+    <ul id="phoneList" class="phoneList" aria-label="Where the phone goes" hidden>
+      <li>Sideways and upright</li>
+      <li>60 to 80 cm off the floor</li>
+      <li>About 3 m from the side of the bike, facing the pedals</li>
+    </ul>
   </div>
   <div id="timer" class="num" hidden></div>
   <div class="hud-bottom">
@@ -223,21 +325,43 @@
   <p id="rPain" class="note" hidden></p>
   <p id="rCompare" class="note compare" hidden></p>
   <header class="verdict">
-    <span id="rOverall" class="pill">Result</span>
+    <!-- No overall status on screen: each area has its own, and a summary pill disagreed with them
+         (Fair above "Nothing to change today"). Kept hidden for the test scripts. -->
+    <span id="rOverall" class="pill" hidden>Result</span>
     <div id="rWhat" class="big"></div>
     <div id="rWhy" class="why"></div>
+    <p id="rSetup" class="setupLine" hidden></p>
   </header>
   <section id="rMade" class="card made" aria-labelledby="made-h" hidden>
     <div id="rMadeAsk">
-      <h3 id="made-h" class="q">Did you make this change?</h3>
-      <label id="rMadeMmRow" class="mm" for="rMadeMm">How far <input id="rMadeMm" type="number" min="1" max="15" step="1" inputmode="numeric"> mm</label>
+      <h3 id="made-h" class="q" tabindex="-1"></h3>
+      <div id="rMadeMmRow" class="mmChoices" role="group" aria-labelledby="made-h">
+        <button class="secondary" type="button" data-mm="5">5 mm</button>
+        <button class="secondary" type="button" data-mm="10">10 mm</button>
+        <button class="secondary" type="button" data-mm="15">15 mm</button>
+        <button id="rMadeOther" class="secondary" type="button" data-mm="other">Other</button>
+      </div>
+      <div id="rMadeOtherRow" class="mm" hidden>
+        <label for="rMadeMm">How far</label>
+        <input id="rMadeMm" type="number" min="1" max="50" step="1" inputmode="numeric" placeholder="mm">
+        <button id="rMadeSave" class="secondary" type="button">Save</button>
+      </div>
+      <p id="rMadeErr" class="small err" hidden>Type how many millimetres it moved, a whole number from 1 to 50.</p>
       <div class="row">
         <button id="rMadeYes" class="secondary" type="button">I made this change</button>
-        <button id="rMadeNo" class="secondary" type="button">Not yet</button>
+        <button id="rMadeNo" class="secondary" type="button">Later: I will ask when you come back.</button>
       </div>
       <p id="rMadeTip" class="small">Tip: mark the seat post with tape before you move it, so you know how far it went.</p>
     </div>
-    <p id="rMadeSaved" hidden>Saved. Next time you film, I will check what it did.</p>
+    <p id="rMadeSaved" hidden></p>
+  </section>
+  <section id="rHow" class="card" aria-labelledby="rHowQ" hidden>
+    <p id="rHowQ" class="q" style="margin:0;font-weight:700"></p>
+    <div class="refile" role="group" aria-labelledby="rHowQ">
+      <button class="secondary" type="button" data-refile="trainer" aria-pressed="false">On a trainer or rollers</button>
+      <button class="secondary" type="button" data-refile="wall" aria-pressed="false">Leaning on a wall</button>
+      <button class="secondary" type="button" data-refile="friend" aria-pressed="false">A friend holds it</button>
+    </div>
   </section>
   <p id="rDisagree" class="note" hidden>Your held-still reading was outside its range. Film once more to be sure.</p>
   <p id="rWarn" class="note" hidden></p>
@@ -246,8 +370,8 @@
     <ul id="rList" class="areas num"></ul>
   </section>
   <section class="card" aria-labelledby="shot-h" id="shotCard" hidden>
-    <h2 id="shot-h">At the bottom of the stroke</h2>
-    <img id="rShot" class="shot" alt="Your position at the bottom of the pedal stroke, with the measured joints marked">
+    <h2 id="shot-h">With the pedal at its lowest point</h2>
+    <img id="rShot" class="shot" alt="Your position with the pedal at its lowest point, with the measured joints marked">
   </section>
   <div class="row">
     <button id="again" class="primary" type="button">Film again</button>
@@ -258,7 +382,7 @@
     <button id="copy" class="secondary" type="button">Copy results</button>
     <button id="done" class="secondary" type="button">Home</button>
   </div>
-  <p class="small">Phone cameras are only accurate to a few degrees, so small differences mean little. Change one thing at a time, then film again to see what it did. For pain, numbness or a big change, see a professional bike fitter. For the most exact numbers, switch on Keep a video before you start, then save it here and send it for the full analysis.</p>
+  <p class="small">Phone cameras are only accurate to a few degrees, so small differences mean little. Change one thing at a time, then film again to see what it did. For pain or numbness that keeps coming back, see a professional bike fitter. For the most exact numbers, switch on Keep a video before you start, then save it here and send it for the full analysis. Not medical advice.</p>
 </main>
 
 <script type="module" src="app.js"></script>

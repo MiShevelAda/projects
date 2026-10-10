@@ -33,10 +33,13 @@ export function trueKneeFlexBDC(hip = HIP) {
 /**
  * opts: W, H (frame px), scale (px per mm), cx, cy (bottom bracket on screen), hipShift (mm,
  * moves the hip, i.e. the saddle), farGap (px, far shoulder/hip offset along the bike, to
- * fake a camera at an angle), noise (px), rand (0..1 generator).
+ * fake a camera at an angle), noise (px), rand (0..1 generator), mirror (the bike faces
+ * image-left: the picture is flipped left to right).
+ * theta: crank angle in radians, counterclockwise with y up. With the bike facing image-right,
+ * pedalling forwards turns it clockwise, so theta goes down; backwards, it goes up.
  */
 export function synthPose(theta, opts = {}) {
-  const { W = 1280, H = 720, scale = 0.33, cx = 600, cy = 520, hipShift = [0, 0], farGap = 0, noise = 0, rand = Math.random } = opts;
+  const { W = 1280, H = 720, scale = 0.33, cx = 600, cy = 520, hipShift = [0, 0], farGap = 0, noise = 0, rand = Math.random, mirror = false } = opts;
   const hip = [HIP[0] + hipShift[0], HIP[1] + hipShift[1]];
   const sho = [SHO[0] + hipShift[0], SHO[1] + hipShift[1]];
   const elbow = ik(sho, HAND, UPPER, FORE, -1);
@@ -58,6 +61,50 @@ export function synthPose(theta, opts = {}) {
   set(27, near.ankle, 0.95, -0.1); set(28, far.ankle, 0.55, 0.1);
   set(29, near.heel, 0.9, -0.1); set(30, far.heel, 0.5, 0.1);
   set(31, near.toe, 0.9, -0.1); set(32, far.toe, 0.5, 0.1);
+  if (mirror) for (const p of lm) p.x = 1 - p.x;
+  return lm;
+}
+
+/**
+ * A person standing near the bike, for the tests and ?sim&helper=...: feet on the floor, upright or
+ * leaning forward from the hips. World mm as in synthPose (bottom bracket at 0,0, y up). The floor
+ * is put 270 mm below the bottom bracket and the camera at 430 mm above it: made-up numbers for this
+ * made-up scene, not measurements.
+ * opts: at (mm along the bike where the person stands), depth (how much smaller than the rider they
+ * look, being further from the phone: 1 = same distance), frontal (facing the phone, so left and
+ * right are spread apart; otherwise side-on, facing image-right like the rider), lean (degrees the
+ * torso tips forward from upright), kneeBend (degrees), reach ([x, y] mm the camera-side hand
+ * reaches for, e.g. the saddle), vis (visibility of every point), noise (px), rand, and the frame
+ * options of synthPose (W, H, scale, cx, cy).
+ */
+export function synthHelper(opts = {}) {
+  const { W = 1280, H = 720, scale = 0.33, cx = 600, cy = 520, at = -520, depth = 0.88, frontal = true, lean = 0, kneeBend = 5,
+    reach = null, vis = 0.9, noise = 0, rand = Math.random } = opts;
+  const FLOOR = -270, EYE = 430;
+  const rad = (d) => (d * Math.PI) / 180;
+  const ankle = [at, FLOOR + 80];
+  // The knee bends forward and the hips go back, so the thigh stays near upright.
+  const knee = [ankle[0] + SHANK * Math.sin(rad(kneeBend)), ankle[1] + SHANK * Math.cos(rad(kneeBend))];
+  const hip = [knee[0] - THIGH * Math.sin(rad(kneeBend / 2)), knee[1] + THIGH * Math.cos(rad(kneeBend / 2))];
+  const sho = [hip[0] + 560 * Math.sin(rad(lean)), hip[1] + 560 * Math.cos(rad(lean))];
+  const elbow = reach ? ik(sho, reach, UPPER, FORE, -1) : [sho[0], sho[1] - UPPER];
+  const wrist = reach || [elbow[0], elbow[1] - FORE];
+  const head = [sho[0] + 60 * Math.sin(rad(lean)), sho[1] + 200];
+  // Seen from further away: shrunk towards the point straight ahead of the camera.
+  const P = (p, dx = 0) => {
+    const x = cx + scale * (at + depth * (p[0] - at)) + dx * depth, y = cy - scale * (EYE + depth * (p[1] - EYE));
+    return { x: (x + (rand() - 0.5) * 2 * noise) / W, y: (y + (rand() - 0.5) * 2 * noise) / H };
+  };
+  const lm = Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.5, z: 0, visibility: 0.1 }));
+  // Half-widths in px, left (+) and right (-), facing the phone; side-on they almost overlap.
+  const spread = frontal ? { sho: 62, elbow: 72, wrist: 76, hip: 46, knee: 36, ankle: 36, heel: 36, toe: 40 } : { sho: 6, elbow: 6, wrist: 6, hip: 5, knee: 5, ankle: 5, heel: 5, toe: 5 };
+  const set = (i, p, dx) => { lm[i] = { ...P(p, dx), z: 0.3, visibility: vis }; };
+  set(0, head, 0);
+  const pairs = [[11, 12, sho, 'sho'], [13, 14, elbow, 'elbow'], [23, 24, hip, 'hip'], [25, 26, knee, 'knee'], [27, 28, ankle, 'ankle']];
+  for (const [l, r, p, k] of pairs) { set(l, p, spread[k]); set(r, p, -spread[k]); }
+  set(15, wrist, spread.wrist); set(16, reach ? [sho[0], sho[1] - UPPER - FORE] : wrist, -spread.wrist);
+  set(29, [ankle[0] - 55, ankle[1] - 45], spread.heel); set(30, [ankle[0] - 55, ankle[1] - 45], -spread.heel);
+  set(31, [ankle[0] + 85, ankle[1] - 75], spread.toe); set(32, [ankle[0] + 85, ankle[1] - 75], -spread.toe);
   return lm;
 }
 

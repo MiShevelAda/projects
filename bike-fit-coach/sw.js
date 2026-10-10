@@ -1,5 +1,6 @@
-// Offline support. The pose engine and model are cached on first use and served from the cache
-// after that; the page and its code are fetched fresh when online, cached as a fallback.
+// Offline support. The pose engine and model are cached when the service worker installs (and on
+// first use, for anything else), and served from the cache after that; the page and its code are
+// fetched fresh when online, cached as a fallback.
 //
 // bfc- prefix + this app's version + MediaPipe Tasks Vision version + first 8 characters of the
 // model sha256, both from NOTICE.md. Change it whenever anything in vendor/ or models/ changes, so
@@ -7,8 +8,26 @@
 const CACHE = 'bfc-v2-mp0.10.35-4eaa5eb7';
 const CORE = ['./', './index.html', './app.js', './fit.js', './manifest.webmanifest', './icons/icon-192.png', './vendor/mediapipe/vision_bundle.mjs'];
 
+// The engine and the model, about 20 MB. On the first visit the page loads them before this worker
+// controls it, so caching them only on use left them out until the second visit. The page registers
+// this worker only after the model has loaded (app.js), so the browser's own cache can answer these
+// requests. That is not guaranteed: the headless test browser downloaded them a second time, once, on
+// the first visit. Best effort: if they fail, CORE still installs and they are cached on use as before.
+const MODEL = './models/pose_landmarker_full.task';
+// MediaPipe's own test for WebAssembly SIMD (the same bytes as in vision_bundle.mjs), so this caches
+// the engine build that the page will ask for.
+const SIMD_PROBE = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11]);
+async function engineFiles() {
+  let simd = false;
+  try { await WebAssembly.instantiate(SIMD_PROBE); simd = true; } catch { /* no SIMD: the other build */ }
+  const n = simd ? 'vision_wasm_internal' : 'vision_wasm_nosimd_internal';
+  return [`./vendor/mediapipe/wasm/${n}.js`, `./vendor/mediapipe/wasm/${n}.wasm`, MODEL];
+}
+
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE)
+    .then((c) => c.addAll(CORE).then(() => engineFiles().then((files) => c.addAll(files)).catch(() => { /* cached on use */ })))
+    .then(() => self.skipWaiting()));
 });
 
 // Every app on mishevelada.github.io shares this origin's cache storage, so only this app's own

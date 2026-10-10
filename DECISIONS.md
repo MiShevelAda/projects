@@ -8,6 +8,65 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### Road bikes only, one history, and the flexibility test waits for the bike check
+
+Three questions from round 2's product lead, each with the session's recommendation first. He
+picked the recommendation every time:
+
+| Question | Offered | He picked |
+|---|---|---|
+| Should the app check time-trial or triathlon bikes too? | Road bikes only / Add a TT mode | **Road bikes only** |
+| More than one bike to check? | One history for all / A name per bike | **One history for all** |
+| An off-the-bike flexibility test, like Apple's? | After the bike check works / Add it now / Not at all | **After the bike check works** |
+
+**What it means.** The app says early, on screen and aloud, that it checks road bikes, and names an
+aero position when it sees one. No bike names. A flexibility test is a candidate for later, once
+the bike check has worked on his own bike, not before.
+
+### The coach speaks in a recorded neural voice, and the voice is Heart
+
+> **"Also make sure voice commands sound natural and not robotic"**
+
+> **"First female American is great"**
+
+Read as the spoken instructions, since that is what the app says aloud. The phone's built-in speech
+voice depends on what is installed and often sounds robotic, so every line is recorded in advance
+with Kokoro-82M (open weights, Apache-2.0) and shipped as audio clips, with the phone's best voice
+only as a fallback. He was played three samples of the same script: Heart (American, female), Emma
+(British, female), Michael (American, male), and picked **Heart** (`af_heart`).
+
+**Open, and his:** voice commands in the other sense (saying "repeat", "skip", "stop"). Apple's
+movement evaluations publish none, the check is hands-free already, and in Safari the audio would
+most likely go to Apple's speech service, which breaks the on-phone promise. Not built unless he
+asks.
+
+### The design follows Apple's current Health app and its voice coaching
+
+> **"consider what i told ypou aboput the new apple health features and try to follow those"**
+
+> **"also try to make sure the design is mathcing apples current health layout"** with links to
+> Apple's newsroom post of 2026-09 and a PCMag hands-on, and **"please find their design langauge
+> and how vocie command and audio feedback works in otder to match the design langueg the ai ux"**
+
+Neither page opens from the session; the spec was built from search results and Apple's Human
+Interface Guidelines, every line marked confirmed, guideline or choice. What it changes: light by
+default with dark mode, Apple's system colours and type, three tabs like Health (Check, Progress,
+Learn) with a floating glass tab bar, a short animated demo before each move like Apple's on-screen
+trainer, a step counter and a progress ring, a warm voice that quotes his own numbers, and
+**Borderline renamed Fair**, Apple's middle tier. Still no "Excellent", as ruled earlier.
+
+### The app works with the bike on a trainer, against a wall, or held by a friend
+
+> **"exactly think how the bike position can be in a bike trainer or leaning against something or holding by a friend so its detected correctly"**
+
+**The rule underneath.** All three ways a bike is held are supported, and each is measured
+correctly. A first question asks which one. On a trainer the bike is levelled first and the rider
+pedals forwards, the way the target range was measured. Against a wall or held by a friend, the
+rider pedals backwards, and with a friend in the picture the app picks the rider, not the helper,
+and asks the helper to step out of view. Sessions are compared only with the same setup.
+
+**Overturns** round 1's lead, who left a trainer mode out as his call to make.
+
 ### His projects get their own repo, one folder per app, apart from his brand
 
 > **"can we actually create a folder similar to alex_personal_brand called project where i can start it from claude code in the web to habe a better folder structure and dont mix it with alex brand"**

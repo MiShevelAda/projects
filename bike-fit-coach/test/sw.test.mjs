@@ -39,3 +39,26 @@ test('engine and model files are served from one cache generation', async () => 
   assert.match(sw, /includes\('\/vendor\/'\)/);
   assert.match(sw, /includes\('\/models\/'\)/);
 });
+
+test('the engine and the model are cached when the worker installs, not only on the second visit', async () => {
+  const { access } = await import('node:fs/promises');
+  const sw = await read('sw.js');
+  const install = sw.slice(sw.indexOf("addEventListener('install'"), sw.indexOf("addEventListener('activate'"));
+  assert.match(install, /engineFiles\(\)/);
+  assert.match(install, /addAll\(CORE\)\.then\(/, 'CORE first, and a CORE failure still fails the install');
+  // Every file it may ask for exists, or addAll would fail.
+  const model = sw.match(/const MODEL = '([^']+)'/)[1];
+  const names = [...sw.matchAll(/'(vision_wasm[a-z_]*internal)'/g)].map(m => m[1]);
+  assert.deepEqual(names.sort(), ['vision_wasm_internal', 'vision_wasm_nosimd_internal']);
+  for (const f of [model, ...names.flatMap(n => [`vendor/mediapipe/wasm/${n}.js`, `vendor/mediapipe/wasm/${n}.wasm`])]) {
+    await access(new URL(`../${f.replace(/^\.\//, '')}`, import.meta.url));
+  }
+  // The SIMD test is MediaPipe's own, so it picks the build the page loads.
+  const bundle = await read('vendor/mediapipe/vision_bundle.mjs');
+  const probe = sw.match(/SIMD_PROBE = new Uint8Array\(\[([^\]]+)\]\)/)[1].replace(/\s/g, '');
+  assert.ok(bundle.replace(/\s/g, '').includes(`newUint8Array([${probe}])`), 'the SIMD probe differs from the bundle');
+  // And the page registers the worker only after the model has loaded.
+  const app = await read('app.js');
+  const boot = app.slice(app.indexOf('async function boot()'));
+  assert.ok(boot.indexOf('landmarker = await loadPose()') < boot.lastIndexOf('registerWorker();'));
+});
