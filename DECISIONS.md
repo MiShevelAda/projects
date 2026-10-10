@@ -8,6 +8,18 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### Everything the app needs is built in: the rider never downloads a voice or changes a setting
+
+> **"Needs to be build in should be easier from customer experience"**
+
+Said when the session suggested downloading a Premium iPhone voice to make the live version sound less
+robotic. **The rule underneath:** the app must work and sound right out of the box. Never ask the rider
+to download, install or switch anything on the phone to make the app itself work properly; if
+something is needed, the app carries it. So the Heart voice ships inside the app as recorded clips for
+every line it can say, with a test that fails if any line has none, and plays through the phone's
+media audio so it is heard even when the phone is on silent (to be confirmed on his iPhone). The only
+settings the app may still mention are the volume and, until that is confirmed, silent mode.
+
 ### The screen question, no Excellent for now, and no voice commands for now
 
 Three questions, each with the session's recommendation first. He picked the recommendation every
