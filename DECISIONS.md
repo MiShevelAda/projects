@@ -8,6 +8,17 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### Customer experience and simplicity first: far less text, and screens that explain themselves
+
+> **"Think customer experience and simplicity first right now too much text and ux ui is not intuitive"**
+
+Said after testing the live app and seeing the round 3 preview. **The rule underneath:** a screen
+is understood at a glance or it is wrong. The voice and the pictures carry the explanation; the
+screen carries one title, at most one short line under it, and one obvious button. Details are one
+tap away, never on the main path. Apple's assessment screens (his screenshots) are the measure: a big
+title, a picture or a demo, a few icon rows of a handful of words each, one big button.
+
+
 ### Simpler and better than the competitor: one thing at a time on the surface, professional underneath
 
 > **"Not sure what's needed I want to make ot simpler and better"**
