@@ -8,6 +8,19 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### Like Apple's, the check shows on video how to place the phone, and an avatar shows when you are in position
+
+> **"It tells you and shows video how to position the phone and on the screen there's and avatar that tells you of you're in the right position"**
+
+Sent with five screenshots from his own iPhone of Apple's movement assessment (Getting Ready with a
+demo video, "Lean Your iPhone up Against a Wall", the assessment intro, the option picker, the
+Longevity home). **Read by the session as a request to build both**, adapted to the chair spot: a
+positioning video on Getting Ready and on the placement step, and on the live screen a ghost outline
+of a rider on a bike plus a live avatar of the rider, both turning green when he is in position,
+drawn thick enough to read from 3 m. The screenshots are the primary reference for the look of the
+check flow: its own warm dark background, one orange accent, Title Case headings, glass back and
+close buttons. If he meant only to describe Apple, he says so and it comes out.
+
 ### The phone stays on the chair, turned round so the screen faces the rider; not on the floor
 
 > **"also check if we can lean the phone on teh floor with the front camera on facing us to see the instructions this is how apple has it consider poth options and what teh best one is apple puts it on the floor in portrait format check with the team what the best waay would be"**
