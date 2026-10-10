@@ -29,6 +29,12 @@ can stay on the bike while it works. No trainer needed.
 | Hip angle at the top of the stroke | 85 to 110 | For reference only |
 | Ankle angle at the bottom | none | For reference only |
 
+Each measurement gets a status (**Good**, **Borderline** or **Needs attention**), the reason for it,
+one step to take, and your number from the last session, in the style of the movement evaluations
+in Apple's Health app. There is no "Excellent": a phone camera cannot tell the middle of a range
+from its edge. Unlike Apple's floor setup, the phone stands at hip height, because a camera looking
+up from the floor skews every angle on a bike. No video is recorded unless you switch it on.
+
 Readings within 2.5 degrees of a target count as in range. Saddle advice is about 3 to 4 mm per
 degree outside the range, and never more than 15 mm in one go. Bar advice only comes once the
 saddle height is right, and only when the back, shoulder and elbow angles agree.

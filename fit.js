@@ -322,3 +322,75 @@ export function spokenSummary(r) {
   if (off.length && r.change?.kind !== 'bars') out.push(`Your ${list(off)} ${off.length > 1 ? 'are' : 'is'} outside the target. Check the picture on the screen.`);
   return out.join(' ');
 }
+
+// ── the result list, one row per measurement ─────────────────────────────────────────────────
+// Statuses in the style of Apple's movement evaluations, with one difference on purpose: there is
+// no "Excellent". A phone camera cannot tell the middle of a range from its edge, so a grade finer
+// than "in range" would be made-up precision.
+export const STATUS = { green: 'Good', amber: 'Borderline', red: 'Needs attention', info: 'For reference', na: 'No reading' };
+
+// Each row: { key, name, value, target, grade, status, why, step }. Exactly one step per row.
+export function measures(r, pedal) {
+  const deg = (v) => `${round(v)}°`;
+  const side = (v, [lo, hi]) => (v > hi + GREEN_TOL ? 'high' : v < lo - GREEN_TOL ? 'low' : 'in');
+  const bars = r.change?.kind === 'bars';
+  const saddleFirst = r.change?.kind === 'saddle';
+  // One change at a time, saddle first: raising or lowering it also changes the reach.
+  const upperStep = (fallback) => (bars ? 'Part of the main change: raise the handlebars.' : saddleFirst ? 'Change the saddle first, then film again: the saddle height changes this too.' : fallback);
+  const row = (key, name, value, target, grade, why, step) =>
+    ({ key, name, value, target, grade: Number.isFinite(value) ? grade : 'na', status: STATUS[Number.isFinite(value) ? grade : 'na'], why, step });
+  const rows = [];
+
+  const kp = pedal?.strokes >= 5 ? pedal.kneeFlex : NaN;
+  {
+    const t = TARGETS.kneeDynamic, s = side(kp, t);
+    const main = r.kneeSource === 'pedalling' && r.change?.kind === 'saddle';
+    rows.push(row('kneePedal', 'Knee bend at the bottom, pedalling', kp, 'Target 30 to 40', grade('kneeDynamic', kp),
+      !Number.isFinite(kp) ? 'There were not enough pedal strokes to measure.'
+        : s === 'in' ? `Bent ${deg(kp)} at the bottom of each stroke, inside the target.`
+        : s === 'high' ? `Still bent ${deg(kp)} at the bottom, more than the target, so the saddle is probably low.`
+        : `Only bent ${deg(kp)} at the bottom, less than the target, so the saddle is probably high.`,
+      !Number.isFinite(kp) ? 'Film again and pedal backwards for the full 20 seconds.'
+        : main ? `${r.change.headline}.` : s === 'in' ? 'Leave the saddle height as it is.' : 'Film again to confirm before you change anything.'));
+  }
+  {
+    const v = r.staticKnee, t = TARGETS.kneeStatic, s = side(v, t);
+    const main = r.kneeSource === 'still' && r.change?.kind === 'saddle';
+    rows.push(row('kneeStill', 'Knee bend at the bottom, held still', v, 'Target 25 to 35', grade('kneeStatic', v),
+      !Number.isFinite(v) ? 'The still part was not measured.'
+        : s === 'in' ? `Bent ${deg(v)} with the pedal held at the bottom, inside the target.`
+        : `Bent ${deg(v)} with the pedal held at the bottom, ${s === 'high' ? 'more' : 'less'} than the target.`,
+      !Number.isFinite(v) ? 'Next time, hold the pedal at the bottom until you hear "got it".'
+        : main ? `${r.change.headline}.` : r.disagree ? 'Film again: this and the pedalling reading point different ways.'
+        : Number.isFinite(kp) ? 'Agrees with the pedalling reading.' : 'Leave the saddle height as it is.'));
+  }
+  {
+    const v = r.torso, s = side(v, TARGETS.torso);
+    rows.push(row('torso', 'Back angle, from horizontal', v, 'Target 40 to 50', grade('torso', v),
+      s === 'in' ? `Your back is ${deg(v)} above horizontal, inside the target.`
+        : s === 'low' ? `Your back is ${deg(v)} above horizontal: a long, low position.` : `Your back is ${deg(v)} above horizontal: quite upright.`,
+      s === 'in' ? 'No change needed.' : upperStep(s === 'low' ? 'If your back or neck aches, raise the bars a little.'
+        : 'Fine for most riding. Lower the bars only if you want a faster position.')));
+  }
+  {
+    const v = r.elbow, s = side(v, TARGETS.elbow);
+    rows.push(row('elbow', 'Elbow bend', v, 'Target 15 to 30', grade('elbow', v),
+      s === 'in' ? `Bent ${deg(v)}, inside the target.` : s === 'low' ? `Only bent ${deg(v)}: your arms are close to straight.` : `Bent ${deg(v)}, more than the target.`,
+      s === 'in' ? 'No change needed.' : upperStep(s === 'low' ? 'Ride with soft elbows. If you cannot, the bars may be too far away.'
+        : 'No change needed on its own: it only matters together with your back and shoulder angles.')));
+  }
+  {
+    const v = r.shoulder, s = side(v, TARGETS.shoulder);
+    rows.push(row('shoulder', 'Shoulder angle, torso to arm', v, 'Target 80 to 95', grade('shoulder', v),
+      s === 'in' ? `${deg(v)} between your torso and upper arm, inside the target.`
+        : s === 'low' ? `${deg(v)} between your torso and upper arm: a closed position, with more weight on your hands.`
+        : `${deg(v)} between your torso and upper arm: your arms reach far forward.`,
+      s === 'in' ? 'No change needed.' : upperStep(s === 'low' ? 'If your hands go numb, raise the bars a little.'
+        : 'If you feel stretched, a shorter stem is the usual fix.')));
+  }
+  rows.push(row('hipTop', 'Hip angle at the top of the stroke', r.hipTop, 'Usually 85 to 110', 'info',
+    `${deg(r.hipTop)} at the top of the stroke. It depends a lot on how flexible you are.`, 'For reference only. Compare it between sessions.'));
+  rows.push(row('ankle', 'Ankle angle at the bottom', r.ankle, 'No target range', 'info',
+    `${deg(r.ankle)} at the bottom of the stroke.`, 'For reference only. Compare it between sessions.'));
+  return rows;
+}

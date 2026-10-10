@@ -128,3 +128,29 @@ test('spoken summary grammar', () => {
   const solo = fit.spokenSummary(fit.advise(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 50, shoulder: 60 }));
   assert.match(solo, /Your back angle looks good\./);
 });
+
+test('result rows: a status, a reason and exactly one step each', () => {
+  const pedal = { strokes: 15, kneeFlex: 47, torso: 45, elbow: 22, shoulder: 88, hipTop: 70, ankle: 115 };
+  const r = fit.advise({ kneeFlex: 38, torso: 45, elbow: 22, shoulder: 88 }, pedal);
+  const rows = fit.measures(r, pedal);
+  const by = Object.fromEntries(rows.map(x => [x.key, x]));
+  assert.equal(by.kneePedal.status, 'Needs attention');
+  assert.equal(by.kneePedal.step, 'Raise the saddle about 15 mm.');
+  assert.match(by.kneePedal.why, /saddle is probably low/);
+  assert.equal(by.kneeStill.status, 'Borderline');
+  assert.equal(by.torso.status, 'Good');
+  assert.equal(by.torso.step, 'No change needed.');
+  assert.equal(by.hipTop.status, 'For reference');
+  const off = fit.measures(fit.advise(null, { strokes: 12, kneeFlex: 47, torso: 45, elbow: 40, shoulder: 66 }), { strokes: 12, kneeFlex: 47 });
+  assert.match(off.find(x => x.key === 'shoulder').step, /Change the saddle first/);
+  const alone = fit.measures(fit.advise(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 66 }), { strokes: 12, kneeFlex: 36 });
+  assert.equal(alone.find(x => x.key === 'shoulder').step, 'If your hands go numb, raise the bars a little.');
+  for (const x of rows) { assert.ok(x.why && x.step, x.key); assert.ok(!/Excellent/.test(x.status)); }
+});
+
+test('result rows: missing pedalling reading says so instead of inventing one', () => {
+  const r = fit.advise({ kneeFlex: 30, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 2, kneeFlex: NaN });
+  const kp = fit.measures(r, { strokes: 2, kneeFlex: NaN })[0];
+  assert.equal(kp.status, 'No reading');
+  assert.match(kp.step, /full 20 seconds/);
+});

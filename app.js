@@ -8,7 +8,7 @@ const params = new URLSearchParams(location.search);
 const SIM = params.has('sim');
 const $ = (id) => document.getElementById(id);
 const el = Object.fromEntries(['home', 'run', 'results', 'start', 'status', 'cam', 'overlay', 'say', 'steps', 'chips', 'skip', 'stop', 'timer',
-  'histCard', 'history', 'rOverall', 'rWhat', 'rWhy', 'rDisagree', 'rWarn', 'rTable', 'shotCard', 'rShot', 'again', 'speak', 'saveVideo', 'copy', 'done']
+  'histCard', 'history', 'rOverall', 'rWhat', 'rWhy', 'rDisagree', 'rWarn', 'rList', 'keepVideo', 'shotCard', 'rShot', 'again', 'speak', 'saveVideo', 'copy', 'done']
   .map(id => [id, $(id)]));
 const now = () => performance.now() / 1000;
 const round = (v) => (Number.isFinite(v) ? Math.round(v) : null);
@@ -456,7 +456,7 @@ function cameraError(e) {
 
 function startRecording() {
   videoBlob = null;
-  if (SIM || !stream || !window.MediaRecorder) return;
+  if (SIM || !stream || !window.MediaRecorder || !el.keepVideo.checked) return; // off unless switched on
   const type = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find(m => MediaRecorder.isTypeSupported?.(m));
   try { recorder = new MediaRecorder(stream, type ? { mimeType: type, videoBitsPerSecond: 6_000_000 } : undefined); } catch { recorder = null; return; }
   chunks = [];
@@ -526,16 +526,18 @@ async function finish() {
   stopCamera();
   wake?.release?.();
   lastResult = fit.advise(session.still, session.pedal);
-  renderResults(lastResult);
-  saveHistory(lastResult);
+  lastRows = fit.measures(lastResult, session.pedal);
+  const previous = loadHistory()[0] || null;
+  renderResults(lastResult, lastRows, previous);
+  saveHistory(lastResult, lastRows);
   show('results');
   setTimeout(() => Voice.say(fit.spokenSummary(lastResult)), 2500);
 }
 
-const LABEL = { green: 'Good', amber: 'Close', red: 'Change', info: 'For reference', na: 'No reading' };
-function renderResults(r) {
+let lastRows = [];
+function renderResults(r, rows, previous) {
   el.rOverall.className = 'pill ' + r.overall;
-  el.rOverall.textContent = r.change ? (r.overall === 'red' ? 'Change needed' : 'Small change') : r.overall === 'green' ? 'Dialled in' : 'Mostly good';
+  el.rOverall.textContent = fit.STATUS[r.overall];
   if (r.change) {
     el.rWhat.textContent = r.change.headline;
     el.rWhy.textContent = r.change.why;
@@ -552,26 +554,20 @@ function renderResults(r) {
   const w = [...warnings].map(k => WARN[k]).filter(Boolean);
   el.rWarn.hidden = !w.length;
   el.rWarn.textContent = w.length ? `Less exact this time: ${w.join(', ')}.` : '';
-  const k = r.kneeSource === 'pedalling';
-  const rows = [
-    ['Knee bend at the bottom, pedalling', k ? r.knee : session.pedal?.kneeFlex, '30 to 40', k ? r.kneeGrade : fit.grade('kneeDynamic', session.pedal?.kneeFlex)],
-    ['Knee bend at the bottom, held still', r.staticKnee, '25 to 35', r.staticGrade],
-    ['Back angle, from horizontal', r.torso, '40 to 50', r.torsoGrade],
-    ['Elbow bend', r.elbow, '15 to 30', r.elbowGrade],
-    ['Shoulder angle, torso to arm', r.shoulder, '80 to 95', r.shoulderGrade],
-    ['Hip angle at the top', r.hipTop, '85 to 110', fit.grade('hipTop', r.hipTop) === 'green' ? 'green' : 'info'],
-    ['Ankle angle at the bottom', r.ankle, 'no target', 'info'],
-  ];
-  el.rTable.replaceChildren(...rows.map(([name, v, target, g]) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = '<td><span class="n"></span><span class="t"></span></td><td class="v"></td><td class="g"><span class="pill"></span></td>';
-    tr.querySelector('.n').textContent = name;
-    tr.querySelector('.t').textContent = target === 'no target' ? 'No target range, for reference' : 'Target ' + target;
-    tr.querySelector('.v').textContent = Number.isFinite(v) ? `${round(v)}°` : '–';
-    const p = tr.querySelector('.pill');
-    p.className = 'pill ' + (Number.isFinite(v) ? g : 'na');
-    p.textContent = LABEL[Number.isFinite(v) ? g : 'na'];
-    return tr;
+  el.rList.replaceChildren(...rows.map((x) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="n"></span><span class="v"></span><span class="meta"><span class="pill"></span><span class="t"></span><span class="p"></span></span><span class="why"></span><span class="step"></span>';
+    li.querySelector('.n').textContent = x.name;
+    li.querySelector('.v').textContent = Number.isFinite(x.value) ? `${round(x.value)}°` : '–';
+    const pill = li.querySelector('.pill');
+    pill.className = 'pill ' + x.grade;
+    pill.textContent = x.status;
+    li.querySelector('.t').textContent = x.target;
+    const was = previous?.values?.[x.key];
+    li.querySelector('.p').textContent = Number.isFinite(was) && Number.isFinite(x.value) ? `Last time ${was}°` : '';
+    li.querySelector('.why').textContent = x.why;
+    li.querySelector('.step').textContent = x.step;
+    return li;
   }));
   el.shotCard.hidden = !session.stillShot;
   if (session.stillShot) el.rShot.src = session.stillShot;
@@ -579,23 +575,21 @@ function renderResults(r) {
 }
 
 function resultText(r) {
-  const f = (v) => (Number.isFinite(v) ? `${round(v)}°` : 'no reading');
   return [
     `Bike Fit Coach, ${new Date().toLocaleString()}`,
-    `Knee bend at the bottom, pedalling: ${f(session.pedal?.kneeFlex)} (target 30 to 40), ${session.pedal?.strokes ?? 0} strokes`,
-    `Knee bend at the bottom, held still: ${f(r.staticKnee)} (target 25 to 35)`,
-    `Back angle: ${f(r.torso)} (40 to 50). Elbow: ${f(r.elbow)} (15 to 30). Shoulder: ${f(r.shoulder)} (80 to 95).`,
-    `Hip at the top: ${f(r.hipTop)}. Ankle at the bottom: ${f(r.ankle)}.`,
-    r.change ? `Suggested change: ${r.change.headline}.` : 'Suggested change: none.',
+    r.change ? `Main change: ${r.change.headline}.` : 'Main change: none.',
+    ...lastRows.map(x => `${x.name}: ${Number.isFinite(x.value) ? round(x.value) + '°' : 'no reading'} (${x.target}), ${x.status}. ${x.step}`),
+    `Pedal strokes measured: ${session.pedal?.strokes ?? 0}.`,
     warnings.size ? `Less exact: ${[...warnings].join(', ')}.` : '',
   ].filter(Boolean).join('\n');
 }
 
 const HKEY = 'bfc.history.v1';
 function loadHistory() { try { return JSON.parse(localStorage.getItem(HKEY) || '[]'); } catch { return []; } }
-function saveHistory(r) {
+function saveHistory(r, rows) {
   const h = loadHistory();
-  h.unshift({ at: new Date().toISOString(), knee: round(r.knee), src: r.kneeSource, still: round(r.staticKnee), torso: round(r.torso), change: r.change ? r.change.headline : null });
+  const values = Object.fromEntries(rows.filter(x => Number.isFinite(x.value)).map(x => [x.key, round(x.value)]));
+  h.unshift({ at: new Date().toISOString(), knee: round(r.knee), src: r.kneeSource, values, change: r.change ? r.change.headline : null });
   try { localStorage.setItem(HKEY, JSON.stringify(h.slice(0, 30))); } catch { /* private mode: keep going without history */ }
   renderHistory();
 }
@@ -691,6 +685,10 @@ async function loadPose() {
   }
   throw lastErr;
 }
+
+const VKEY = 'bfc.keepVideo';
+try { el.keepVideo.checked = localStorage.getItem(VKEY) === '1'; } catch { /* default stays off */ }
+el.keepVideo.addEventListener('change', () => { try { localStorage.setItem(VKEY, el.keepVideo.checked ? '1' : '0'); } catch { /* not remembered */ } });
 
 async function boot() {
   Voice.init();

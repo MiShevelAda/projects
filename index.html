@@ -61,12 +61,17 @@
   .pill.green { background: color-mix(in srgb, var(--good) 22%, transparent); color: var(--good); }
   .pill.amber { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
   .pill.red { background: color-mix(in srgb, var(--bad) 22%, transparent); color: var(--bad); }
-  .angles { width: 100%; border-collapse: collapse; }
-  .angles td { padding: 9px 0; border-top: 1px solid var(--line); vertical-align: top; }
-  .angles tr:first-child td { border-top: 0; }
-  .angles .v { text-align: right; font-weight: 800; font-size: 20px; white-space: nowrap; padding-left: 10px; }
-  .angles .t { display: block; font-size: 13px; color: var(--muted); }
-  .angles .g { text-align: right; width: 1%; padding-left: 10px; }
+  .pill.info { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+  .measures { list-style: none; margin: 0; padding: 0; display: grid; }
+  .measures li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .measures li:first-child { border-top: 0; padding-top: 0; }
+  .measures .n { font-weight: 700; }
+  .measures .v { font-size: 22px; font-weight: 800; text-align: right; white-space: nowrap; }
+  .measures .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+  .measures .why { grid-column: 1 / -1; color: var(--muted); }
+  .measures .step { grid-column: 1 / -1; font-weight: 600; }
+  .toggle { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; cursor: pointer; }
+  .toggle input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--accent); }
   .shot { width: 100%; max-width: 100%; border-radius: 10px; display: block; }
   .note { border-left: 3px solid var(--warn); padding-left: 12px; color: var(--text); }
 
@@ -95,7 +100,7 @@
 <main id="home" class="page">
   <header>
     <h1>Bike Fit Coach</h1>
-    <p class="lede">Checks your saddle height and riding position through the phone camera. It talks you through every step, so you can stay on the bike.</p>
+    <p class="lede">Checks your saddle height and riding position through the phone camera. It talks you through every step, so you can stay on the bike. About 3 minutes.</p>
   </header>
 
   <section class="card" aria-labelledby="need-h">
@@ -107,6 +112,11 @@
       <li>Normal riding kit and shoes. No trainer needed.</li>
     </ul>
   </section>
+
+  <label class="toggle card" for="keepVideo">
+    <input type="checkbox" id="keepVideo">
+    <span>Keep a video of each session<br><span class="small">Off: nothing is recorded. On: you can save the clip at the end and send it for the full analysis.</span></span>
+  </label>
 
   <div>
     <button id="start" class="primary" type="button" disabled>Loading…</button>
@@ -125,7 +135,7 @@
 
   <section class="card small" aria-labelledby="priv-h">
     <h2 id="priv-h">Private by design</h2>
-    <p style="margin:0">Everything runs on this phone. The camera picture is never uploaded, and your results stay in this browser. To keep it on your home screen: in Safari tap Share, then Add to Home Screen.</p>
+    <p style="margin:0">Everything runs on this phone. No video is recorded unless you switch it on above, nothing is uploaded, and your results stay in this browser. To keep it on your home screen: in Safari tap Share, then Add to Home Screen.</p>
   </section>
 </main>
 
@@ -157,8 +167,8 @@
   <p id="rDisagree" class="note" hidden>Your still reading and your pedalling reading point different ways. Treat the advice as a maybe and film once more.</p>
   <p id="rWarn" class="note" hidden></p>
   <section class="card" aria-labelledby="ang-h">
-    <h2 id="ang-h">Your angles</h2>
-    <table class="angles num"><tbody id="rTable"></tbody></table>
+    <h2 id="ang-h">Your measurements</h2>
+    <ul id="rList" class="measures num"></ul>
   </section>
   <section class="card" aria-labelledby="shot-h" id="shotCard" hidden>
     <h2 id="shot-h">At the bottom of the stroke</h2>
@@ -173,7 +183,7 @@
     <button id="copy" class="secondary" type="button">Copy results</button>
     <button id="done" class="secondary" type="button">Home</button>
   </div>
-  <p class="small">A phone camera measures to within a few degrees. Change one thing at a time, then film again to see what it did. For pain, numbness or a big change, see a professional fitter. For the most exact numbers, save the video and send it to Claude for the full analysis.</p>
+  <p class="small">A phone camera measures to within a few degrees. Change one thing at a time, then film again to see what it did. For pain, numbness or a big change, see a professional fitter. For the most exact numbers, switch on Keep a video before you start, then save it here and send it to Claude for the full analysis.</p>
 </main>
 
 <script type="module" src="app.js"></script>
