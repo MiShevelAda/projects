@@ -8,21 +8,42 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
-### Sound you can test, a setup video at the top, and a better voice built in, not from his settings
+### The goal: compete with a professional in-person bike fit, good enough that a fitter rates it 9 out of 10
 
-> **"Don't hear sounds and not explanation video on how to set up everything"**
+> **"The goal of this app is really to compete with professional bike fitting done in person so also hand position is important also also additional videos from back should be taken so let the team work out the needs to be the best app in the appstore if I decide to make ot appstore ready it needs to be as professional so a bike fitter would rank or 9/10"**
+
+**What it sets.** The bar is a professional fitter's judgement, not a hobby tool's: hand position is in
+scope (where the hands sit on the hoods, reach and drop, wrist and elbow), and the check adds a view
+from behind the rider, not only the side. The team works out what the best fit app needs. **Open, and
+his:** whether to make it an App Store app (that means an Apple developer account and probably a
+native app, not only the web app). **The session's caution, stated plainly:** some of what a fitter
+does in person (feeling the rider's flexibility, pressure mapping, a 3D motion capture system) a phone
+cannot copy, so "9 out of 10" has to be defined as measurable targets and checked against a real
+fitter, not claimed.
+
+### Everything the app needs is built in: the rider never downloads a voice or changes a setting
 
 > **"Needs to be build in should be easier from customer experience"**
 
-The first, while testing the live app on his iPhone. **What it changed**, as a hotfix to the live
-app: every tap that leads to speech wakes the sound first, inside the tap; a **Test the Sound**
-button plays a recorded clip in Heart's voice; and a narrated, captioned drawn guide, **How to Set
-Up**, sits at the top of the home screen, marked "Drawn guide. A video with real people is coming."
+Said when the session suggested downloading a Premium iPhone voice to make the live version sound less
+robotic. **The rule underneath:** the app must work and sound right out of the box. Never ask the rider
+to download, install or switch anything on the phone to make the app itself work properly; if
+something is needed, the app carries it. So the Heart voice ships inside the app as recorded clips for
+every line it can say, with a test that fails if any line has none, and plays through the phone's
+media audio so it is heard even when the phone is on silent (to be confirmed on his iPhone). The only
+settings the app may still mention are the volume and, until that is confirmed, silent mode.
 
-The second overruled a session's proposal to tell the rider to download a Premium voice in the
-iPhone's Settings. **The app never asks the rider to change phone settings for a better voice.** It
-still uses a Premium or Enhanced voice when one happens to be installed, and the natural voice comes
-built in, as the recorded Heart lines (the Heart entry below).
+### Sound you can test, and a setup video at the top of the home screen
+
+> **"Don't hear sounds and not explanation video on how to set up everything"**
+
+While testing the live app on his iPhone (the cause of the silence was most likely silent mode; he
+heard it after switching it off). **What it changed**, as a hotfix to the live app: every tap that
+leads to speech wakes the sound first, inside the tap; a **Test the Sound** button plays a recorded
+clip in Heart's voice, with the note that silent mode must stay off during the check; and a narrated,
+captioned drawn guide, **How to Set Up**, sits at the top of the home screen, marked "Drawn guide. A
+video with real people is coming." The voice during the check stays the iPhone's own until the
+recorded Heart lines ship in round 3 (the built-in entry above).
 
 ### The screen question, no Excellent for now, and no voice commands for now
 
