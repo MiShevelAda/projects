@@ -8,6 +8,19 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### The plugins: keep Superpowers, Design and Frontend Design, turn off Code Review, add "prototype"
+
+> **"Ok So how can we make apply them as of now"**
+
+His answer to the session's two recommendations after the skills research (about 140 skills,
+plugins and lists checked). **What it changed.** Matt Pocock's `prototype` skill is copied into
+`.claude/skills/` (verbatim, MIT), with a note that variants reach him on a private page, never on
+`main`. Anthropic's Code Review plugin is to be switched off in his Claude app, because it works only
+through the `gh` tool, which these cloud sessions do not have; Claude's built-in reviewer does the
+job. Superpowers, Design and Frontend Design stay on. Left out on purpose, for simplicity: extra
+reviewer agents, a TypeScript language server that would need installing every session, and Matt
+Pocock's `tdd` and `diagnosing-bugs`, which Superpowers already covers. ECC was not installed.
+
 ### Before executing a task, check which skill could help
 
 > **"Please before executing a task check which skill could help"**
