@@ -18,7 +18,7 @@
   /* Layout: one column of cards at home, a full-bleed camera view while running. */
   :root {
     --bg: #07111f; --panel: #0f1d33; --line: #213656; --text: #eef3fa; --muted: #9fb0c8;
-    --accent: #2e8cff; --good: #34c759; --warn: #ffb020; --bad: #ff5a4e;
+    --accent: #2e8cff; --good: #34c759; --warn: #ffb020; --bad: #ff7b72;
     --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --r: 14px;
     color-scheme: dark;
@@ -44,11 +44,20 @@
   .primary:disabled { opacity: 0.55; cursor: progress; }
   .secondary { appearance: none; border: 1px solid var(--line); border-radius: 999px; background: transparent; padding: 11px 16px; font-weight: 600; cursor: pointer; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .ask { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 14px; }
+  .ask p { margin: 0; font-weight: 600; flex: 1 1 14em; }
+  .ask .secondary { min-width: 4.5em; }
+  .secondary[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
   .status { color: var(--muted); font-size: 14px; margin: 8px 0 0; text-align: center; }
   .status.err { color: var(--bad); }
   video.howto { width: 100%; max-width: 100%; border-radius: 10px; background: #000; display: block; }
+  details.other summary { cursor: pointer; font-weight: 600; }
+  details.other[open] summary { margin-bottom: 10px; }
   .history { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-  .history li { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 15px; }
+  .history li { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 15px; }
+  .latest { margin: 0 0 14px; display: grid; gap: 8px; font-weight: 700; }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill.sm { font-size: 12px; letter-spacing: 0; text-transform: none; padding: 2px 8px; }
   .history li:first-child { border-top: 0; padding-top: 0; }
   .small { font-size: 14px; color: var(--muted); }
 
@@ -57,41 +66,61 @@
   .verdict .pill { justify-self: start; }
   .verdict .big { font-size: 26px; font-weight: 800; line-height: 1.15; text-wrap: balance; }
   .verdict .why { color: var(--muted); }
-  .pill { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--line); color: var(--text); }
+  .pill { display: inline-block; font-size: 14px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--line); color: var(--text); }
   .pill.green { background: color-mix(in srgb, var(--good) 22%, transparent); color: var(--good); }
   .pill.amber { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
   .pill.red { background: color-mix(in srgb, var(--bad) 22%, transparent); color: var(--bad); }
-  .pill.info { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
-  .measures { list-style: none; margin: 0; padding: 0; display: grid; }
-  .measures li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 14px 0; border-top: 1px solid var(--line); }
-  .measures li:first-child { border-top: 0; padding-top: 0; }
-  .measures .n { font-weight: 700; }
-  .measures .v { font-size: 22px; font-weight: 800; text-align: right; white-space: nowrap; }
-  .measures .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
-  .measures .why { grid-column: 1 / -1; color: var(--muted); }
-  .measures .step { grid-column: 1 / -1; font-weight: 600; }
+  .pill.info { background: color-mix(in srgb, var(--accent) 20%, transparent); color: #6fb0ff; }
+  .pill.after { background: var(--line); color: var(--text); }
+  /* One item per area: name and status, why, the step in bold, then the angles as smaller detail. */
+  .areas { list-style: none; margin: 0; padding: 0; display: grid; }
+  .areas > li { display: grid; gap: 6px; padding: 16px 0; border-top: 1px solid var(--line); }
+  .areas > li:first-child { border-top: 0; padding-top: 0; }
+  .areas > li:last-child { padding-bottom: 0; }
+  .area .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; }
+  .area .an { font-size: 19px; font-weight: 800; }
+  .area p { margin: 0; }
+  .area .why { color: var(--muted); }
+  .area .step { font-weight: 700; }
+  .area details summary { cursor: pointer; font-size: 17px; font-weight: 700; }
+  .area details[open] summary { margin-bottom: 6px; }
+  .detail { list-style: none; margin: 4px 0 0; padding: 0; display: grid; font-size: 14px; color: var(--muted); }
+  .detail li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 10px 0 0; margin-top: 10px; border-top: 1px dashed var(--line); }
+  .detail .n { font-weight: 600; color: var(--text); }
+  .detail .v { font-size: 17px; font-weight: 800; color: var(--text); text-align: right; white-space: nowrap; }
+  .detail .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 13px; }
+  .detail .why { grid-column: 1 / -1; }
   .toggle { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; cursor: pointer; }
   .toggle input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--accent); }
   .shot { width: 100%; max-width: 100%; border-radius: 10px; display: block; }
-  .note { border-left: 3px solid var(--warn); padding-left: 12px; color: var(--text); }
+  .note { border-left: 3px solid var(--warn); padding-left: 12px; color: var(--text); margin: 0; }
+  .note.compare { border-left-color: var(--accent); }
+  .retest { border-color: var(--accent); }
+  .retest p { margin: 0; font-size: 17px; }
+  .made { display: grid; gap: 10px; }
+  .made > div { display: grid; gap: 10px; }
+  .made .q { margin: 0; font-size: 17px; font-weight: 700; }
+  .made p { margin: 0; }
+  .mm { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .mm input { width: 5.5em; font: inherit; font-size: 18px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
 
   /* ── running: the camera view ── */
   #run { position: fixed; inset: 0; background: #000; overflow: hidden; }
   #run video, #run canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   #run video { object-fit: contain; }
-  .hud-top { position: absolute; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 12px; background: linear-gradient(#000d, #0000); display: grid; gap: 8px; }
+  .hud-top { position: absolute; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 12px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); background: linear-gradient(#000d, #0000); display: grid; gap: 8px; }
   .steps { display: flex; gap: 6px; flex-wrap: wrap; }
   .steps span { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #ffffff1f; color: var(--muted); }
   .steps span.on { background: var(--accent); color: #fff; }
   .steps span.done { color: var(--good); }
   #say { font-size: clamp(18px, 3.6vmin + 6px, 30px); font-weight: 700; line-height: 1.25; text-wrap: balance; max-width: 900px; margin: 0; text-shadow: 0 1px 3px #000; }
-  .hud-bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px); background: linear-gradient(#0000, #000d); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+  .hud-bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px); padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); background: linear-gradient(#0000, #000d); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: #ffffff1f; color: var(--muted); }
   .chip.ok { background: color-mix(in srgb, var(--good) 25%, #0000); color: var(--good); }
   .chip.bad { background: color-mix(in srgb, var(--warn) 25%, #0000); color: var(--warn); }
   .hud-bottom .secondary { background: #0008; border-color: #ffffff40; }
-  #timer { position: absolute; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); font-size: 64px; font-weight: 800; text-shadow: 0 2px 8px #000; }
+  #timer { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); font-size: 64px; font-weight: 800; text-shadow: 0 2px 8px #000; }
   @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 </style>
 </head>
@@ -103,40 +132,72 @@
     <p class="lede">Checks your saddle height and riding position through the phone camera. It talks you through every step, so you can stay on the bike. About 3 minutes.</p>
   </header>
 
+  <section class="card retest" id="retestCard" aria-labelledby="retest-h" hidden>
+    <h2 id="retest-h">Film again</h2>
+    <p id="retestText"></p>
+  </section>
+
   <section class="card" aria-labelledby="need-h">
     <h2 id="need-h">Before you start</h2>
     <ul class="checklist">
       <li>Turn the volume up and switch off silent mode. Everything is spoken.</li>
+      <li>When you tap Start, an iPhone asks twice: for the camera and for motion. Tap Allow both times. Motion is how it knows the phone is level.</li>
+      <li>Rotation lock off. Open Control Centre (swipe down from the top-right corner) and check the lock with the circle arrow is not lit.</li>
       <li>Bike almost upright, with its far side lightly against a wall. Or a helper on the far side, hidden behind you.</li>
-      <li>About 3 m of space beside the bike, and a chair or box for the phone.</li>
+      <li>About 3 m of space beside the bike, and something 60 to 80 cm high for the phone, such as a chair with a box on it.</li>
+      <li>Light on you, not a window behind you.</li>
       <li>Normal riding kit and shoes. No trainer needed.</li>
     </ul>
   </section>
 
   <label class="toggle card" for="keepVideo">
     <input type="checkbox" id="keepVideo">
-    <span>Keep a video of each session<br><span class="small">Off: nothing is recorded. On: you can save the clip at the end and send it for the full analysis.</span></span>
+    <span>Keep a video of each session<br><span class="small">Off: no video is kept. One still picture is shown on the results screen and is not saved. On: you can save the clip at the end and send it for the full analysis.</span></span>
   </label>
 
+  <section class="card small" id="homeScreenTip" hidden>
+    <p style="margin:0">Add this to your Home Screen: tap Share, then Add to Home Screen. In Safari, your past sessions can be deleted if you do not open this page for 7 days.</p>
+  </section>
+
   <div>
+    <div class="ask" role="group" aria-labelledby="pain-q">
+      <p id="pain-q">Do you get pain or numbness when you ride?</p>
+      <div class="row">
+        <button id="painNo" class="secondary" type="button" aria-pressed="true">No</button>
+        <button id="painYes" class="secondary" type="button" aria-pressed="false">Yes</button>
+      </div>
+    </div>
     <button id="start" class="primary" type="button" disabled>Loading…</button>
     <p id="status" class="status" role="status">Getting the pose model ready.</p>
   </div>
 
   <section class="card" aria-labelledby="hist-h" id="histCard" hidden>
     <h2 id="hist-h">Your sessions on this phone</h2>
+    <p id="histLatest" class="latest" hidden></p>
     <ul id="history" class="history"></ul>
   </section>
 
-  <section class="card" aria-labelledby="how-h">
-    <h2 id="how-h">How it works, in one minute</h2>
-    <video class="howto" src="assets/how-to.mp4" poster="assets/how-to-poster.jpg" controls playsinline preload="none"></video>
+  <section class="card" aria-labelledby="what-h">
+    <h2 id="what-h">What it checks</h2>
+    <ul class="checklist">
+      <li>Your saddle height first, then your reach and bar height.</li>
+      <li>About 3 minutes.</li>
+      <li>You need: a wall or a helper, something 60 to 80 cm high for the phone, and 3 m of space.</li>
+      <li>You hold the pedal at the bottom for 3 seconds, then pedal backwards for 20 seconds.</li>
+      <li>No video is kept unless you switch it on above.</li>
+    </ul>
   </section>
 
   <section class="card small" aria-labelledby="priv-h">
     <h2 id="priv-h">Private by design</h2>
-    <p style="margin:0">Everything runs on this phone. No video is recorded unless you switch it on above, nothing is uploaded, and your results stay in this browser. To keep it on your home screen: in Safari tap Share, then Add to Home Screen.</p>
+    <p style="margin:0">Everything runs on this phone. No video is kept unless you switch it on above, and nothing is uploaded. Your results stay in this browser.</p>
   </section>
+
+  <details class="card other">
+    <summary>Another way: film a clip for the full analysis</summary>
+    <p class="small">This shows a different way to do it: you film in the Camera app and send the clip yourself. You do not need it for this app.</p>
+    <video class="howto" src="assets/how-to.mp4" poster="assets/how-to-poster.jpg" controls playsinline preload="none"></video>
+  </details>
 </main>
 
 <div id="run" hidden>
@@ -159,16 +220,30 @@
 </div>
 
 <main id="results" class="page" hidden>
+  <p id="rPain" class="note" hidden></p>
+  <p id="rCompare" class="note compare" hidden></p>
   <header class="verdict">
     <span id="rOverall" class="pill">Result</span>
     <div id="rWhat" class="big"></div>
     <div id="rWhy" class="why"></div>
   </header>
-  <p id="rDisagree" class="note" hidden>Your still reading and your pedalling reading point different ways. Treat the advice as a maybe and film once more.</p>
+  <section id="rMade" class="card made" aria-labelledby="made-h" hidden>
+    <div id="rMadeAsk">
+      <h3 id="made-h" class="q">Did you make this change?</h3>
+      <label id="rMadeMmRow" class="mm" for="rMadeMm">How far <input id="rMadeMm" type="number" min="1" max="15" step="1" inputmode="numeric"> mm</label>
+      <div class="row">
+        <button id="rMadeYes" class="secondary" type="button">I made this change</button>
+        <button id="rMadeNo" class="secondary" type="button">Not yet</button>
+      </div>
+      <p id="rMadeTip" class="small">Tip: mark the seat post with tape before you move it, so you know how far it went.</p>
+    </div>
+    <p id="rMadeSaved" hidden>Saved. Next time you film, I will check what it did.</p>
+  </section>
+  <p id="rDisagree" class="note" hidden>Your held-still reading was outside its range. Film once more to be sure.</p>
   <p id="rWarn" class="note" hidden></p>
   <section class="card" aria-labelledby="ang-h">
-    <h2 id="ang-h">Your measurements</h2>
-    <ul id="rList" class="measures num"></ul>
+    <h2 id="ang-h">Your fit, by area</h2>
+    <ul id="rList" class="areas num"></ul>
   </section>
   <section class="card" aria-labelledby="shot-h" id="shotCard" hidden>
     <h2 id="shot-h">At the bottom of the stroke</h2>
@@ -183,7 +258,7 @@
     <button id="copy" class="secondary" type="button">Copy results</button>
     <button id="done" class="secondary" type="button">Home</button>
   </div>
-  <p class="small">A phone camera measures to within a few degrees. Change one thing at a time, then film again to see what it did. For pain, numbness or a big change, see a professional fitter. For the most exact numbers, switch on Keep a video before you start, then save it here and send it to Claude for the full analysis.</p>
+  <p class="small">Phone cameras are only accurate to a few degrees, so small differences mean little. Change one thing at a time, then film again to see what it did. For pain, numbness or a big change, see a professional bike fitter. For the most exact numbers, switch on Keep a video before you start, then save it here and send it for the full analysis.</p>
 </main>
 
 <script type="module" src="app.js"></script>

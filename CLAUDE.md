@@ -33,6 +33,9 @@ front page built from each app's `<title>` and `<meta name="description">`. A ne
 publishing change; give it both tags, relative links only, and an `npm test` if it has logic. Any
 failing test stops the deploy for every app, and the last good site stays live.
 
+All apps share one origin (mishevelada.github.io), so cache names and localStorage keys must carry
+the app's own prefix, and a service worker must never delete a cache it does not own.
+
 ## Projects
 
 | Folder | What it is |
