@@ -8,6 +8,14 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### Before executing a task, check which skill could help
+
+> **"Please before executing a task check which skill could help"**
+
+**What it changed.** `CLAUDE.md` now opens every task with a skill check: the skills the session
+lists and this repo's `.claude/skills/`, the fitting one used and named in the reply, and a missing
+one offered to him from the plugin catalog rather than installed, since installing is his call.
+
 ### Customer experience and simplicity first: far less text, and screens that explain themselves
 
 > **"Think customer experience and simplicity first right now too much text and ux ui is not intuitive"**
