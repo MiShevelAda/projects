@@ -19,6 +19,14 @@ it... explain it to me like I'm eight years old, because I'm not a coder."* Say 
 every reply. A step only he can do (a login, a decision, something only his eyes confirm) comes as
 numbered clicks, with what he should see when it worked and how long it takes.
 
+## Before a task: the skill check
+
+His words, 2026-10-10: *"Please before executing a task check which skill could help."* Before
+starting work, look through the skills this session lists and this repo's `.claude/skills/`, and use
+the one that fits. When none does and the work would clearly gain from one (design, accessibility,
+UX copy, testing), search the plugin catalog and offer it to him; installing is his call. Name the
+skill used in the reply, or say that none fits.
+
 ## His decisions
 
 `DECISIONS.md` holds every ruling he makes about these projects, newest first, in his exact words,
