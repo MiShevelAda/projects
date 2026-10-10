@@ -8,6 +8,22 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### All of Matt Pocock's skills, usable in the running session; Code Review off
+
+> **"Add all Matt Pocock's skills"**
+> **"First yes"**
+> **"Also do everything needed so the skills are accessible as of now without opening new window"**
+
+His answer to the two recommendations above ("Turn off Code Review?" and "Add prototype?"). It
+overrules the session's advice to leave out Matt Pocock's `tdd` and `diagnosing-bugs`. **What it
+changed.** The session put Matt Pocock's own plugin from Anthropic's directory, "Skills For Real
+Engineers", on an install card for him to tap: every skill in one bundle, each name prefixed with the
+plugin's, so none collides with the four copies vendored in the brand repo or with Claude's built-in
+`/code-review`. A plugin enabled on his account reaches a running session without a new window. "First
+yes" is his yes to switching Code Review off, a switch only he can flip in his Claude app. The
+`prototype` copy vendored above stays (it is a newer version than the plugin's). `git-guardrails-claude-code`
+is never to be run here: it blocks `git push`, and a push to `main` is how this repo publishes.
+
 ### The plugins: keep Superpowers, Design and Frontend Design, turn off Code Review, add "prototype"
 
 > **"Ok So how can we make apply them as of now"**
