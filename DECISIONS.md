@@ -8,6 +8,19 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### The goal: compete with a professional in-person bike fit, good enough that a fitter rates it 9 out of 10
+
+> **"The goal of this app is really to compete with professional bike fitting done in person so also hand position is important also also additional videos from back should be taken so let the team work out the needs to be the best app in the appstore if I decide to make ot appstore ready it needs to be as professional so a bike fitter would rank or 9/10"**
+
+**What it sets.** The bar is a professional fitter's judgement, not a hobby tool's: hand position is in
+scope (where the hands sit on the hoods, reach and drop, wrist and elbow), and the check adds a view
+from behind the rider, not only the side. The team works out what the best fit app needs. **Open, and
+his:** whether to make it an App Store app (that means an Apple developer account and probably a
+native app, not only the web app). **The session's caution, stated plainly:** some of what a fitter
+does in person (feeling the rider's flexibility, pressure mapping, a 3D motion capture system) a phone
+cannot copy, so "9 out of 10" has to be defined as measurable targets and checked against a real
+fitter, not claimed.
+
 ### Everything the app needs is built in: the rider never downloads a voice or changes a setting
 
 > **"Needs to be build in should be easier from customer experience"**
