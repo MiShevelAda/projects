@@ -26,6 +26,8 @@ starting work, look through the skills this session lists and this repo's `.clau
 the one that fits. When none does and the work would clearly gain from one (design, accessibility,
 UX copy, testing), search the plugin catalog and offer it to him; installing is his call. Name the
 skill used in the reply, or say that none fits.
+Where a skill tells you to ask him before acting, ask only what he alone can answer and state your
+assumptions for the rest (`.claude/skills/README.md`).
 
 ## His decisions
 
