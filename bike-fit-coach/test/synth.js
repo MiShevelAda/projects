@@ -113,3 +113,45 @@ export function seeded(seed = 1) {
   let s = seed >>> 0;
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
+
+/**
+ * A phone standing sideways and rolled about its lens, built from the device's own axes rather than
+ * from fit.imageRoll, so the tests and ?sim&roll= check that function against the geometry.
+ * Device axes (as DeviceMotionEvent reports them): x to the right of the screen held upright, y to
+ * its top, z out of the screen. side: 'left' (the top of the phone to the left as you face the
+ * screen, so x points up) or 'right' (x points down). roll: degrees, positive when the phone turns
+ * anticlockwise as you face its screen. pitch: degrees the lens tips up or down (a z part of
+ * gravity). camera: 'rear' (looks out of the back, along -z) or 'front' (out of the screen, +z), its
+ * picture as the camera sees it, not mirrored. convention: 'spec' (accelerationIncludingGravity
+ * points up, as the W3C specification says) or 'ios' (the opposite sign, as Safari on iPhone was
+ * reported to give).
+ * Returns g, the accelerometer reading, and theta, the roll of the picture in degrees: positive when
+ * straight down in the room points down and to the right in the picture.
+ */
+export function rolledPhone({ camera = 'rear', side = 'left', roll = 0, pitch = 0, convention = 'spec' } = {}) {
+  const r = (roll * Math.PI) / 180, p = (pitch * Math.PI) / 180;
+  // Straight down in the room, in device axes. Level, it is -x (side left) or +x (side right).
+  // Turning the phone anticlockwise by r turns that vector clockwise by r in the device's axes.
+  const s = side === 'left' ? -1 : 1;
+  const down = [s * Math.cos(r) * Math.cos(p), -s * Math.sin(r) * Math.cos(p), Math.sin(p)];
+  // The picture's right and down, in device axes (right = the camera's forward x the room's up).
+  const X = [1, 0, 0], Y = [0, 1, 0], neg = (v) => v.map(c => -c);
+  const axes = {
+    rear: { left: { right: neg(Y), down: neg(X) }, right: { right: Y, down: X } },
+    front: { left: { right: Y, down: neg(X) }, right: { right: neg(Y), down: X } },
+  }[camera][side];
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const theta = (Math.atan2(dot(down, axes.right), dot(down, axes.down)) * 180) / Math.PI;
+  const k = convention === 'ios' ? 9.81 : -9.81;
+  return { g: down.map(c => k * c), theta };
+}
+
+// What a picture rolled by theta degrees shows: the upright scene turned by -theta about the centre
+// of the picture, so that straight down in the room points at theta in the picture.
+export function rollPicture(lm, theta, W = 1280, H = 720) {
+  const a = (-theta * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a), cx = W / 2, cy = H / 2;
+  return lm.map(q => {
+    const x = q.x * W - cx, y = q.y * H - cy;
+    return { ...q, x: (cx + x * c - y * s) / W, y: (cy + x * s + y * c) / H };
+  });
+}

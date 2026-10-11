@@ -6,7 +6,42 @@
 // model sha256, both from NOTICE.md. Change it whenever anything in vendor/ or models/ changes, so
 // old engine files are dropped together. (test/sw.test.mjs fails if it falls out of step.)
 const CACHE = 'bfc-v2-mp0.10.35-4eaa5eb7';
-const CORE = ['./', './index.html', './app.js', './fit.js', './manifest.webmanifest', './icons/icon-192.png', './vendor/mediapipe/vision_bundle.mjs'];
+// Every file the page needs offline. The clips (.mp4) are left to the network on purpose (see the
+// fetch handler); their posters are here, so Getting Ready (the setup guide) and Learn (the Camera app
+// clip) look the same offline.
+const CORE = ['./', './index.html', './app.js', './fit.js', './ui.js', './manifest.webmanifest', './icons/icon-192.png', './assets/setup-guide-poster.jpg', './assets/how-to-poster.jpg',
+  './vendor/mediapipe/vision_bundle.mjs', './assets/voice/manifest.json'];
+
+// The coach's recorded voice (assets/voice/, tools/voice/build-voice.mjs) has a cache of its own, so
+// a new engine does not drop the clips and new clips do not touch the engine. Each clip's name is a
+// hash of its words, so a cached clip never goes out of date: the clips are served from this cache
+// first. The ones a first check needs (pre: true in the manifest: every instruction, and every
+// sentence of a result that has no number in it) are cached when the worker installs; the rest (the
+// sentences with a number, one clip for each value) are cached the first time they are played. Clips
+// the manifest no longer lists are deleted when a new worker takes over.
+const VOICE_CACHE = 'bfc-voice-v1';
+const VOICE = './assets/voice/';
+const isClip = (url) => url.pathname.includes('/assets/voice/') && /\/[0-9a-f]{16}\.m4a$/.test(url.pathname);
+async function voiceManifest() {
+  const res = await fetch(`${VOICE}manifest.json`, { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`manifest ${res.status}`);
+  return res.json();
+}
+async function precacheVoice() {
+  const m = await voiceManifest();
+  const c = await caches.open(VOICE_CACHE);
+  const want = (m.clips || []).filter((x) => x.pre).map((x) => VOICE + x.file);
+  const have = new Set((await c.keys()).map((r) => new URL(r.url).pathname));
+  // In small groups: one failed clip only leaves its group to be cached on use.
+  const todo = want.filter((f) => !have.has(new URL(f, self.location.href).pathname));
+  for (let i = 0; i < todo.length; i += 20) await c.addAll(todo.slice(i, i + 20)).catch(() => { /* cached on use */ });
+}
+async function pruneVoice() {
+  const m = await voiceManifest();
+  const keep = new Set((m.clips || []).map((x) => x.file));
+  const c = await caches.open(VOICE_CACHE);
+  for (const r of await c.keys()) if (!keep.has(new URL(r.url).pathname.split('/').pop())) await c.delete(r);
+}
 
 // The engine and the model, about 20 MB. On the first visit the page loads them before this worker
 // controls it, so caching them only on use left them out until the second visit. The page registers
@@ -27,6 +62,7 @@ async function engineFiles() {
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE)
     .then((c) => c.addAll(CORE).then(() => engineFiles().then((files) => c.addAll(files)).catch(() => { /* cached on use */ })))
+    .then(() => precacheVoice().catch(() => { /* cached on use */ }))
     .then(() => self.skipWaiting()));
 });
 
@@ -34,8 +70,15 @@ self.addEventListener('install', (e) => {
 // old caches (the bfc- prefix) are ever deleted.
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys()
-    .then((ks) => Promise.all(ks.filter((k) => k.startsWith('bfc-') && k !== CACHE).map((k) => caches.delete(k))))
+    .then((ks) => Promise.all(ks.filter((k) => k.startsWith('bfc-') && k !== CACHE && k !== VOICE_CACHE).map((k) => caches.delete(k))))
+    .then(() => pruneVoice().catch(() => { /* next time */ }))
     .then(() => self.clients.claim()));
+});
+
+// The page asks on each visit (app.js, registerWorker), so clips added after this worker installed
+// (new or reworded lines, with sw.js itself unchanged) are cached too, and old ones dropped.
+self.addEventListener('message', (e) => {
+  if (e.data === 'bfc-voice') e.waitUntil(precacheVoice().then(pruneVoice).catch(() => { /* next visit */ }));
 });
 
 const keep = (req, res) => {
@@ -46,7 +89,17 @@ const keep = (req, res) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== location.origin) return;
-  if (/\.mp4$/.test(url.pathname)) return; // video uses range requests; leave it to the network
+  // A voice clip: from its cache, else the network, then kept. The app fetches clips whole (app.js,
+  // Clips); a request for a byte range (an <audio> or <video> element asking for part of a file) is
+  // left to the network, because this worker does not cut ranges out of cached files.
+  if (isClip(url) && !req.headers.has('range')) {
+    e.respondWith(caches.open(VOICE_CACHE).then((c) => c.match(req).then((hit) => hit || fetch(req).then((res) => {
+      if (res.ok && res.status === 200) c.put(req, res.clone());
+      return res;
+    }))));
+    return;
+  }
+  if (/\.(mp4|m4a|mp3)$/.test(url.pathname)) return; // video and sound use range requests; leave them to the network
   // Engine and model files (the .js glue, the .wasm, the bundle and the model) always come from the
   // same cache generation, so a phone never mixes new glue code with an old engine.
   if (url.pathname.includes('/vendor/') || url.pathname.includes('/models/') || /\.png$/.test(url.pathname)) {

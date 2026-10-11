@@ -12,40 +12,137 @@
 // correction the phone is turned or slid along without tilting it, and the rider gets back on <px>
 // further along in the picture; &unfixed: moving the phone does not fix the picture, so the same
 // check asks again; &arrive=<step>: a helper comes to the rider's hip in that step (see makeSim).
+// The screens: &screen=towards|away (or front|rear) answers "Where will the screen face?"; &tab=
+// progress|learn opens on that tab; &installed acts as if opened from the Home Screen; with ?sim,
+// &seed=asked|trend|good fills a made-up history kept in memory only (seedHistory). The phone's roll,
+// in the simulation: &roll=<degrees> stands the made-up phone rolled that much about its lens (the
+// picture and the motion sensor both say so), &land=left|right which way up it is sideways (the top
+// of the phone to the left or right as you face the screen), &conv=ios|spec the sign the sensor
+// reports gravity with, and &noderoll leaves the roll in, to see what it would cost. Round 3, builder C:
+// &low=<mm> how far the made-up saddle sits too low (35 by default), and a saddle change marked in this
+// page view moves it by that much, so Check It Now can show a change that worked; &moved: the made-up
+// phone is picked up after a check (and put back at an angle to the bike), &replaced: picked up and
+// put back square on the tape marks, as a rider coming back another day would, and &nomotion: there
+// is no motion reading after it, so Check It Now cannot tell whether it moved and asks; &inapp acts
+// as if opened inside another app's browser. Builder D: &voice=off, with ?sim, plays no recorded clips
+// and times every line by the word estimate, as before the recorded voice, for quick headless runs.
 
 import * as fit from './fit.js';
+import * as ui from './ui.js';
 
 const params = new URLSearchParams(location.search);
 const SIM = params.has('sim');
 const $ = (id) => document.getElementById(id);
-const el = Object.fromEntries(['home', 'run', 'results', 'start', 'status', 'cam', 'overlay', 'say', 'sayNote', 'runSetup', 'phoneList', 'steps', 'chips', 'skip', 'stop', 'timer',
-  'histCard', 'history', 'homeScreenTip', 'rOverall', 'rWhat', 'rWhy', 'rDisagree', 'rWarn', 'rList', 'keepVideo', 'shotCard', 'rShot', 'again', 'speak', 'saveVideo', 'copy', 'done',
-  'retestCard', 'retestText', 'retestStart', 'histLatest', 'painNo', 'painYes', 'rPain', 'rCompare', 'rMade', 'rMadeAsk', 'rMadeSaved', 'rMadeYes', 'rMadeNo',
-  'hMade', 'hMadeQ', 'hMadeStart', 'setupCard', 'setupQ', 'setupErr', 'rSetup', 'rHow', 'rHowQ', 'stopped', 'stoppedWait', 'stepsFold']
+const el = Object.fromEntries(['home', 'flow', 'flowSetup', 'flowScreen', 'flowPain', 'flowReady', 'screenNext', 'screenBack', 'screenClose', 'painNext', 'painBack', 'painClose',
+  'painErr', 'painCard', 'painQ', 'screenQ', 'run', 'results', 'start', 'status', 'cam', 'overlay', 'say', 'sayNote', 'runSetup', 'steps', 'chips', 'skip', 'stop', 'timer',
+  'stage', 'placeView', 'placeSub', 'levelView', 'levelDeg', 'levelSub', 'bubble', 'bubbleBar', 'sign', 'signArrow', 'signCheck', 'signWord', 'signSub', 'ringView', 'ring', 'ringArc', 'holdIcon',
+  'ringWord', 'ringSub', 'fixCard', 'fixArrow', 'field', 'fieldCheck', 'fieldUp', 'fieldDown', 'fieldWord', 'fieldSub', 'seeWhat', 'border', 'borderRect', 'stepLabel',
+  'histCard', 'history', 'rOverall', 'rStatus', 'rWhat', 'rWhy', 'rDisagree', 'rWarn', 'rList', 'rHowToSlot', 'keepVideo', 'shotCard', 'rShot', 'again', 'speak', 'saveVideo', 'copy', 'done',
+  'retestCard', 'retestTitle', 'retestText', 'retestStart', 'freshCard', 'newCheck', 'painNo', 'painYes', 'rPain', 'rCompare', 'rMade', 'rMadeAsk', 'rMadeSaved', 'rMadeYes', 'rMadeNo', 'rMadeNow',
+  'hMade', 'hMadeQ', 'hMadeStart', 'setupCard', 'setupQ', 'setupErr', 'setupNote', 'rSetup', 'rHow', 'rHowQ', 'stopped', 'stoppedWait', 'stepsFold',
+  'flowNext', 'flowClose', 'readyBack', 'readyClose', 'howPlay', 'howPlayText', 'howPlayPath', 'howVideo', 'howPoster',
+  'tabCheck', 'tabProgress', 'tabLearn', 'today', 'homeStatus', 'a2hs', 'showShare', 'shareHint', 'shareHintClose', 'homeSummary',
+  'assessCard', 'latestHead', 'latestSub', 'latestCards', 'showAll', 'progCard', 'segSaddle', 'segReach', 'changes', 'changesH',
+  'flowAllow', 'allowStart', 'allowStatus', 'allowBack', 'allowClose', 'hearMe', 'flowWhere', 'whereYes', 'whereNo', 'whereClose',
+  'rWhen', 'whenTonight', 'whenWeekend', 'whenPick', 'whenPickRow', 'whenDate', 'whenAdd', 'whenSkip', 'rWhenDone', 'rMadeHint', 'fixTape',
+  'inApp', 'copyLink', 'copyDone', 'hearHint']
   .map(id => [id, $(id)]));
 const now = () => performance.now() / 1000;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const round = (v) => (Number.isFinite(v) ? Math.round(v) : null);
 
 // ── voice ────────────────────────────────────────────────────────────────────────────────────
-// Lines are queued here and spoken one at a time, and the caption on the screen (#say) changes
-// when a line starts playing (the utterance's onstart), not when it is queued, so the screen shows
-// what the voice is saying. Without a speech engine, or when a line fails, the caption and the
-// step clocks go by an estimate of the speaking time: about 150 words a minute (a second-hand
-// figure), faster in the simulation so it does not drag.
+// Lines are queued here and said one at a time, and the caption on the screen (#say) changes when a
+// line starts playing, not when it is queued, so the screen shows what the voice is saying.
+// The voice is the coach's recorded one: every line the app can say is a clip in assets/voice/, made
+// with Kokoro's af_heart voice (tools/voice/build-voice.mjs; DECISIONS.md, the Heart entry and "Needs
+// to be build in"), found by its exact words in assets/voice/manifest.json and played through ONE
+// shared <audio id="voice"> element. A media element follows the phone's media volume, which is
+// likely to be heard with the phone on silent, where Web Audio and Web Speech follow the silent switch
+// (likely, not yet confirmed on an iPhone). iOS lets a page play sound only after a tap, so a tap that
+// leads to sound plays a moment of silence on that element first (Voice.unlock); after that the
+// element may play on its own. A line built from parts (the spoken result) is played sentence by
+// sentence (ui.voiceParts). The phone's own speech voice is only the fallback for a clip that fails
+// to load or play. Without either (the Node tests, a browser with no sound), the caption and the step
+// clocks go by an estimate of the speaking time: about 150 words a minute (a second-hand figure),
+// faster in the simulation so it does not drag; with clips, by their real lengths.
 const RATE = SIM ? 12 : 2.5; // words per second
 const PAD = SIM ? 0.2 : 0.5; // seconds after each line
 // Every line for the friend starts "Friend"; a design choice: 1.5 s of quiet between a line for the
 // friend and one for the rider, so each can hear that the other's instruction is over.
 const TURN_GAP = 1.5;
 const speaker = (text) => (/^Friend\b/.test(text) ? 'friend' : 'rider');
+const VOICE_DIR = 'assets/voice/';
+// A twentieth of a second of silence, made here (8 kHz, 8 bit, mono WAV), for unlocking the element.
+function silence() {
+  const n = 400, b = new DataView(new ArrayBuffer(44 + n));
+  const text = (at, s) => [...s].forEach((c, i) => b.setUint8(at + i, c.charCodeAt(0)));
+  text(0, 'RIFF'); b.setUint32(4, 36 + n, true); text(8, 'WAVEfmt '); b.setUint32(16, 16, true); b.setUint16(20, 1, true); b.setUint16(22, 1, true);
+  b.setUint32(24, 8000, true); b.setUint32(28, 8000, true); b.setUint16(32, 1, true); b.setUint16(34, 8, true); text(36, 'data'); b.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) b.setUint8(44 + i, 128);
+  return URL.createObjectURL(new Blob([b.buffer], { type: 'audio/wav' }));
+}
+// The recorded clips. ok: this browser can play them (a real <audio> element, fetch and object URLs;
+// not the Node tests). map: the manifest, words to { file, duration }, once it has loaded. Each clip
+// is fetched once (through the service worker, so from its cache when offline) and kept as an object
+// URL: a plain file address would make the element ask for byte ranges, which a cached copy cannot
+// answer on Safari.
+const Clips = {
+  ok: false, el: null, map: null, loading: null, urls: new Map(), ready: new Map(), primed: false, quiet: null,
+  init() {
+    this.el = document.getElementById('voice');
+    if (SIM && params.get('voice') === 'off') return;
+    this.ok = typeof HTMLAudioElement === 'function' && this.el instanceof HTMLAudioElement && typeof fetch === 'function' && typeof URL?.createObjectURL === 'function';
+    if (!this.ok) return;
+    // The clips are AAC, which Safari, Chrome and Firefox play; a browser that cannot (an open-source
+    // Chromium build, say) goes straight to the phone's voice instead of failing clip by clip.
+    if (!this.el.canPlayType?.('audio/mp4; codecs="mp4a.40.2"')) { this.ok = false; debug.voice.errors.push('this browser does not play AAC'); return; }
+    this.el.preload = 'auto';
+    this.loading = fetch(VOICE_DIR + 'manifest.json')
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error(`manifest ${r.status}`))))
+      .then(m => { this.map = new Map((m.clips || []).map(c => [c.text, c])); debug.voice.clips = this.map.size; })
+      .catch(e => { this.map = new Map(); debug.voice.errors.push(String(e?.message || e)); });
+  },
+  has(text) { return !!this.map?.has(text); },
+  parts(text) { return this.map ? ui.voiceParts(text, (t) => this.has(t)) : null; },
+  // An object URL for a clip, fetched once; ready holds the ones already here, so a tap can start one
+  // at once, inside the tap.
+  url(text) {
+    const c = this.map?.get(text);
+    if (!c) return Promise.reject(new Error('no clip'));
+    if (!this.urls.has(c.file)) {
+      this.urls.set(c.file, fetch(VOICE_DIR + c.file)
+        .then(r => (r.ok ? r.blob() : Promise.reject(new Error(`${c.file} ${r.status}`))))
+        .then(b => { const u = URL.createObjectURL(new Blob([b], { type: 'audio/mp4' })); this.ready.set(c.file, u); return u; })
+        .catch(e => { this.urls.delete(c.file); throw e; }));
+    }
+    return this.urls.get(c.file);
+  },
+  readyUrl(text) { const c = this.map?.get(text); return c ? this.ready.get(c.file) : null; },
+  // Fetch a line's clips ahead of saying it, so one follows the other without a wait.
+  prefetch(text) { for (const p of this.parts(text) || []) if (p.clip) this.url(p.text).catch(() => {}); },
+  // Inside a tap: play a moment of silence on the element once, which is what iOS waits for before it
+  // lets the element play on its own. Never while a line is playing (it would cut it off).
+  unlock() {
+    if (!this.ok || this.primed) return;
+    this.primed = true;
+    try {
+      this.quiet ??= silence();
+      this.el.src = this.quiet;
+      this.el.play()?.catch?.(() => {});
+    } catch { this.primed = false; }
+  },
+};
 const Voice = {
   last: new Map(), count: new Map(), voice: null, engine: false,
   q: [], cur: null, gen: 0, lastEnd: 0, lastSpeaker: null, doneAt: 0,
   init() {
+    Clips.init();
     this.engine = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
-    if (!this.engine) return;
+    if (!this.engine && !Clips.ok) return;
     el.say.removeAttribute('aria-live'); // it is spoken already; VoiceOver would say it twice
+    if (!this.engine) return;
+    // The fallback voice: the phone's best English one, as before.
     const pick = () => {
       const vs = speechSynthesis.getVoices();
       this.voice = vs.find(v => /^en[-_]GB/i.test(v.lang) && v.localService)
@@ -55,13 +152,21 @@ const Voice = {
     pick();
     speechSynthesis.addEventListener?.('voiceschanged', pick);
   },
-  unlock() { // iOS only lets a page speak after a tap, so the Start tap says something silent
-    if (!this.engine) return;
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0;
-    speechSynthesis.speak(u);
+  // iOS only lets a page make sound after a tap, so every tap that leads to the voice calls this
+  // (through unlockSound): the speech fallback says something silent, then the clip element plays a
+  // moment of silence.
+  unlock() {
+    if (this.engine) {
+      try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch { /* the clips do not need it */ }
+    }
+    Clips.unlock();
   },
-  est(text) { return text.split(/\s+/).length / RATE + PAD; },
+  // Seconds a line takes: its clips' real lengths when it has them, else the word estimate.
+  est(text) {
+    const parts = Clips.parts(text);
+    if (parts?.length && parts.every(p => p.clip)) return parts.reduce((s, p) => s + Clips.map.get(p.text).duration, 0) + PAD;
+    return text.split(/\s+/).length / RATE + PAD;
+  },
   busy() { return !!this.cur || this.q.length > 0; },
   // When everything queued should be over, by the estimate (for the step clocks).
   recalc() {
@@ -84,6 +189,7 @@ const Voice = {
     log('say', text);
     debug.speech.push({ t, text, interrupt });
     if (interrupt) this.cancel();
+    Clips.prefetch(text);
     const prev = this.q.length ? this.q[this.q.length - 1] : this.cur;
     const before = prev ? speaker(prev.text) : this.lastSpeaker;
     let gap = 0;
@@ -97,6 +203,7 @@ const Voice = {
     if (this.cur || !this.q.length) return;
     const item = this.q.shift(), gen = this.gen;
     this.cur = item;
+    const live = () => gen === this.gen && !item.done;
     const start = () => {
       if (gen !== this.gen || item.t0 != null) return;
       clearTimeout(item.show);
@@ -106,7 +213,7 @@ const Voice = {
       this.recalc();
     };
     const end = () => {
-      if (gen !== this.gen || item.done) return;
+      if (!live()) return;
       item.done = true;
       clearTimeout(item.show);
       clearTimeout(item.watch);
@@ -116,31 +223,78 @@ const Voice = {
       this.recalc();
       this.pump();
     };
-    const byEstimate = () => {
-      clearTimeout(item.watch);
-      start();
-      item.watch = setTimeout(end, this.est(item.text) * 1000);
-    };
-    const begin = () => {
-      if (gen !== this.gen) return;
-      if (!this.engine) return byEstimate();
+    // One part by the estimate: shown, and over when its words would be.
+    const byEstimate = (text) => new Promise(resolve => { start(); setTimeout(resolve, this.est(text) * 1000); });
+    // One part in the phone's own voice; by the estimate when that cannot speak either.
+    const speak = (text) => new Promise(resolve => {
+      if (!this.engine) { byEstimate(text).then(resolve); return; }
       let u;
-      try { u = new SpeechSynthesisUtterance(item.text); } catch { return byEstimate(); }
+      try { u = new SpeechSynthesisUtterance(text); } catch { byEstimate(text).then(resolve); return; }
       if (this.voice) { u.voice = this.voice; u.lang = this.voice.lang; } else u.lang = 'en-GB';
       u.onstart = start;
-      u.onend = end;
+      u.onend = resolve;
       // A line the engine could not say (no voice, or not allowed yet) is shown and timed by the
       // estimate instead; one that was cut off just ends.
-      u.onerror = (e) => {
-        if (gen !== this.gen || item.done) return;
-        if (e?.error === 'interrupted' || e?.error === 'canceled') end(); else byEstimate();
+      u.onerror = (e) => { if (e?.error === 'interrupted' || e?.error === 'canceled') resolve(); else byEstimate(text).then(resolve); };
+      try { speechSynthesis.speak(u); } catch { byEstimate(text).then(resolve); }
+    });
+    // One part from its clip, on the shared element. A clip that fails to load or play is said in the
+    // phone's voice instead, and noted (window.__bfc.voice.fallback).
+    const clip = (text) => new Promise(resolve => {
+      const a = Clips.el, dur = Clips.map.get(text).duration;
+      let settled = false, watch = null;
+      const done = () => { if (settled) return; settled = true; clearTimeout(watch); a.onended = a.onerror = a.onplaying = null; resolve(); };
+      const fail = (why) => {
+        if (settled) return;
+        settled = true; clearTimeout(watch); a.onended = a.onerror = a.onplaying = null;
+        debug.voice.fallback.push({ text, why: why?.name && why.name !== 'Error' ? why.name : String(why?.message || why) });
+        if (why?.name === 'NotAllowedError') Clips.primed = false; // iOS wants another tap first
+        if (live()) speak(text).then(resolve); else resolve();
       };
-      // Design choices, for engines that report nothing: a line that has not started after 1.5 s is
-      // shown anyway, and one that has not ended after twice its estimate plus 2 s is moved past.
-      item.show = setTimeout(start, 1500);
-      item.watch = setTimeout(end, (2 * this.est(item.text) + 2) * 1000);
-      try { speechSynthesis.speak(u); } catch { byEstimate(); }
+      const go = (u) => {
+        if (!live()) { resolve(); return; }
+        a.onplaying = () => { start(); debug.voice.played.push({ t: now(), text }); };
+        a.onended = done;
+        a.onerror = () => fail(a.error ? new Error(`media error ${a.error.code}`) : new Error('media error'));
+        // Design choice: a clip still not over 2 s after its length is moved past.
+        watch = setTimeout(done, (dur + 2) * 1000);
+        try {
+          a.src = u;
+          const p = a.play();
+          p?.catch?.((e) => { if (e?.name !== 'AbortError') fail(e); });
+        } catch (e) { fail(e); }
+      };
+      const ready = Clips.readyUrl(text);
+      if (ready) { go(ready); return; }
+      // Design choice: a clip not here within 3 s (a slow connection) is said in the phone's voice.
+      const slow = setTimeout(() => fail(new Error('slow to load')), 3000);
+      Clips.url(text).then((u) => { clearTimeout(slow); if (!settled) go(u); }, (e) => { clearTimeout(slow); fail(e); });
+    });
+    const begin = async () => {
+      if (gen !== this.gen) return;
+      // The manifest may still be on its way at the very start: wait for it, up to 1.5 s (a design
+      // choice), then go without it.
+      if (Clips.ok && !Clips.map) await Promise.race([Clips.loading, new Promise(r => setTimeout(r, 1500))]);
+      if (gen !== this.gen) return;
+      const parts = Clips.ok ? Clips.parts(item.text) : null;
+      for (const p of parts?.some(x => x.clip) ? parts : [{ text: item.text, clip: false }]) {
+        if (!live()) return;
+        if (!p.clip) debug.voice.missing.push(p.text);
+        await (p.clip ? clip(p.text) : speak(p.text));
+      }
+      end();
     };
+    // Design choices, for engines that report nothing: a line that has not started after 1.5 s is
+    // shown anyway, and one that has not ended after twice its estimate plus 2 s is moved past.
+    // Moved past, what is still sounding stops, so it never plays over the next line.
+    const overdue = () => {
+      if (!live()) return;
+      if (this.engine) { try { speechSynthesis.cancel(); } catch { /* nothing to stop */ } }
+      if (Clips.ok) { try { Clips.el.pause(); } catch { /* nothing playing */ } }
+      end();
+    };
+    item.show = setTimeout(start, 1500 + (item.gap || 0) * 1000);
+    item.watch = setTimeout(overdue, (2 * this.est(item.text) + 2 + (item.gap || 0)) * 1000);
     if (item.gap) setTimeout(begin, item.gap * 1000); else begin();
   },
   cancel() {
@@ -150,6 +304,7 @@ const Voice = {
     this.cur = null;
     this.lastEnd = this.doneAt = now();
     if (this.engine) speechSynthesis.cancel();
+    if (Clips.ok) { try { Clips.el.pause(); Clips.el.onended = Clips.el.onerror = Clips.el.onplaying = null; } catch { /* nothing playing */ } }
   },
   stop() { this.cancel(); },
 };
@@ -175,6 +330,16 @@ const Beep = {
   },
   chime() { this.tone(660, 0.12); setTimeout(() => this.tone(990, 0.2), 140); },
 };
+
+// A tap that leads to sound calls this first, inside the tap, because iOS allows sound only from a
+// tap: the audio session first (so the silent switch does not mute the page, where the browser
+// supports it), then the beeps, then the voice (speech: false for a tap that plays a recording).
+// The same order as the live app's sound fix, so the two can be merged as one.
+function unlockSound(speech = true) {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* not supported */ }
+  Beep.init();
+  if (speech) Voice.unlock();
+}
 
 // ── tilt sensor: is the phone sideways and level? ─────────────────────────────────────────────
 const Tilt = {
@@ -205,10 +370,44 @@ const Tilt = {
     this.landscape = Math.abs(x) > Math.abs(y) * 1.3;
     this.pitch = (Math.asin(Math.max(-1, Math.min(1, z / n))) * 180) / Math.PI; // camera pointing up or down
     this.roll = (Math.atan2(y, Math.abs(x)) * 180) / Math.PI;                    // horizon tilted
+    Watch.sample(now());
   },
   level() { return Math.abs(this.pitch) < 3 && Math.abs(this.roll) < 2.5; },
   error() { return Math.max(Math.abs(this.pitch) / 3, Math.abs(this.roll) / 2.5); },
 };
+
+// ── has the phone moved since it was levelled? ─────────────────────────────────────────────────
+// Check It Now (the customer research, item 1) starts again at getting on when the phone is still
+// where it was levelled: the rider only moved the saddle. The motion sensor watches from the moment
+// the phone is level. Design choices, not measured on a phone: it has moved once it tips more than
+// MOVE_DEG from where it was levelled for longer than MOVE_SECS (a tap that rocks it and lets it
+// settle back is not a move), and with no reading for WATCH_GAP (the page hidden, the screen locked,
+// motion not allowed) it cannot tell, so the app asks "Is the phone where it was?". Not seen: a phone
+// slid along the box or turned about the vertical, which leaves gravity where it was; the level check
+// and the picture check after getting on still catch a phone that is off. In the simulation the
+// made-up phone never moves unless &moved, and &nomotion stands for no motion reading.
+const MOVE_DEG = 2, MOVE_SECS = 0.5, WATCH_GAP = 1;
+const Watch = {
+  g0: null, state: 'none', last: 0, off: null,
+  anchor(t) { this.g0 = Tilt.g ? [...Tilt.g] : null; this.off = null; this.last = t; this.set(this.g0 || SIM ? 'still' : 'unknown'); },
+  sample(t) {
+    if (this.state !== 'still') return;
+    if (t - this.last > WATCH_GAP) { this.set('unknown'); return; }
+    this.last = t;
+    const d = fit.gravityAngle(this.g0, Tilt.g);
+    if (d != null && d > MOVE_DEG) { this.off ??= t; if (t - this.off > MOVE_SECS) this.set('moved'); } else this.off = null;
+  },
+  lose() { if (this.state === 'still') this.set('unknown'); },
+  reset() { this.g0 = null; this.off = null; this.set('none'); },
+  // 'still', 'moved', 'unknown' or 'none' (never levelled).
+  verdict(t = now()) {
+    if (SIM) return this.state === 'still' && (params.has('moved') || params.has('replaced')) ? 'moved' : this.state === 'still' && params.has('nomotion') ? 'unknown' : this.state;
+    if (this.state === 'still' && t - this.last > WATCH_GAP) this.set('unknown');
+    return this.state;
+  },
+  set(st) { if (st === this.state) return; this.state = st; renderBar(); },
+};
+document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') Watch.lose(); });
 
 // ── state ────────────────────────────────────────────────────────────────────────────────────
 let landmarker = null, stream = null, recorder = null, videoBlob = null, wake = null, sim = null;
@@ -220,22 +419,28 @@ let session = null, lastResult = null, lastHistory = [], summaryTimer = null, la
 let riderSeen = false;
 // "Do you get pain or numbness that keeps coming back when you ride?" Health information, so it
 // lives only in this variable until the page is closed: never in localStorage, history or Copy
-// results. Not answered counts as No.
-let pain = false;
+// results. Its own screen's Next waits for an answer (painSet); a check started without passing
+// that screen (Check It Now, Check Again) keeps this page view's answer, or No.
+let pain = false, painSet = false;
 let lastFrameAt = 0, camWarned = false, recovering = false, recoverTries = 0, detectFails = 0;
 const skipped = new Set(), warnings = new Set();
 // poses: frames where the pose model found anyone (multi: more than one person); riders: frames where
 // one of them was the rider; ambiguous: frames not measured because two people could each have been
 // the rider; wrongPicks: in the simulation, frames where the app picked the made-up helper instead of
 // the rider (must stay 0). asks: "turn the pedals" questions; identified: when the rider was found that
-// way. started: each line as it began playing, with the caption shown at that moment.
-const debug = { phase: () => phase, setup: () => setup, poses: 0, multi: 0, frames: 0, riders: 0, ambiguous: 0, ambiguousBy: {}, crowdFrames: 0, wrongPicks: 0, asks: 0, identified: null,
-  said: [], speech: [], started: [], errors: [] };
+// way. started: each line as it began playing, with the caption shown at that moment. view(): what
+// the camera view shows now (ui.liveView), for QA.
+const debug = { phase: () => phase, setup: () => setup, screen: () => screen, session: () => session, view: () => curView, poses: 0, multi: 0, frames: 0, riders: 0, ambiguous: 0, ambiguousBy: {}, crowdFrames: 0, wrongPicks: 0, asks: 0, identified: null,
+  said: [], speech: [], started: [], errors: [],
+  // The recorded voice: how many clips the manifest lists, each clip as it starts playing, any part
+  // said in the phone's voice because its clip failed (fallback) or has none (missing), and manifest
+  // errors.
+  voice: { clips: 0, played: [], fallback: [], missing: [], errors: [] } };
 window.__bfc = debug;
 function log(kind, msg) { if (kind === 'say') debug.said.push(msg); }
 
 // ── how the bike stays up ─────────────────────────────────────────────────────────────────────
-// "How will your bike stay up?" is asked first on the home screen and remembered on this phone. It
+// "How will your bike stay up?" is asked first on the Setup screen and remembered on this phone. It
 // changes the spoken steps and how long and which way to pedal (fit.SETUPS), and it is stored with
 // each session, so sessions are only compared with others filmed the same way. ?setup= answers it
 // for testing; a choice made on the page replaces it in the address too, so a reload keeps it.
@@ -243,7 +448,7 @@ const SKEY = 'bfc.setup';
 let setup = null;
 try { const v = localStorage.getItem(SKEY); if (fit.SETUPS[v]) setup = v; } catch { /* asked again */ }
 if (fit.SETUPS[params.get('setup')]) setup = params.get('setup');
-const SETUP_BUTTONS = [...document.querySelectorAll('#setupCard [data-setup]')];
+const SETUP_BUTTONS = ['setupTrainer', 'setupWall', 'setupFriend'].map($);
 function chooseSetup(id) {
   if (!fit.SETUPS[id]) return;
   setup = id;
@@ -257,20 +462,54 @@ function chooseSetup(id) {
   renderSetup();
 }
 function renderSetup() {
-  for (const b of SETUP_BUTTONS) b.setAttribute('aria-pressed', String(b.dataset.setup === setup));
+  for (const b of SETUP_BUTTONS) b.setAttribute('aria-checked', String(b.dataset.setup === setup));
   for (const li of document.querySelectorAll('[data-for]')) li.hidden = li.dataset.for !== (setup || 'none');
+  el.flowNext.setAttribute('aria-disabled', String(!setup));
   retestNote();
 }
 for (const b of SETUP_BUTTONS) b.addEventListener('click', () => chooseSetup(b.dataset.setup));
-// Start before choosing: ask instead (the steps depend on it), inside the card, where the eye is,
-// and out loud (the Start tap lets the page speak).
+
+// ── which way the screen faces ────────────────────────────────────────────────────────────────
+// "Where will the screen face?" Towards me (the front camera, so he can see the screen from the
+// bike) or Away from me (the back camera). Away from me is the default until Alex's phone test shows
+// the front camera reads the same (DECISIONS.md, 2026-10-10). Remembered on this phone like the setup,
+// stored with each session and its history entry, and exposed as `screen` and session.screen for the
+// camera code. ?screen=towards or ?screen=away (also front or rear) answers it for testing.
+const SCREEN_KEY = 'bfc.screen';
+const SCREENS = ['towards', 'away'];
+let screen = 'away';
+try { const v = localStorage.getItem(SCREEN_KEY); if (SCREENS.includes(v)) screen = v; } catch { /* the default */ }
+{ const q = { front: 'towards', rear: 'away' }[params.get('screen')] || params.get('screen'); if (SCREENS.includes(q)) screen = q; }
+// The camera this session films with: 'front' when the screen faces the rider (facingMode 'user'),
+// 'rear' otherwise ('environment'), as the browser reports it once the camera runs (startCamera).
+// The front camera's picture is shown like a mirror (CSS only; the landmarks are never mirrored), and
+// it decides the sign of the roll taken out of the picture (fit.imageRoll).
+let camera = 'rear';
+const frontMode = () => (session?.screen ?? screen) === 'towards';
+// The front camera's picture is shown like a mirror. If Safari turns out to hand over its frames
+// mirrored already (fit.FRONT_FRAMES_MIRRORED, the phone test in the README), the screen must not
+// mirror them a second time; the arrows along the bike follow what is shown (ui.arrowDir).
+const mirrorShown = () => camera === 'front' && !fit.FRONT_FRAMES_MIRRORED;
+const SCREEN_BUTTONS = ['screenTowards', 'screenAway'].map($);
+function chooseScreen(id) {
+  if (!SCREENS.includes(id)) return;
+  screen = id;
+  try { localStorage.setItem(SCREEN_KEY, id); } catch { /* not remembered */ }
+  renderScreen();
+}
+function renderScreen() { for (const b of SCREEN_BUTTONS) b.setAttribute('aria-checked', String(b.dataset.screen === screen)); }
+for (const b of SCREEN_BUTTONS) b.addEventListener('click', () => chooseScreen(b.dataset.screen));
+
+// Next or Start before choosing: ask instead (the steps depend on it), on the Setup screen, where
+// the eye is, and out loud (the tap lets the page speak).
 function askSetup() {
   if (setup) return false;
+  showFlow('setup');
   el.setupCard.classList.add('needs');
   el.setupErr.hidden = false;
   el.setupCard.scrollIntoView({ block: 'center' });
   el.setupQ.focus({ preventScroll: true });
-  Voice.unlock();
+  unlockSound();
   Voice.say('First, tell me how your bike will stay up.');
   return true;
 }
@@ -281,10 +520,8 @@ function go(name, t, reason) {
   phase = name;
   phaseT0 = t;
   ph = {};
-  el.timer.hidden = true;
   el.skip.hidden = !['phone', 'frame'].includes(name);
-  el.skip.textContent = 'Skip this check';
-  el.phoneList.hidden = name !== 'phone';
+  el.skip.textContent = 'Skip';
   const i = STEP_ORDER.indexOf(name);
   for (const s of el.steps.children) {
     const j = STEP_ORDER.indexOf(s.dataset.step);
@@ -298,18 +535,109 @@ function go(name, t, reason) {
 // instruction has been heard, not when it was queued. Never quiet while a line is still playing.
 const quiet = (t) => (Voice.busy() ? -Infinity : t - Math.max(phaseT0, Voice.lastEnd));
 
-function show(screen) {
-  for (const s of ['home', 'run', 'results']) el[s].hidden = s !== screen;
+// The screens: the three tabs ('home'), the check flow before the camera ('flow': Setup, then Getting
+// Ready), the camera view ('run'), and the results ('results'), a sheet in place of the tabs: no tab
+// bar, a glass close button, and the dimmed colour behind its top edge. One at a time, each scrolling
+// as the page. The status bar colour follows: the flow and the camera view are dark in both modes.
+function show(name) {
+  for (const s of ['home', 'flow', 'run', 'results']) el[s].hidden = s !== name;
+  document.body.classList.toggle('in-flow', name === 'flow');
+  document.body.classList.toggle('in-sheet', name === 'results');
+  for (const m of document.querySelectorAll('meta[name="theme-color"]')) {
+    m.setAttribute('content', name === 'flow' || name === 'run' ? '#131A24' : /dark/.test(m.getAttribute('media') || '') ? '#000000' : '#F2F2F7');
+  }
+  if (name !== 'flow') pauseHowTo();
   window.scrollTo(0, 0);
 }
 
+// The check flow, one question a screen as in Apple's "Choose How to Measure": 'setup' (how the bike
+// stays up), 'screen' (which way the screen faces), 'pain' (the pain question), then 'ready' (Getting
+// Ready: the clip, what you need), then, before the first check in a page view, 'allow' (why the
+// iPhone asks for the camera and motion, a sound check, and Start). 'where' asks "Is the phone where
+// it was?" when Check It Now cannot tell from the motion sensor. A new question screen puts
+// VoiceOver on its title.
+let flowStep = 'setup';
+function showFlow(step) {
+  const moved = step !== flowStep || el.flow.hidden;
+  flowStep = step;
+  el.flowSetup.hidden = step !== 'setup';
+  el.flowScreen.hidden = step !== 'screen';
+  el.flowPain.hidden = step !== 'pain';
+  el.flowReady.hidden = step !== 'ready';
+  el.flowAllow.hidden = step !== 'allow';
+  el.flowWhere.hidden = step !== 'where';
+  if (step !== 'ready') pauseHowTo();
+  show('flow');
+  if (moved) ({ setup: el.setupQ, screen: el.screenQ, pain: el.painQ })[step]?.focus?.({ preventScroll: true });
+}
+
+window.addEventListener?.('scroll', () => el.flow.classList.toggle('scrolled', !el.flow.hidden && window.scrollY > 120), { passive: true });
+
+// The three tabs. ?tab=progress or ?tab=learn opens on that tab, for testing.
+const TABS = { check: 'tabCheck', progress: 'tabProgress', learn: 'tabLearn' };
+let tab = 'check';
+function selectTab(name) {
+  if (!TABS[name]) return;
+  tab = name;
+  for (const [k, id] of Object.entries(TABS)) {
+    el[id].hidden = k !== name;
+    $('tabBtn' + k[0].toUpperCase() + k.slice(1)).setAttribute('aria-selected', String(k === name));
+  }
+  window.scrollTo(0, 0);
+}
+for (const k of Object.keys(TABS)) $('tabBtn' + k[0].toUpperCase() + k.slice(1)).addEventListener('click', () => selectTab(k));
+
 // The way out, said when a step cannot see the rider. At most twice each in a session, like every
 // repeated line here: a sentence said a third time is one the rider has stopped hearing.
-const STOP_LINE = 'If it still does not work, tap Stop on the screen. The tips are on the home screen.';
-const LOST_STOP = 'I still cannot see you. If it does not work, tap Stop on the screen. The tips are on the home screen.';
+const STOP_LINE = 'If it still does not work, tap Stop on the screen. The tips are in Learn.';
+// Where the phone goes, said at the start of step 1. Everything round 1 said (sideways, upright, not
+// leaning back, 60 to 80 cm, a chair with a box, about 3 m, facing the pedals) and the placement
+// details: opposite the pedals, the chair back away from the bike, the front edge of the box, the
+// lens about level with the top of the tyres. The screen facing the rider adds "with the screen facing
+// the bike". No tilt line ever says which way to tilt.
+const PLACE_LINE = 'Stand the phone sideways and upright on a box on a chair. Turn the chair back away from the bike. Keep the lens level with the top of the tyres. Put the phone about 3 metres away, opposite the pedals and facing them';
+const LOST_STOP = 'I still cannot see you. If it does not work, tap Stop on the screen. The tips are in Learn.';
 const WHO_STOP = 'I cannot tell who is on the bike. Tap Stop on the screen, then start again.';
+// Round 3, the customer research (cx-research/REPORT.md): lines that keep the phone where it is for
+// checking a change straight away (item 1), frame the bike before anyone gets on (3), mark the spot
+// on day one (6) and ask when the change will be made (9). Each is a whole sentence with no number
+// in it, so each can be one recorded clip.
+const LEAVE_LINE = 'Leave the phone where it is.';
+const CHECK_NOW_LINE = 'Check it now. The phone is already in place.';
+const CHECK_NOW_MOVED = 'Check it now.';
+const IN_PLACE_LINE = 'The phone is already in place.';
+const WHERE_LINE = 'Is the phone where it was?';
+const FRAME_LINE = 'Both wheels inside the frame, pedals in the middle.';
+const TAPE_LINE = 'Tape the floor by the chair legs and the back wheel. Next time, line them up.';
+const WHEN_LINE = 'When will you move it?';
+const HEAR_LINE = 'Hello. You can hear me, so the sound is working.';
+// The pain question's Next tapped before an answer.
+const PAIN_ASK = 'First, tap No or Yes.';
+// A rider who has checked on this phone before gets the short run (the customer research, item 7):
+// under 60 spoken words before "Hold it", with "You chose: ..." and the lines that keep him safe (the
+// friend holding the bike, the wall on rollers, the front brake) kept. "As last time" stands in for the
+// placement details, which day one said in full; when the screen faces the other way from last time,
+// the line says which way it faces now. The tape marks only once day one has asked for them.
+const RETURN = {
+  place: 'Set the phone up as last time, opposite the pedals.',
+  placeTape: 'Set the phone up as last time, on your tape marks.',
+  placeFront: 'Set the phone up opposite the pedals, with the screen facing the bike.',
+  placeTapeFront: 'Set the phone up on your tape marks, with the screen facing the bike.',
+  placeAway: 'Set the phone up opposite the pedals, with the screen away from the bike.',
+  placeTapeAway: 'Set the phone up on your tape marks, with the screen away from the bike.',
+  bikeLevel: 'Check the bike is level.',
+  level: 'Level.',
+  getOn: { trainer: 'Get on as before. On rollers, hold on to the wall.', wall: 'Get on as before, with the front brake gently on.', other: 'Get on as before, hands on top of the brake levers.' },
+  friend: 'Friend: hold the bike, standing up straight.',
+  rider: 'Rider: get on.',
+  still: 'Put the pedal nearest the phone down, and hold still.',
+};
+// Design choices: the bike is framed for this long after its line, before the levelling beeps; and on
+// day one the first "I cannot see you on the bike" waits this long, for two strips of tape.
+const FRAME_SECS = 5;
+const TAPE_SECS = 40;
 // A rider on aero bars (fit.isAero): this app checks road bikes only (fit-rules.md rule 5).
-const AERO_LINE = 'You look very low, like on aero bars. This app checks road bikes only, so it cannot check this position. If this is a road bike, sit up with your hands on top of the brake levers. Otherwise, tap Stop.';
+const AERO_LINE = 'You look very low, like on aero bars. This app checks road bikes only. If this is a road bike, sit up with your hands on top of the brake levers. Otherwise, tap Stop.';
 
 // ── the steps ────────────────────────────────────────────────────────────────────────────────
 const HANDLERS = {
@@ -317,8 +645,10 @@ const HANDLERS = {
     enter(t, reason) {
       session.levelled = false;
       // Not interrupting: the rider may be following the correction that sent him here, which
-      // stays on the screen under it (#sayNote) until he is back on the bike.
+      // stays on the screen (the frosted card, or the 3 m sign) until the phone is level again.
       if (reason === 'moved') { ph.toldBeep = true; Voice.say('The phone moved. Level it again. I will beep until it is level.'); return; }
+      // The placement screen (title, the drawn key frame) shows while these lines are said.
+      ph.placing = true;
       // How the bike is held changes which way to pedal; a wrong tap must be caught before anyone
       // gets on, so it is said first, with the way out.
       if (!session.toldSetup) {
@@ -330,12 +660,23 @@ const HANDLERS = {
       // raised to match (Saris and Minoura sell riser blocks for this), and the back angle is measured
       // from horizontal, so it would read low by as much as the bike tips. Direct-drive trainers can
       // sit level or even high at the front with wide tyres, so the check is by eye: the two axles.
-      if (session.setup === 'trainer') Voice.say('First, check the bike is level. The middle of the front wheel should be as high off the floor as the middle of the back wheel. If the front sits lower, put a riser block or a thick book under the front wheel.');
+      // A rider who has checked before hears the short run (RETURN).
+      const back = session.returning;
+      if (session.setup === 'trainer') Voice.say(back ? RETURN.bikeLevel : 'First, check the bike is level. Both wheel centres should be the same height off the floor. If the front is lower, put a thick book under the front wheel.');
+      if (back) { Voice.say(returnPlace()); return; }
       // The filming guide puts the lens 60 to 80 cm off the floor; a phone on a bare chair seat sits
-      // lower. The same three points stay on the screen (#phoneList) until the phone is level.
-      Voice.say('Turn the phone sideways and stand it upright, not leaning back, on something 60 to 80 centimetres high. A chair with a box on it works. Put it about 3 metres from the side of the bike, facing the pedals.');
+      // lower. The placement details of Learn's "Where the Phone Goes": opposite the pedals (along the
+      // bike is the largest error the app cannot see, camera panel), the chair back away from the bike
+      // (out of the picture), the phone at the front edge of the box, the lens about level with the
+      // top of the tyres. The placement screen shows the same, drawn.
+      Voice.say(PLACE_LINE + (frontMode() ? ', with the screen facing the bike.' : '.'));
+      // Screen away, he is at the phone and can see it: the bike goes inside the big guide before
+      // the phone is levelled and before anyone gets on (the customer research, item 3).
+      if (!frontMode()) { Voice.say(FRAME_LINE); ph.framing = true; }
     },
     tick({ t }) {
+      // The bike framed in the guide first, for FRAME_SECS after its line; nothing beeps meanwhile.
+      if (ph.framing) { if (quiet(t) < FRAME_SECS) return; ph.framing = false; }
       if (!Tilt.available) {
         // No motion sensor (or motion not allowed): nothing can tell that the phone is sideways, so the
         // screen has to be, before levelling by eye against a line on the screen and tapping the
@@ -350,13 +691,14 @@ const HANDLERS = {
           ph.noSensor = t;
           // An iPhone may not ask again after motion was refused, so no "tap Allow next time".
           if (Tilt.denied) Voice.say('You did not allow motion, so I cannot beep for level.');
-          Voice.say('I cannot use the motion sensor, so level the phone by eye. Turn it until the floor in the picture runs parallel to the white line. Then tap the button on the screen.');
-          el.skip.textContent = 'It is level';
+          Voice.say('Level the phone by eye. Turn it until the floor lines up with the white line. Then tap the button on the screen.');
+          el.skip.textContent = 'It Is Level';
         }
         if (ph.noSensor && quiet(t) > 30) levelByEye(t);
         return;
       }
-      if (!ph.toldBeep) { ph.toldBeep = true; Voice.say('I will beep until it is level, and the beeps get faster as you get close.'); }
+      // A rider who has checked before knows the beeps (RETURN).
+      if (!ph.toldBeep) { ph.toldBeep = true; if (!session.returning) Voice.say('I will beep until it is level. The beeps get faster as you get close.'); }
       if (!Tilt.landscape) {
         ph.since = null;
         if (quiet(t) > 1) {
@@ -375,6 +717,14 @@ const HANDLERS = {
         if (t - ph.since > 1.2) {
           Beep.chime();
           session.levelled = true;
+          session.levelAt = t; // the green LEVEL screen, for LEVEL_SECS
+          // Back here after a correction: the phone has been moved and is level again, so the
+          // correction has been carried out. It stayed on the screen while he levelled it, at the
+          // phone; on the walk back to the bike the screen says GET ON, not the old MOVE sign, which
+          // would have him move the phone a second time. (A phone slid along without tilting it never
+          // comes here, so there the correction stays until he is back on the bike, as before.)
+          session.fix = null;
+          Watch.anchor(t); // from here the motion sensor watches whether the phone moves
           go('mount', t); // which says "Level."
         }
         return;
@@ -384,8 +734,11 @@ const HANDLERS = {
       // The beeps wait for the voice: they would play over the placement instruction otherwise.
       if (quiet(t) > 1 && (!ph.beep || t - ph.beep > Math.min(1, 0.12 + 0.07 * e))) { ph.beep = t; Beep.tone(e > 3 ? 440 : 620); }
       // After two tries the line names the way out (a design choice), like every other step.
-      if (quiet(t) > 14 && Voice.say((ph.tiltN || 0) < 2 ? 'Not level yet. Tilt it slowly until the beeping stops.'
-        : 'Not level yet. Tilt it slowly until the beeping stops. If you cannot get it level, tap Skip on the screen.', { key: 'tilt', every: 14, max: 2 })) ph.tiltN = (ph.tiltN || 0) + 1;
+      // Never which way to tilt: turning the phone round flips the sign of its tilt (camera panel).
+      // With the screen towards the rider, the screen turning green is something he can see.
+      const tilt = frontMode() ? 'Tilt the phone slowly until the screen turns green.' : 'Not level yet. Tilt it slowly until the beeping stops.';
+      if (quiet(t) > 14 && Voice.say((ph.tiltN || 0) < 2 ? tilt
+        : `${tilt} If you cannot get it level, tap Skip on the screen.`, { key: 'tilt', every: 14, max: 2 })) ph.tiltN = (ph.tiltN || 0) + 1;
     },
   },
 
@@ -414,13 +767,28 @@ const HANDLERS = {
       // was seen (that is why it came here), so who the rider is is found by who turns the pedals, and
       // meanwhile he is also found back where he was, as while holding still (lockMode).
       if (reason === 'rest') { ph.fromRest = true; ph.needId = true; return; }
+      // Check It Now with the phone where it was levelled: straight to getting on (the customer
+      // research, item 1), in the short run's words.
+      // Not said when he has just been told so, or has just answered "Is the phone where it was?".
+      if (reason === 'quick') { if (!(nudgedAt > t - 20) && !session.toldWhere) Voice.say(IN_PLACE_LINE); shortGetOn(); return; }
       const lvl = session.levelled ? 'Level. ' : '';
       if (session.mounts > 1) {
         // Back again after moving the phone: the short version.
         Voice.say(session.setup === 'friend' ? `${lvl}Friend, hold the bike again. Rider, get back on.` : `${lvl}Get back on, same as before.`);
         return;
       }
+      if (session.returning) {
+        if (session.levelled) Voice.say(RETURN.level);
+        // A rider whose checks are older than the tape tip hears it once, here.
+        if (!session.tapeKnown) tapeTip();
+        shortGetOn();
+        return;
+      }
       if (session.levelled) Voice.say('Level. Leave the phone there.');
+      // Day one: mark the spot, so next time the chair and the bike go back where they were (the
+      // customer research, item 6). Said here, while he is still at the phone, and shown on the
+      // frosted card until he is on the bike.
+      if (!session.tapeKnown) tapeTip();
       // How each setup keeps the bike still. Design choices, except where a source is named: the far
       // side keeps the wall or the friend out of the picture and off the camera-side arm and leg, which
       // are the ones measured (filming guide item 7: nothing blocking the near leg or arm). On the
@@ -434,9 +802,9 @@ const HANDLERS = {
         return;
       }
       Voice.say({
-        trainer: 'Now get on the bike in your normal riding position, hands on top of the brake levers. On rollers, hold on to a wall with the hand away from the phone. I will tell you when to let go.',
-        wall: 'Now get on the bike. Let it lean only a little against the wall on the far side, with the bars straight. Keep the hand nearest the phone on top of the brake lever, and squeeze the front brake gently so the bike stays still.',
-      }[session.setup] || 'Now get on the bike in your normal riding position, hands on top of the brake levers. Lean lightly on the wall, or have your helper hold the bike from the far side.');
+        trainer: 'Now get on the bike and sit as you ride, hands on top of the brake levers. On rollers, hold the wall with the hand away from the phone. I will tell you when to let go.',
+        wall: 'Now get on the bike. Let it lean only a little on the wall, with the bars straight. Rest the hand nearest the phone on top of the brake lever. Squeeze the front brake gently to hold the bike still.',
+      }[session.setup] || 'Now get on the bike and sit as you ride, hands on top of the brake levers. Lean on the wall, or have a helper hold the bike from the far side.');
     },
     tick({ t, rider }) {
       // A rider on aero bars: named once in place of the nags, then the way out.
@@ -450,6 +818,7 @@ const HANDLERS = {
       if (ph.needId && !ph.idDone && !(ph.fallback && rider)) { identityTick(t); return; }
       if (!ph.idDone && quiet(t) < 6) return; // time to walk over and get on, once the instruction has been heard
       if (rider) {
+        ph.tape = false; // the tip has done its job once he is on the bike
         ph.since ??= t;
         if (t - ph.since > 1.5) go('frame', t);
         return;
@@ -459,18 +828,21 @@ const HANDLERS = {
         if (session.aeroSaid && quiet(t) > 14) Voice.say(STOP_LINE, { key: 'stop', every: 20, max: 2 });
         return;
       }
-      if (quiet(t) > (ph.nags ? 14 : 20)) nag();
+      if (quiet(t) > (ph.nags ? 14 : firstNag())) nag();
     },
   },
 
   frame: {
     enter() {
       if (session.skippedOff) { ph.skippedAny = true; session.skippedOff = false; } // skipped in the mount step
-      Voice.say('Checking the picture. Stay in position.');
+      // A rider who has checked before hears nothing new here (RETURN): the next line is the hold.
+      if (session.returning) return;
+      // Screen towards him: he can see the sign, so he is told to stay on until it says otherwise.
+      Voice.say(frontMode() ? 'Checking the picture. Stay on. I will tell you if the phone needs to move.' : 'Checking the picture. Stay in position.');
     },
-    tick({ t, lm, side, W, H, rider, pick }) {
+    tick({ t, lm, raw, side, W, H, rider, pick }) {
       if (!rider) {
-        ph.ok = null; ph.bad = null; // ph.lastBad stays, so Skip still knows what to skip
+        ph.ok = null; ph.bad = null; ph.now = null; // ph.lastBad stays, so Skip still knows what to skip
         chips({ Rider: pick.lm ? false : null, 'In picture': null, 'Side-on': null, Light: null });
         // After a correction he gets off and moves the phone. Turned or slid along without tilting
         // it, the phone does not trip the level check (step()), but where he was in the picture
@@ -484,11 +856,16 @@ const HANDLERS = {
         return;
       }
       ph.lostSince = null;
-      const problem = firstProblem(lm, side, W, H, t);
+      const problem = firstProblem(lm, raw, side, W, H, t);
+      ph.now = problem;
       if (!problem) {
         ph.bad = null;
         ph.ok ??= t;
-        if (t - ph.ok > 2) { Voice.say(ph.skippedAny ? 'Carrying on.' : 'The picture looks good.'); go('still', t); }
+        if (t - ph.ok > 2) {
+          const line = ph.skippedAny ? 'Carrying on.' : session.returning ? null : frontMode() ? 'That is it. You are in place.' : 'The picture looks good.';
+          if (line) Voice.say(line);
+          go('still', t);
+        }
         return;
       }
       ph.ok = null;
@@ -512,6 +889,7 @@ const HANDLERS = {
         // The correction stays on the screen until he is back on the bike, through the phone step.
         session.fix = problem.say;
         session.fixKey = problem.key;
+        session.fixToward = problem.toward || null; // the arrow along the bike, on the screen
         session.fixOff = false;
       }
     },
@@ -520,11 +898,12 @@ const HANDLERS = {
   still: {
     enter() {
       startRecording();
+      session.fix = null; // the picture check is over, and so is its last correction on the screen
       ph.seenSecs = 0;
       ph.crowdBefore = warnings.has('crowd');
-      Voice.say('Put the pedal nearest the phone at its lowest point, pedal arm pointing straight down, foot the way it sits when you ride. Then hold still.');
+      Voice.say(session.returning ? RETURN.still : 'Put the pedal nearest the phone at its lowest point. Keep your foot as it sits when you ride. Then hold still.');
     },
-    tick({ t, lm, side, W, H, ang, rider, pick }) {
+    tick({ t, lm, raw, side, W, H, ang, rider, pick }) {
       // Who else sits like a rider while he is followed here: a friend crouching at the bike, say.
       if (pick.lm) ph.seatedWith = Math.max(ph.seatedWith || 0, pick.seatedOthers);
       if (!rider) {
@@ -565,7 +944,10 @@ const HANDLERS = {
         if (still && atBottom && quiet(t) > 0.5) {
           ph.cap = { t0: t, angles: [], lms: [] };
           ph.holds = (ph.holds || 0) + 1;
-          Voice.say(ph.holds < 3 ? 'Hold it. Three. Two. One.' : 'Hold it once more. Three. Two. One.', { interrupt: true });
+          // Screen towards him: eyes ahead, not on the phone. Turning the trunk 10 degrees towards it
+          // would read the back about 3 degrees high (camera panel, a calculation).
+          Voice.say(frontMode() ? (ph.holds < 3 ? 'Eyes ahead. Hold still. Three. Two. One.' : 'Eyes ahead. Hold still once more. Three. Two. One.')
+            : ph.holds < 3 ? 'Hold it. Three. Two. One.' : 'Hold it once more. Three. Two. One.', { interrupt: true });
         } else if (quiet(t) > 11) {
           Voice.say(atBottom ? 'Hold still for a moment.' : 'Push the pedal nearest the phone all the way down, and hold still.', { key: 'nudge', every: 11, max: 2 });
         }
@@ -585,7 +967,9 @@ const HANDLERS = {
         session.still = fit.summariseStill(ph.cap.angles);
         // The picture is one frame, but the number drawn on it is the held-still reading (the median),
         // so it matches the row on the results screen.
-        session.stillShot = snapshot(lm, W, H, side, { ...ang, kneeFlex: session.still.kneeFlex });
+        // Drawn on the picture as the camera saw it, so the raw landmarks; the number is the reading.
+        session.stillShot = snapshot(raw || lm, W, H, side, { ...ang, kneeFlex: session.still.kneeFlex });
+        session.flashAt = t; // one green flash: the reading is taken
         Beep.chime();
         Voice.say('Got it.');
         go('pedal', t);
@@ -603,9 +987,14 @@ const HANDLERS = {
       // and Train Right, "Step-by-Step Instructions on How to Ride Rollers" (https://trainright.com/?p=8165).
       const roll = S().dir === 'forwards';
       const line = roll
-        ? 'Now pedal forwards at an easy effort, at your normal pedalling speed. On rollers, start pedalling with your hand on the wall, and let go once you are rolling steadily. I start timing at the beep. Keep going until I say stop.'
-        : 'Now pedal backwards, smooth and steady, so the bike stays still. I start timing at the beep. Keep going until I say stop.';
-      Voice.say(pain ? `${line} If your knee hurts, stop pedalling.${roll ? ' On rollers, put your hand on the wall first.' : ''} I will use what I have.` : line);
+        ? 'Now pedal forwards at an easy, normal speed. On rollers, start pedalling with your hand on the wall, and let go once you are rolling steadily. Keep going until I say stop.'
+        : 'Now pedal backwards, smooth and steady. Keep going until I say stop.';
+      // Short lines, one after the other (DECISIONS.md, 2026-10-10: one idea a sentence): the way to
+      // pedal; with pain or numbness that keeps coming back, when to stop (on rollers, the wall first);
+      // and with the screen towards him, eyes ahead while pedalling too, the countdown is spoken.
+      Voice.say(line);
+      if (pain) Voice.say(`If your knee hurts, stop pedalling.${roll ? ' On rollers, put your hand on the wall first.' : ''} I will use what I have.`);
+      if (frontMode()) Voice.say('Eyes ahead, I will count for you.');
       ph.samples = [];
       ph.said = {};
       ph.moveSecs = 0;
@@ -659,7 +1048,7 @@ const HANDLERS = {
         }
         return;
       }
-      if (insist) { ph.started = null; ph.said = {}; ph.moveSecs = 0; el.timer.hidden = true; return; }
+      if (insist) { ph.started = null; ph.said = {}; ph.moveSecs = 0; return; }
       if (wrong) warnings.add('way');
       // The 20 or 30 s count only while the pedals turn: a rider who stops is not timed.
       if (moving) ph.moveSecs += Math.max(0, Math.min(0.5, t - ph.tickAt));
@@ -694,9 +1083,10 @@ const HANDLERS = {
         const s = fit.slowerTurn(since(), t);
         if (s != null) Voice.say(`Slower, please. About one turn every ${s} seconds.`, { key: 'slower', every: 8, max: 2 });
       }
+      // The ring and its countdown (renderLive) read these.
+      ph.left = secs - e;
+      ph.paused = paused;
       if (e <= secs) {
-        el.timer.hidden = false;
-        el.timer.textContent = paused ? 'Paused' : Math.max(0, Math.ceil(secs - e));
         if (!paused && e > secs - 10 && !ph.said[10]) { ph.said[10] = 1; Voice.say('Ten seconds left.'); }
         if (!paused && e > secs - 5 && !ph.said[5]) { ph.said[5] = 1; Voice.say('Five more seconds.'); }
         return;
@@ -707,7 +1097,7 @@ const HANDLERS = {
       ph.sumAt = t;
       const summary = fit.summarisePedal(since());
       if (summary.strokes < 5 && e <= secs + 20) {
-        el.timer.hidden = true;
+        ph.more = true;
         // "A little slower" only when the strokes were too fast for the phone; otherwise just more.
         const fast = summary.strokesSeen > summary.strokes || summary.framesPerTurn < fit.MIN_FRAMES_PER_STROKE;
         // Not to a rider with pain who has stopped: the pain line above has said it ends with what there is.
@@ -741,14 +1131,33 @@ function endPedal(summary, stopped = false) {
 // cleared then): with a limit per session, the third time he got back on there was nothing left to
 // say. Within one mount the list itself says each sentence at most twice. A line counts once queued.
 function nag() {
+  // Screen towards him: he can check the picture from beside the bike, by the tick on the screen.
+  const look = frontMode() ? 'Stand beside the bike and look at the phone. A tick means you are in the picture.'
+    : 'Still nothing. Walk to the phone and check the whole bike is in the middle of the screen. Then get back on.';
   const lines = ['I cannot see you on the bike yet. Make sure the phone can see you and the whole bike.',
     'I still cannot see you. Sit on the saddle, hands on top of the brake levers, and keep still for a moment.',
-    'Still nothing. Walk to the phone and check the whole bike is in the middle of the screen. Then get back on.',
-    'Still nothing. Walk to the phone and check the whole bike is in the middle of the screen. Then get back on.',
-    STOP_LINE, STOP_LINE];
+    look, look, STOP_LINE, STOP_LINE];
   const n = (ph.nags || 0) + 1;
   if (n > lines.length) return;
   if (Voice.say(lines[n - 1])) ph.nags = n;
+}
+// The tape tip, said once on this phone (the first check that has not said it), and shown on the
+// frosted card until he is on the bike.
+function tapeTip() { Voice.say(TAPE_LINE); session.tapeSaid = true; ph.tape = true; }
+// Seconds of quiet before the first of those lines: longer on day one, for the tape.
+const firstNag = () => (ph.tape ? TAPE_SECS : 20);
+
+// The short run's way onto the bike (RETURN), for a rider who has checked before and for Check It Now.
+function shortGetOn() {
+  if (session.setup === 'friend') { Voice.say(RETURN.friend); Voice.say(RETURN.rider); return; }
+  Voice.say(RETURN.getOn[session.setup] || RETURN.getOn.other);
+}
+// Where the phone goes, in the short run: "as last time", unless the screen faces the other way.
+function returnPlace() {
+  const tape = !!session.tapeKnown;
+  if (!session.lastScreen || session.lastScreen === session.screen) return tape ? RETURN.placeTape : RETURN.place;
+  if (frontMode()) return tape ? RETURN.placeTapeFront : RETURN.placeFront;
+  return tape ? RETURN.placeTapeAway : RETURN.placeAway;
 }
 
 // ── who is the rider ─────────────────────────────────────────────────────────────────────────
@@ -774,7 +1183,7 @@ function identityTick(t) {
   const seated = cands.filter(c => t - c.t < 0.5);
   if (seated.length) ph.seatedSince ??= t; else ph.seatedSince = null;
   if (!ph.askN) {
-    if (!seated.length) { if (quiet(t) > (ph.nags ? 14 : 20)) nag(); return; }
+    if (!seated.length) { if (quiet(t) > (ph.nags ? 14 : firstNag())) nag(); return; }
     if (t - ph.seatedSince > 1 && quiet(t) > 0.5) ask(t);
     return;
   }
@@ -826,13 +1235,15 @@ function lockMode(t) {
 
 // The screen is upright although the phone should be sideways: first "turn it", then the rotation
 // lock (Apple, "Use and customize Control Center on iPhone": swipe down from the top-right corner on
-// an iPhone with Face ID, up from the bottom on one with a Home button), then the way out.
+// an iPhone with Face ID, up from the bottom on one with a Home button; the line says only "Open
+// Control Centre", one idea a sentence), then the way out. Only said when the screen is stuck: the
+// one setting line left, against DECISIONS.md's "volume and silent mode only", for the main session.
 // mayBeUpright: no motion sensor, so the phone itself may still be upright.
 function uprightScreen(t, mayBeUpright) {
   const n = ph.lockN || 0;
   const line = mayBeUpright && n === 0 ? 'Turn the phone sideways.'
-    : n < 3 ? 'The screen is stuck upright. Open Control Centre and tap the lock with the circle arrow. Swipe down from the top-right corner, or on an iPhone with a Home button, up from the bottom. Then turn the phone sideways again.'
-    : 'If you cannot get the screen sideways, tap Stop. The steps are on the home screen.';
+    : n < 3 ? 'The screen is stuck upright. Open Control Centre and tap the lock with the circle arrow. Then turn the phone sideways again.'
+    : 'If you cannot get the screen sideways, tap Stop.';
   if (Voice.say(line, { key: 'lock', every: n === 0 ? 8 : 14, max: 2 })) ph.lockN = n + 1;
   else if (n < 3 && (Voice.count.get(line) || 0) >= 2) ph.lockN = 3;
 }
@@ -882,12 +1293,17 @@ function skipCheck(key) {
   warnings.add(key);
   ph.bad = ph.lastBad = null;
   ph.skippedAny = true;
+  // A skipped check's correction stops showing: the sign said to move the phone for a check that no
+  // longer counts (QA round 3: Skip off the bike, or in the picture check, left MOVE up).
+  if (key === session.fixKey) session.fix = null;
 }
 
-// Checks in order; a skipped check no longer blocks.
-function firstProblem(lm, side, W, H, t) {
+// Checks in order; a skipped check no longer blocks. raw: the landmarks where the camera saw them,
+// for whether he is cut off at the edges of the picture; lm: with the phone's roll taken out, for
+// whether the phone points square at the bike.
+function firstProblem(lm, raw, side, W, H, t) {
   const checks = [
-    () => fit.checkFraming(lm, side, W, H),
+    () => fit.checkFraming(raw || lm, side, W, H),
     () => fit.checkSideOn(lm, side, W, H),
     () => darkness(t),
   ];
@@ -920,12 +1336,15 @@ function darkness(t) {
   return lumaOk ? null : { key: 'dark', say: 'It is quite dark. Turn on more lights if you can.' };
 }
 
-// ok: true (✓), false (•) or null (?, not known).
+// ok: true (✓), false (•) or null (?, not known). VoiceOver reads "Level, done", not "check mark
+// Level" (the design review, item 12).
 function chips(map) {
   el.chips.replaceChildren(...Object.entries(map).map(([k, ok]) => {
     const c = document.createElement('span');
     c.className = 'chip ' + (ok == null ? '' : ok ? 'ok' : 'bad');
     c.textContent = (ok == null ? '? ' : ok ? '✓ ' : '• ') + k;
+    c.setAttribute('role', 'img');
+    c.setAttribute('aria-label', `${k}, ${ok == null ? 'not known yet' : ok ? 'done' : 'not yet'}`);
     return c;
   }));
 }
@@ -936,6 +1355,7 @@ function loop() {
   requestAnimationFrame(loop);
   if (!running) return;
   const t = now();
+  renderLive(t);
   let poses = [], W = 1280, H = 720, simRider = null;
   if (SIM) {
     ({ poses, W, H, rider: simRider } = sim.frame(t));
@@ -947,6 +1367,7 @@ function loop() {
       lastFrameAt = t;
       camWarned = false;
       recoverTries = 0;
+      if (!camLogged) logCamera();
     } else if (phase && lastFrameAt && t - lastFrameAt > 2 && !camWarned && !recovering) { // 2 s without a frame: a design choice
       camWarned = true;
       Voice.say('The camera stopped. Come back to the phone.', { interrupt: true });
@@ -975,11 +1396,27 @@ function loop() {
   step(poses, t, W, H, simRider);
 }
 
-// poses: everyone the pose model found in this frame. simRider: in the simulation, which one is
-// really the rider, to count wrong picks.
-function step(poses, t, W, H, simRider = null) {
+// The roll of the picture right now, in degrees (fit.imageRoll), from the motion sensor and the
+// camera in use: taken out of every pose before any angle is measured or the lowest point of the
+// pedal is found. 0 without a sensor reading, or while the phone is not sideways.
+function pictureRoll() {
+  if (!Tilt.available || !Tilt.landscape || (SIM && params.has('noderoll'))) return 0;
+  return fit.imageRoll(Tilt.g, camera);
+}
+
+// poses: everyone the pose model found in this frame, where the camera saw them. simRider: in the
+// simulation, which one is really the rider, to count wrong picks.
+function step(rawPoses, t, W, H, simRider = null) {
   const dt = lastStepT == null ? 0 : Math.max(0, Math.min(0.5, t - lastStepT));
   lastStepT = t;
+  // Everything below measures the poses with the phone's roll taken out. Only the drawing and
+  // whether he is cut off at the edges of the picture use them where the camera saw them (raw).
+  const roll = pictureRoll();
+  debug.roll = roll;
+  const poses = roll ? rawPoses.map(p => fit.derotate(p, roll, W, H)) : rawPoses;
+  // Someone in the picture and not cut off at its edges: the tick for "a tick means you are in the
+  // picture", while he stands beside the bike. Any pose, rider or not.
+  live.inView = rawPoses.some(fit.inPicture);
   // While the app is still finding out who the rider is, the candidates are followed first, so a
   // rider found by turning the pedals is followed from this frame on.
   if (phase === 'mount' && ph.needId && !ph.idDone) identify(poses, t, W, H);
@@ -1001,7 +1438,7 @@ function step(poses, t, W, H, simRider = null) {
   if (pick.ambiguous) { debug.ambiguous++; debug.ambiguousBy[phase] = (debug.ambiguousBy[phase] || 0) + 1; }
   if (simRider != null && pick.index != null && pick.index !== simRider) debug.wrongPicks++;
   watchCrowd(pick, t);
-  const lm = pick.lm;
+  const lm = pick.lm, raw = pick.index != null ? rawPoses[pick.index] : null;
   if (lm) recent.push({ t, lm });
   while (recent.length && recent[0].t < t - 2.5) recent.shift();
   let side = null, ang = null, rider = false;
@@ -1014,16 +1451,17 @@ function step(poses, t, W, H, simRider = null) {
     rider = ang.vis > 0.5 && fit.isRiding(ang);
   }
   riderSeen = rider;
+  if (rider) live.riderAt = t;
+  if (lm) live.face = fit.facing(raw || lm);
   // Someone very low over the front, and no rider: aero bars (fit.isAero), named in the mount step.
   if (phase === 'mount') { if (pick.aero === 1 && !rider) ph.aeroSince ??= t; else ph.aeroSince = null; }
   if (phase === 'still' && rider) ph.seenSecs = (ph.seenSecs || 0) + dt;
-  // The last correction stays on the screen until he has got off and is back on the bike.
+  // The last correction stays on the screen until he has got off and is back on the bike (or the
+  // phone step has levelled the phone again after it).
   if (session?.fix) {
     if (!rider) session.fixOff = true;
     else if (session.fixOff) session.fix = null;
   }
-  el.sayNote.textContent = session?.fix || '';
-  el.sayNote.hidden = !session?.fix || el.say.textContent.includes(session.fix); // not twice on the screen
   // A phone that gets moved during setup has to be levelled again.
   if ((phase === 'mount' || phase === 'frame') && Tilt.available && !skipped.has('level')) {
     if (!Tilt.level() || !Tilt.landscape) {
@@ -1035,8 +1473,8 @@ function step(poses, t, W, H, simRider = null) {
   if ((phase === 'still' || phase === 'pedal') && session.levelled && Tilt.available && !Tilt.level()) warnings.add('moved');
   // "? Rider" whenever nobody is picked: the phone does not know who the rider is.
   if (phase !== 'frame') chips({ Level: !Tilt.available ? null : Tilt.level(), Rider: lm ? rider : null });
-  draw(lm, W, H, side, ang, poses.filter((_, i) => i !== pick.index));
-  HANDLERS[phase]?.tick({ t, lm, side, W, H, ang, rider, pick });
+  draw(raw, W, H, side, rawPoses.filter((_, i) => i !== pick.index));
+  HANDLERS[phase]?.tick({ t, lm, raw, side, W, H, ang, rider, pick });
 }
 
 // Someone else in the picture, once the rider is confirmed (nobody is asked to move before the app
@@ -1048,8 +1486,12 @@ function step(poses, t, W, H, simRider = null) {
 // stretch, so a pose rate of 1 a second still adds up. These times are design choices.
 // With a wall or a trainer the line keeps whoever holds the bike where they are: it never asks
 // someone to let go of a bike with a rider on it.
-const FRIEND_LINES = ["Friend: stand behind the rider, on the far side of the bike, out of the camera's view as much as you can.",
+// The friend's first line names the same place as Getting Ready and the getting-on line (the far
+// side, next to the saddle, standing up straight); once said, a friend seen again hears thanks, not
+// the same line (QA round 3: a second "stand behind the rider" after she had already moved).
+const FRIEND_LINES = ['Friend: stay on the far side, next to the saddle, standing up straight.',
   'Friend: stand up straight, with your knees straight.', 'If I still cannot tell you apart, tap Stop.'];
+const FRIEND_STAY = 'Friend, thanks, stay there.';
 const OTHER_LINES = ['I can see another person. If they are not holding the bike, ask them to step out of view.', 'If I still cannot tell you apart, tap Stop.'];
 function watchCrowd(pick, t) {
   const confirmed = ['frame', 'still', 'pedal'].includes(phase) || (phase === 'mount' && (!ph.needId || ph.idDone));
@@ -1076,7 +1518,7 @@ function watchCrowd(pick, t) {
   if (crowd.told && !crowd.blocking) return;
   const lines = session.setup === 'friend' ? FRIEND_LINES : OTHER_LINES;
   const n = crowd.n || 0;
-  const line = crowd.blocking ? lines[Math.min(n, lines.length - 1)] : lines[0];
+  const line = crowd.blocking ? lines[Math.min(n, lines.length - 1)] : session.setup === 'friend' && n > 0 ? FRIEND_STAY : lines[0];
   if (Voice.say(line, { key: 'helper', every: 15, max: 2 })) { crowd.told = true; crowd.asked = true; crowd.n = n + 1; }
 }
 
@@ -1086,7 +1528,7 @@ const SEGMENTS = [['shoulder', 'elbow'], ['elbow', 'wrist'], ['shoulder', 'hip']
 function drawSkeleton(g, lm, side, P, unit, ang) {
   const other = side === 'L' ? 'R' : 'L';
   g.lineCap = 'round';
-  for (const [s, col, w] of [[other, 'rgba(255,255,255,0.28)', 3], [side, '#2e8cff', 6]]) {
+  for (const [s, col, w] of [[other, 'rgba(255,255,255,0.28)', 3], [side, '#0091FF', 6]]) {
     g.strokeStyle = col;
     g.lineWidth = w * unit;
     for (const [a, b] of SEGMENTS) {
@@ -1110,22 +1552,150 @@ function drawSkeleton(g, lm, side, P, unit, ang) {
   }
 }
 
-// others: the other people found, drawn faintly so it is clear which one is being measured.
-function draw(lm, W, H, side, ang, others = []) {
+// ── the figure and the outline ───────────────────────────────────────────────────────────────
+// Where the picture sits in the stage, in CSS px: s (px per camera pixel) and the offsets. Screen
+// away: the whole picture, as large as fits. Screen towards the rider, beside the 3 m word: the
+// stage's full height, showing the middle of the picture, never less than 62% of its width (a design
+// choice: the outline spans 41% of it and checkFraming wants him between 30% and 70%). The video's
+// own box is set to the same place, so the figure is drawn on the rider.
+function stageMap(W, H) {
+  const c = el.overlay, cw = c.clientWidth || 1, chh = c.clientHeight || 1;
+  const s = frontMode() && curView?.layer === 'avatar' ? Math.min(chh / H, cw / (0.62 * W)) : Math.min(cw / W, chh / H);
+  const m = { cw, chh, s, ox: (cw - W * s) / 2, oy: (chh - H * s) / 2 };
+  const box = [m.ox, m.oy, W * s, H * s].map(v => `${Math.round(v)}px`).join(' ');
+  if (box !== stageBox) {
+    stageBox = box;
+    Object.assign(el.cam.style, { left: `${m.ox}px`, top: `${m.oy}px`, width: `${W * s}px`, height: `${H * s}px` });
+  }
+  return m;
+}
+let stageBox = '';
+
+// The outline of a rider on a road bike where the rider should be: the middle of the picture, the
+// wheels' bottoms 80% of the way down and the head about 15% from the top (a design choice: a lens
+// at the top of the tyres 3 m away puts the floor under the wheels about there). Drawn in its own
+// units (the design review's drawing), facing the way the rider faces (fit.facing).
+const GHOST = {
+  cx: 204.45, bottom: 277.9, height: 284, wheels: [[120.3, 220.1], [288.6, 220.1]], r: 57.8,
+  frame: [[[120.3, 220.1], [190, 232], [164, 143.9], [120.3, 220.1]], [[164, 143.9], [255.5, 136.8], [263.1, 161.1], [190, 232]], [[263.1, 161.1], [288.6, 220.1]]],
+  body: [[[219.9, 39.2], [152.6, 106.5]], [[152.6, 106.5], [192.1, 172.1], [184.05, 246.45], [204.5, 261.8]], [[219.9, 39.2], [239.5, 86.3], [281.8, 123.2]]],
+  head: [237.8, 18], headR: 24,
+};
+const TONE = { white: '#FFFFFF', yellow: '#FFD600', green: '#30D158' };
+const ghostCanvas = document.createElement('canvas');
+let ghostKey = '';
+function drawGhost(g, m, W, H, face, inPlace, dpr) {
+  const key = [m.cw, m.chh, m.s, W, H, face, inPlace, dpr].join(',');
+  if (key !== ghostKey) {
+    ghostKey = key;
+    ghostCanvas.width = Math.round(m.cw * dpr);
+    ghostCanvas.height = Math.round(m.chh * dpr);
+    const q = ghostCanvas.getContext('2d');
+    q.setTransform(dpr, 0, 0, dpr, 0, 0);
+    q.clearRect(0, 0, m.cw, m.chh);
+    const k = (0.65 * H) / GHOST.height, ku = k * m.s;
+    const P = ([x, y]) => [m.ox + m.s * (W / 2 + face * (x - GHOST.cx) * k), m.oy + m.s * (0.8 * H - (GHOST.bottom - y) * k)];
+    const line = (pts) => { q.beginPath(); q.moveTo(...P(pts[0])); for (const p of pts.slice(1)) q.lineTo(...P(p)); };
+    const colour = inPlace ? TONE.green : 'rgba(255,255,255,0.8)';
+    q.lineCap = 'round';
+    q.lineJoin = 'round';
+    // The bike, dashed.
+    q.strokeStyle = colour;
+    q.lineWidth = 3;
+    q.setLineDash?.([9, 7]);
+    for (const w of GHOST.wheels) { q.beginPath(); q.arc(...P(w), GHOST.r * ku, 0, Math.PI * 2); q.stroke(); }
+    for (const f of GHOST.frame) { line(f); q.stroke(); }
+    q.setLineDash?.([]);
+    // The rider: an outline of thick limbs, lightly filled. The inside is cut out, then filled.
+    const limbs = (w) => { q.lineWidth = w * ku; for (const b of GHOST.body) { line(b); q.stroke(); } q.beginPath(); q.arc(...P(GHOST.head), (w / 2 + GHOST.headR - 19) * ku, 0, Math.PI * 2); q.fill(); };
+    q.strokeStyle = q.fillStyle = colour;
+    limbs(46);
+    q.globalCompositeOperation = 'destination-out';
+    q.strokeStyle = q.fillStyle = '#000';
+    limbs(38);
+    q.globalCompositeOperation = 'source-over';
+    q.strokeStyle = q.fillStyle = inPlace ? 'rgba(48,209,88,0.22)' : 'rgba(255,255,255,0.08)';
+    limbs(38);
+  }
+  g.drawImage(ghostCanvas, 0, 0, m.cw, m.chh);
+}
+
+// Screen away, before anyone gets on: the big guide the bike goes inside (the customer research,
+// item 3). The outline's own bike, where the outline puts it, drawn bolder: both wheels inside the
+// picture, the pedals (an orange dot) on a dashed line down the middle, and the picture's corners
+// marked, so it reads at arm's length while the phone is placed.
+function drawBikeGuide(g, m, W, H) {
+  const k = (0.65 * H) / GHOST.height, bbx = GHOST.frame[0][1][0]; // the pedals, in the middle
+  const P = ([x, y]) => [m.ox + m.s * (W / 2 + (x - bbx) * k), m.oy + m.s * (0.8 * H - (GHOST.bottom - y) * k)];
+  g.save();
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  g.strokeStyle = 'rgba(255,255,255,0.92)';
+  g.lineWidth = 5;
+  g.setLineDash?.([12, 9]);
+  for (const w of GHOST.wheels) { g.beginPath(); g.arc(...P(w), GHOST.r * k * m.s, 0, Math.PI * 2); g.stroke(); }
+  for (const f of GHOST.frame) { g.beginPath(); g.moveTo(...P(f[0])); for (const p of f.slice(1)) g.lineTo(...P(p)); g.stroke(); }
+  // The middle of the picture, top to bottom, with the pedals on it.
+  g.lineWidth = 2;
+  g.setLineDash?.([6, 8]);
+  const mx = m.ox + (m.s * W) / 2;
+  g.beginPath(); g.moveTo(mx, m.oy + 12); g.lineTo(mx, m.oy + m.s * H - 12); g.stroke();
+  g.setLineDash?.([]);
+  const bb = P(GHOST.frame[0][1]);
+  g.fillStyle = '#FF8D28';
+  g.beginPath(); g.arc(bb[0], bb[1], 10, 0, Math.PI * 2); g.fill();
+  // The picture's corners.
+  g.strokeStyle = '#FFFFFF';
+  g.lineWidth = 5;
+  const c = 34, x0 = m.ox + 10, y0 = m.oy + 10, x1 = m.ox + m.s * W - 10, y1 = m.oy + m.s * H - 10;
+  for (const [x, y, dx, dy] of [[x0, y0, 1, 1], [x1, y0, -1, 1], [x0, y1, 1, -1], [x1, y1, -1, -1]]) {
+    g.beginPath(); g.moveTo(x, y + dy * c); g.lineTo(x, y); g.lineTo(x + dx * c, y); g.stroke();
+  }
+  g.restore();
+}
+
+// The rider from the landmarks, as thick rounded limbs: torso 30, thigh 22, shin 20, arm 15 pt at
+// the live screen's size (390 pt tall in landscape), the far leg fainter, and no numbers on it.
+function drawFigure(g, lm, side, P, unit, colour) {
+  const other = side === 'L' ? 'R' : 'L';
+  const at = (j, k = side) => P(fit.LM[j][k]);
+  const seg = (pts, w) => { g.lineWidth = w * unit; g.beginPath(); g.moveTo(...pts[0]); for (const p of pts.slice(1)) g.lineTo(...p); g.stroke(); };
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  g.strokeStyle = colour;
+  g.globalAlpha = 0.45;
+  seg([at('hip', other), at('knee', other), at('ankle', other)], 18);
+  g.globalAlpha = 1;
+  seg([at('shoulder'), at('hip')], 30);
+  seg([at('hip'), at('knee')], 22);
+  seg([at('knee'), at('ankle')], 20);
+  seg([at('ankle'), at('toe')], 12);
+  seg([at('shoulder'), at('elbow'), at('wrist')], 15);
+  // The head, a little behind the nose towards the shoulder.
+  const n = P(fit.LM.nose), sh = at('shoulder');
+  g.fillStyle = colour;
+  g.beginPath(); g.arc(n[0] + 0.25 * (sh[0] - n[0]), n[1] + 0.25 * (sh[1] - n[1]), 17 * unit, 0, Math.PI * 2); g.fill();
+}
+
+// raw: the rider's landmarks where the camera saw them (the picture is not turned, so neither is
+// the figure). others: the other people found, drawn faintly so it is clear which one is measured.
+function draw(raw, W, H, side, others = []) {
   const c = el.overlay, dpr = window.devicePixelRatio || 1;
-  const cw = c.clientWidth, chh = c.clientHeight;
+  const m = stageMap(W, H), { cw, chh, s, ox, oy } = m;
   if (c.width !== Math.round(cw * dpr) || c.height !== Math.round(chh * dpr)) { c.width = Math.round(cw * dpr); c.height = Math.round(chh * dpr); }
   const g = c.getContext('2d');
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, cw, chh);
-  const s = Math.min(cw / W, chh / H), ox = (cw - W * s) / 2, oy = (chh - H * s) / 2;
+  if (frontMode() && curView?.layer === 'ring') return; // the screen goes still
   if (SIM) { g.fillStyle = '#16233a'; g.fillRect(ox, oy, W * s, H * s); }
   if (phase === 'phone' && ph.noSensor) { // levelling by eye: a straight line across the middle
     g.strokeStyle = '#fff';
     g.lineWidth = 2;
     g.beginPath(); g.moveTo(ox, oy + (H * s) / 2); g.lineTo(ox + W * s, oy + (H * s) / 2); g.stroke();
   }
-  const unit = Math.max(0.6, Math.min(1.4, (W * s) / 900));
+  const unit = Math.max(0.6, Math.min(1.6, (H * s) / 390));
+  if (curView?.bikeGuide) drawBikeGuide(g, m, W, H);
+  if (curView?.ghost) drawGhost(g, m, W, H, live.face >= 0 ? 1 : -1, curView.tone === 'green', dpr);
   g.strokeStyle = 'rgba(255,255,255,0.22)';
   g.lineWidth = 2 * unit;
   for (const o of others) {
@@ -1134,9 +1704,187 @@ function draw(lm, W, H, side, ang, others = []) {
       g.beginPath(); g.moveTo(ox + p.x * W * s, oy + p.y * H * s); g.lineTo(ox + q.x * W * s, oy + q.y * H * s); g.stroke();
     }
   }
-  if (!lm) return;
-  drawSkeleton(g, lm, side, (i) => [ox + lm[i].x * W * s, oy + lm[i].y * H * s], unit, ang);
+  if (!raw || !curView?.figure) return;
+  drawFigure(g, raw, side, (i) => [ox + raw[i].x * W * s, oy + raw[i].y * H * s], unit, TONE[curView.tone] || TONE.white);
 }
+
+// ── the live screen ──────────────────────────────────────────────────────────────────────────
+// What the camera view shows, state by state (ui.liveView, from the design review's state table).
+// Gathered here from the steps' own state each frame; the DOM changes only when the view does,
+// except the ring and the level bubble, which move every frame.
+const LEVEL_SECS = 2;   // the green LEVEL screen after levelling (a design choice)
+const FLASH_SECS = 0.6; // the one green flash when the held-still reading is taken (a design choice)
+const DONE_SECS = 2.5;  // DONE before the result, as long as the spoken result waits (finish)
+const BUBBLE_DEG = 5;   // the level bubble reaches the end of its bar at 5 degrees (a design choice)
+const RIDER_KEEP = 1;   // s: a frame or two without the rider is not "off the bike" (a design choice)
+const PLACE_SUB = 'On a box, 4 big steps from the pedals.';
+// inView: someone is in the picture, not cut off; riderAt: when the rider was last seen on the bike;
+// face: which way he faces in the camera's picture (fit.facing), for the outline and the arrows.
+const live = { inView: false, riderAt: -Infinity, face: 1 };
+let curView = null, viewKey = '', capText = null, doneTimer = null;
+const vis = (e, on) => { if (e.toggleAttribute) e.toggleAttribute('hidden', !on); else e.hidden = !on; };
+const reduceMotion = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } };
+// The roll as the screen shows it, for the bubble: the screen's own axes, whichever camera films.
+// A real bubble rises to the high end, so it moves away from the way gravity leans in the screen.
+function screenRoll() {
+  const g = Tilt.g;
+  if (!g || !Number.isFinite(g[0]) || !Number.isFinite(g[1]) || !g[0]) return Tilt.roll || 0;
+  return (Math.atan2(g[1] * (g[0] >= 0 ? 1 : -1), Math.abs(g[0])) * 180) / Math.PI;
+}
+
+function liveInput(t) {
+  const s = { front: frontMode(), mirrored: mirrorShown(), phase, face: live.face, reduce: reduceMotion() };
+  if (phase === 'phone') {
+    // The placement screen stays while its lines are said, until the levelling starts.
+    if (ph.placing && (!Voice.busy() || /^(I will beep|I cannot use the motion|Both wheels)/.test(Voice.cur?.text || ''))) ph.placing = false;
+    Object.assign(s, { placing: !!ph.placing, framing: !!ph.framing && !ph.placing, guide: true,
+      sensor: Tilt.available, landscape: Tilt.landscape, upright: innerHeight > innerWidth,
+      tilt: Math.max(Math.abs(Tilt.pitch), Math.abs(Tilt.roll)), bubble: -screenRoll() / BUBBLE_DEG,
+      fix: session?.fix ? { key: session.fixKey, toward: session.fixToward } : null });
+    return s;
+  }
+  s.levelled = session?.levelAt != null && t - session.levelAt < LEVEL_SECS;
+  s.flash = session?.flashAt != null && t - session.flashAt < FLASH_SECS;
+  if (phase === 'mount' || phase === 'frame') {
+    s.rider = t - live.riderAt < RIDER_KEEP;
+    s.inView = live.inView;
+    s.asking = phase === 'mount' && ph.needId && !ph.idDone && ph.askN > 0 && !ph.fallback;
+    s.who = phase === 'mount' && !!ph.fallback && !s.rider && (Voice.count.get(WHO_STOP) || 0) > 0;
+    s.aero = phase === 'mount' && !!session.aeroSaid && !s.rider;
+    s.fix = session?.fix ? { key: session.fixKey, toward: session.fixToward } : null;
+    s.ok = phase === 'frame' && ph.ok != null;
+    // Day one: the tape tip, and whether the voice is saying it now.
+    s.tip = phase === 'mount' && !!ph.tape;
+    s.tipSpeaking = Voice.cur?.text === TAPE_LINE;
+  } else if (phase === 'still') {
+    s.hold = { capturing: !!ph.cap, elapsed: ph.cap ? t - ph.cap.t0 : 0, total: 3.2, lost: ph.lostSince != null && t - ph.lostSince > 2 };
+  } else if (phase === 'pedal') {
+    const { secs, dir } = S();
+    s.pedal = { started: !!ph.started, elapsed: ph.moveSecs || 0, total: secs, left: ph.left ?? secs, paused: !!ph.paused, more: !!ph.more, dir };
+  }
+  return s;
+}
+
+// The size of a big word, so it fits the width it has: about 0.75 em a capital in a heavy rounded
+// face (measured on the design review's drawings), from max down to min px.
+// height: the room it has top to bottom, if that is the tighter limit (0.9 em a line).
+function fitWord(e, text, width, max, min, height = Infinity) {
+  const n = Math.max(1, [...String(text)].reduce((a, ch) => a + (ch === ' ' ? 0.5 : 1), 0));
+  e.style.fontSize = `${Math.round(Math.max(min, Math.min(max, width / (0.75 * n), height / 0.9)))}px`;
+}
+const RING_C = 2 * Math.PI * 110;
+function setRing(frac) {
+  el.ringArc.setAttribute('stroke-dasharray', `${(RING_C * frac).toFixed(1)} ${RING_C.toFixed(1)}`);
+  el.ringArc.style.display = frac > 0 ? '' : 'none'; // a round cap would draw a dot at 0
+}
+const BORDER = { blue: ['#0091FF', 'none'], yellow: ['#FFD600', '26 20'], green: ['#30D158', 'none'] };
+
+function renderLive(t) {
+  const v = ui.liveView(liveInput(t));
+  curView = v;
+  if (v.ring) setRing(v.ring.frac);
+  if (v.level) el.bubble.style.transform = `translateX(${(v.level.bubble * 145).toFixed(1)}px)`;
+  const key = JSON.stringify([v.layer, v.step, v.border, v.tone, v.word, v.sub, v.icon, v.arrow, v.ghost, v.figure, v.caption, v.clear, v.bikeGuide,
+    v.ring && [v.ring.digits, v.ring.hold], v.level?.text, v.card, v.field, innerWidth, innerHeight, camera]);
+  // The caption's height, so the big things never sit under it: measured once the caption is in
+  // place for this layer (its width depends on the layer), and a new line lays the screen out again.
+  const cap = v.caption ? el.say.textContent : '';
+  if (key === viewKey && cap === capText) return;
+  const front = frontMode();
+  el.run.className = [front ? 'front' : 'rear', mirrorShown() ? 'mirror' : '', `layer-${v.layer}`, v.caption ? '' : 'nocap', v.clear ? 'clear' : '', v.layer === 'field' ? 'onfield' : ''].filter(Boolean).join(' ');
+  if (cap !== capText) { capText = cap; el.run.style.setProperty?.('--capH', `${cap ? (el.say.offsetHeight || 40) + 14 : 24}px`); }
+  viewKey = key;
+  el.stepLabel.textContent = v.step;
+  vis(el.placeView, v.layer === 'place');
+  el.placeSub.textContent = front ? `${PLACE_SUB} Screen facing the bike.` : PLACE_SUB;
+  vis(el.levelView, v.layer === 'level');
+  el.levelDeg.textContent = v.level ? v.level.text : v.word;
+  fitWord(el.levelDeg, el.levelDeg.textContent, (el.run.clientWidth || innerWidth) - 48, 140, 64);
+  vis(el.bubbleBar, !!v.level);
+  // Screen away and back from a correction: the card says what to fix, in place of the tilt words.
+  el.levelSub.textContent = !front && v.card ? '' : v.sub;
+  vis(el.levelSub, !!el.levelSub.textContent);
+  // The 3 m word, beside the figure, screen towards the rider.
+  vis(el.sign, front && v.layer === 'avatar' && !!v.word);
+  el.sign.className = `sign tone-${v.tone}`;
+  el.sign.setAttribute('aria-label', v.label);
+  el.signWord.textContent = v.word;
+  // As wide and as tall as the sign has room for, beside the figure and above the caption.
+  fitWord(el.signWord, v.word, el.sign.clientWidth || 380, 124, 64, (el.sign.clientHeight || 300) - (v.icon ? 72 : 0) - 34);
+  el.signSub.textContent = v.sub;
+  vis(el.signArrow, v.icon === 'arrow');
+  el.signArrow.style.transform = v.arrow > 0 ? 'scaleX(-1)' : ''; // drawn pointing left
+  vis(el.signCheck, v.icon === 'check' || v.icon === 'tick');
+  el.signCheck.style.color = TONE.green;
+  // The ring: big and alone with the screen towards him, small over the picture for a helper.
+  vis(el.ringView, !!v.ring && v.layer !== 'field');
+  if (v.ring) {
+    el.timer.textContent = v.ring.digits;
+    vis(el.holdIcon, v.ring.hold);
+    el.ring.setAttribute('aria-label', v.ring.hold ? 'Hold still' : v.ring.digits ? `${v.ring.digits} seconds to go` : 'A few more turns');
+  }
+  el.ringWord.textContent = v.word;
+  el.ringSub.textContent = v.sub;
+  // Screen away: the last correction on a frosted card, or a note (the bike guide, the tape tip) in white.
+  vis(el.fixCard, !front && !!v.card && (v.layer === 'avatar' || v.layer === 'level'));
+  el.fixCard.className = v.card?.note ? 'fixCard note' : 'fixCard';
+  el.sayNote.textContent = v.card?.sub || '';
+  vis(el.fixTape, v.card?.icon === 'tape');
+  vis(el.fixArrow, !!v.card?.arrow);
+  el.fixArrow.style.transform = v.card?.arrow > 0 ? 'scaleX(-1)' : '';
+  vis(el.field, v.layer === 'field');
+  if (v.field) renderField(v.field);
+  vis(el.seeWhat, false);
+  // The border round the screen: blue working, dashed yellow needs you, green good.
+  vis(el.border, !!v.border && v.layer !== 'field');
+  if (v.border) {
+    const [colour, dash] = BORDER[v.border];
+    el.borderRect.setAttribute('width', Math.max(0, (el.run.clientWidth || innerWidth) - 14));
+    el.borderRect.setAttribute('height', Math.max(0, (el.run.clientHeight || innerHeight) - 14));
+    el.borderRect.setAttribute('stroke', colour);
+    el.borderRect.setAttribute('stroke-dasharray', dash);
+  }
+  el.overlay.setAttribute('aria-label', ui.avatarLabel(v));
+}
+
+// A full screen of colour: LEVEL, the reading taken, DONE, the result.
+function renderField(f) {
+  el.field.className = `field ${f.tone}`;
+  vis(el.fieldCheck, f.icon === 'check');
+  vis(el.fieldUp, f.icon === 'up');
+  vis(el.fieldDown, f.icon === 'down');
+  el.fieldWord.textContent = f.word;
+  el.fieldWord.className = f.mm ? 'word mm' : 'word';
+  fitWord(el.fieldWord, f.word, (el.field.clientWidth || innerWidth) - (f.icon ? 150 : 0) - 80, 160, 72);
+  el.fieldSub.textContent = f.sub || '';
+  vis(el.fieldSub, !!f.sub);
+}
+
+// Screen towards the rider, at the end: DONE, then the result as a full green or yellow screen with
+// one big word or the millimetres to change (ui.resultField), then See What to Do opens the results.
+// He is still on the bike, 3 m away; the results sheet is for when he walks to the phone.
+function resultOnRun() {
+  const win = ui.retestWin(lastResult), focus = ui.focusArea(lastResult, lastAreas);
+  const res = ui.resultField(lastResult, { win, grade: win ? 'green' : focus?.grade || 'na', nothing: fit.nothingToDo(lastResult), what: fit.headline(lastResult).what,
+    once: ui.onceMore(lastResult) });
+  const at = (f, step, button) => {
+    viewKey = '';
+    curView = { layer: 'field' };
+    el.run.className = `${frontMode() ? 'front' : 'rear'}${mirrorShown() ? ' mirror' : ''} layer-field onfield nocap`;
+    for (const e of [el.placeView, el.levelView, el.sign, el.ringView, el.fixCard, el.border]) vis(e, false);
+    vis(el.field, true);
+    renderField(f);
+    el.stepLabel.textContent = step;
+    vis(el.seeWhat, button);
+    el.skip.hidden = true;
+    el.stop.hidden = true; // nothing to stop: the check is saved
+    if (button) el.seeWhat.focus?.({ preventScroll: true });
+  };
+  at({ tone: 'green', icon: 'check', word: 'Done', sub: 'You can stop pedalling' }, 'Step 5 of 5', false);
+  clearTimeout(doneTimer);
+  doneTimer = setTimeout(() => { doneTimer = null; if (!el.run.hidden) at(res, 'Result', true); }, DONE_SECS * 1000);
+}
+el.seeWhat.addEventListener('click', () => { clearTimeout(doneTimer); doneTimer = null; show('results'); });
 
 function snapshot(lm, W, H, side, ang) {
   const c = document.createElement('canvas'), k = Math.min(1, 1100 / W);
@@ -1149,19 +1897,29 @@ function snapshot(lm, W, H, side, ang) {
 }
 
 // ── camera, recording, screen ────────────────────────────────────────────────────────────────
+// "Where will the screen face?" picks the camera: Towards me is the front camera ('user'), Away from
+// me the back one ('environment'), the default. 'ideal', so a device with only one camera still films.
+const askedFacing = () => ((session?.screen ?? screen) === 'towards' ? 'user' : 'environment');
+let camLogged = false;
 async function startCamera() {
+  const facingMode = { ideal: askedFacing() };
   stream = await navigator.mediaDevices.getUserMedia({
     audio: false,
     // A kept clip goes to the full analysis, whose filming guide asks for 1080p or more. The pedalling
     // step's frames-per-stroke check protects the reading if bigger frames slow the pose model.
     video: el.keepVideo.checked
-      ? { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } }
-      : { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+      ? { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } }
+      : { facingMode, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
   });
   el.cam.srcObject = stream;
   await el.cam.play().catch(() => {});
   // iOS ends or mutes the camera when the page goes to the background or another app takes it.
   const tr = stream.getVideoTracks()[0];
+  // The camera the browser really gave: the one asked for unless it says otherwise.
+  const got = tr?.getSettings?.().facingMode;
+  camera = got === 'user' ? 'front' : got === 'environment' ? 'rear' : askedFacing() === 'user' ? 'front' : 'rear';
+  if (session) session.camera = camera;
+  camLogged = false;
   const lostTrack = () => { if (running && document.visibilityState === 'visible') recoverCamera(); };
   tr?.addEventListener('ended', lostTrack);
   tr?.addEventListener('mute', lostTrack);
@@ -1201,6 +1959,23 @@ async function recoverCamera(force = false) {
     recovering = false;
   }
   if (retry) setTimeout(() => recoverCamera(true), 2000);
+}
+
+// Once, after the camera's first frame: what the browser really gave (camera panel: the front
+// camera's resolution, frame rate and cropping in Safari are not known yet). Into the debug info
+// (window.__bfc.camera) and one line of Copy Results, so a phone test can report it.
+function logCamera() {
+  camLogged = true;
+  let st = {};
+  try { st = stream?.getVideoTracks()[0]?.getSettings?.() || {}; } catch { /* not reported */ }
+  debug.camera = { asked: askedFacing(), camera, mirrored: camera === 'front', facingMode: st.facingMode ?? null, width: st.width ?? null, height: st.height ?? null,
+    frameRate: st.frameRate ?? null, aspectRatio: st.aspectRatio ?? null, resizeMode: st.resizeMode ?? null, videoWidth: el.cam.videoWidth, videoHeight: el.cam.videoHeight };
+}
+function cameraLine() {
+  const c = debug.camera;
+  if (!c) return '';
+  const size = c.width && c.height ? `, ${c.width} by ${c.height}` : c.videoWidth ? `, ${c.videoWidth} by ${c.videoHeight}` : '';
+  return `Camera: ${c.camera === 'front' ? 'front' : 'back'}${c.sim ? ' (simulation)' : ''}${size}${c.frameRate ? `, ${Math.round(c.frameRate)} frames a second` : ''}.`;
 }
 
 function stopCamera() {
@@ -1262,32 +2037,47 @@ function quietResults() {
   Voice.stop();
 }
 
-async function start() {
+// quick: Check It Now with the phone still where it was levelled (checkNow): the check starts again
+// at getting on, with no placement and no levelling. answered: he said so himself ("Is the phone
+// where it was?", Yes).
+async function start({ quick = false, answered = false } = {}) {
   quietResults();
   el.stopped.hidden = true;
   el.rShot.removeAttribute('src');
   if (session) session.stillShot = null;
-  Voice.unlock();
-  // Web Audio is muted by the silent switch unless the page asks for playback (not in every browser).
-  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* not supported */ }
-  Beep.init();
+  // Inside the tap: the audio session, the beeps, then the voice (unlockSound).
+  unlockSound();
   const tiltReady = SIM ? Promise.resolve(true) : Tilt.request();
-  el.start.disabled = true;
+  starting = true;
+  renderStart();
   el.again.disabled = true;
   setStatus('Starting the camera.');
   try {
     if (!SIM) await startCamera();
   } catch (e) {
     setStatus(cameraError(e), true);
-    el.start.disabled = false;
+    starting = false;
+    renderStart();
     el.again.disabled = false;
-    show('home');
+    // Back to the screen with Start, where the reason is shown above it.
+    showFlow(flowStep === 'allow' ? 'allow' : 'ready');
     return;
   }
   await tiltReady;
   keepAwake();
-  if (SIM) sim = await makeSim();
-  session = { at: new Date(), tries: {}, setup }; // tries: frame corrections said so far, by check
+  if (SIM) {
+    camera = screen === 'towards' ? 'front' : 'rear';
+    debug.camera = { asked: askedFacing(), camera, mirrored: camera === 'front', sim: true };
+    sim = await makeSim();
+  }
+  // tries: frame corrections said so far, by check; screen: which way the screen faces; camera: the
+  // camera that films (startCamera).
+  session = { at: new Date(), tries: {}, setup, screen, camera };
+  // A rider who has checked this setup on this phone before hears the short run (RETURN); a new
+  // setup is explained in full. tapeKnown: a check has asked for the tape marks already. lastScreen:
+  // which way the screen faced last time with this setup.
+  const before = loadHistory(), same = before.filter(x => x.setup === setup);
+  Object.assign(session, { returning: same.length > 0, tapeKnown: before.some(x => x.tape), lastScreen: same[0]?.screen || null });
   Voice.last.clear();
   Voice.count.clear();
   videoBlob = null;
@@ -1303,13 +2093,32 @@ async function start() {
   cands = [];
   crowd = {};
   lastStepT = null;
+  Object.assign(live, { inView: false, riderAt: -Infinity, face: 1 });
+  clearTimeout(doneTimer);
+  doneTimer = null;
+  viewKey = '';
+  curView = null;
+  capText = null;
+  el.say.textContent = '';
+  vis(el.seeWhat, false);
+  vis(el.field, false);
+  el.stop.hidden = false;
   el.runSetup.textContent = fit.setupOf(setup).bike ? `Bike ${fit.setupOf(setup).bike}` : '';
-  el.sayNote.hidden = true;
   show('run');
   running = true;
-  el.start.disabled = false;
+  starting = false;
+  renderStart();
   el.again.disabled = false;
   setStatus(landmarker || SIM ? 'Ready.' : '');
+  if (quick && placed) {
+    // The phone was placed and levelled for the last check and has not moved since (or he said so):
+    // the setup was told then, and a level check skipped then stays skipped.
+    Object.assign(session, { quick: true, toldSetup: true, levelled: !!placed.levelled, toldWhere: answered });
+    if (placed.skippedLevel) { skipped.add('level'); warnings.add('level'); }
+    go('mount', now(), 'quick');
+    return;
+  }
+  Watch.reset();
   go('phone', now());
 }
 
@@ -1319,6 +2128,8 @@ async function start() {
 function stop() {
   running = false;
   phase = null;
+  clearTimeout(doneTimer);
+  doneTimer = null;
   quietResults();
   if (recorder && recorder.state !== 'inactive') recorder.stop();
   stopCamera();
@@ -1328,8 +2139,9 @@ function stop() {
   el.stoppedWait.hidden = !(fit.pendingChange(h) || fit.askMade(h));
   el.stopped.hidden = false;
   renderHistory();
+  selectTab('check');
   show('home');
-  setStatus(landmarker || SIM ? 'Ready.' : '');
+  if (!el.status.classList.contains('err')) setStatus(landmarker || SIM ? 'Ready.' : '');
 }
 
 // The result of this session from what was measured, folded with the history from before it: the
@@ -1348,70 +2160,132 @@ async function finish() {
   phase = null;
   videoBlob = await stopRecording();
   stopCamera();
-  wake?.release?.();
   howHeldTapped = false;
   lastHistory = loadHistory();
   computeResult(lastHistory);
   lastId = saveHistory(lastResult, lastRows, lastAreas);
+  // Where the phone stood for this check, for Check It Now (checkNow).
+  placed = { setup: session.setup, screen: session.screen, levelled: !!session.levelled && !skipped.has('level'), skippedLevel: skipped.has('level') };
+  // The saddle change worked (ui.retestWin), or nothing to change: the check is done. Otherwise
+  // something is to be changed or filmed again, and the phone should stay where it is: the screen
+  // stays awake (a locked screen stops the motion sensor that watches whether the phone moves) until
+  // the results close, or WAKE_KEEP has passed.
+  const win = ui.retestWin(lastResult), done = ui.checkDone(lastResult);
+  if (done) wake?.release?.(); else holdWake();
   renderResults(lastResult, lastRows, lastHistory);
-  show('results');
-  summaryTimer = setTimeout(() => { summaryTimer = null; Voice.say(fit.spokenSummary(lastResult, { pain })); }, 2500);
+  // Screen towards him, on the bike 3 m away: DONE and the result on the camera view, then See What
+  // to Do opens the results. Screen away: the results straight away, as before.
+  if (frontMode()) resultOnRun(); else show('results');
+  // Before the result, so the next check can start where this one ended (the customer research, item 1).
+  if (!done) Voice.say(LEAVE_LINE);
+  // The win is said as the win, with a chime; a check with nothing to change says when to check again.
+  const spoken = fit.spokenSummary(lastResult, { pain, win }) + (!win && done ? ` ${fit.COME_BACK}` : '');
+  Clips.prefetch(spoken); // its clips load while DONE shows
+  summaryTimer = setTimeout(() => { summaryTimer = null; if (win) Beep.chime(); Voice.say(spoken); }, DONE_SECS * 1000);
+}
+
+// Design choice: the longest the screen stays awake on the results while a change waits.
+const WAKE_KEEP = 600;
+let wakeTimer = null;
+function holdWake() {
+  clearTimeout(wakeTimer);
+  wakeTimer = setTimeout(() => { wakeTimer = null; if (!running) wake?.release?.(); }, WAKE_KEEP * 1000);
+}
+function dropWake() { clearTimeout(wakeTimer); wakeTimer = null; if (!running) wake?.release?.(); }
+
+// ── checking the change now ──────────────────────────────────────────────────────────────────
+// Check It Now and Check Again on the results: the phone was placed and levelled for the check just
+// done, and the rider only moved the saddle. placed: how that check was set up (finish). The phone is
+// taken as still in place when it was levelled by the motion sensor, it has not moved since (Watch),
+// and the bike and the screen are as they were then. When the sensor cannot tell (no reading since,
+// or the level check was skipped), one question: "Is the phone where it was?".
+let placed = null;
+function phoneState() {
+  if (!placed || placed.setup !== setup || placed.screen !== screen) return 'none';
+  if (!placed.levelled) return 'unknown';
+  return Watch.verdict();
+}
+// from: the screen it was asked from ('results', or 'ready' for Getting Ready's Start after an
+// earlier check in this page view), where the question's close button goes back to.
+let whereFrom = 'results';
+function checkNow(from = 'results') {
+  const p = phoneState();
+  if (p === 'still') { start({ quick: true }); return; }
+  if (p === 'unknown') { askWhere(from); return; }
+  start();
+}
+function askWhere(from) {
+  whereFrom = from;
+  quietResults();
+  showFlow('where');
+  unlockSound();
+  Voice.say(WHERE_LINE);
+}
+// The results' bottom bar holds the one primary button (DECISIONS.md, 2026-10-10: one obvious button,
+// at the bottom where the thumb is, the same place every time). While a change waits for its
+// millimetres: the button that saves it and checks it now, named for what it saves ("I Moved It 9 mm,
+// Check Now", renderNowLabel), the line under it, "The phone is already in place." (not once the phone
+// moved), and Check Again as a quiet text button (film again without the change). Otherwise Check
+// Again: the primary when the result asks to film again, a tinted one when the check is done. Hidden
+// while "When will you move it?" asks, which has its own buttons.
+function renderBar() {
+  if (!el.rMadeNow) return;
+  const waits = !el.rMade.hidden && !el.rMadeAsk.hidden;
+  const when = !el.rMade.hidden && !el.rWhen.hidden;
+  el.rMadeNow.hidden = !waits;
+  el.rMadeHint.hidden = !waits || phoneState() === 'moved';
+  el.again.className = waits ? 'plain' : lastResult && !ui.checkDone(lastResult) ? 'primary' : 'tinted';
+  $('rBar').hidden = when;
 }
 
 let lastRows = [], lastAreas = [];
+// The results sheet, in one focus order: the status of the area the headline is about, the
+// headline and one short line (fit.headline's short; the full reason is in Say It Again and Copy
+// Results); the notes that change how to read it; how to make the change, one tap away, in the order
+// the hands do it; "I Made This Change"; then the areas, the one in focus first with its range bar
+// and its details one tap away, and an area that waits for the saddle as one line. The one primary
+// button is in the bottom bar (renderBar). Every number and sentence here is fit.js's own (headline,
+// areas, measures, saddleHowTo, madeQuestion); this only arranges them.
 function renderResults(r, rows, history) {
+  nudged = false; // a new result: Check It Now may be pointed at once more
+  clearTimeout(nudgeTimer);
   el.rOverall.className = 'pill ' + r.overall; // hidden: the areas carry the statuses
   el.rOverall.textContent = fit.STATUS[r.overall];
   // Pain or numbness first: for those riders a phone check is only a starting point.
-  el.rPain.hidden = !pain;
+  $('rPainBox').hidden = !pain;
+  $('rPainBox').open = false;
+  $('rPainShort').textContent = fit.PAIN_SHORT;
   el.rPain.textContent = pain ? fit.painNote(r) : '';
   // The headline and its reason depend on the verdict (fit.advise): a change, no change, two
-  // readings that point different ways, only the held-still reading, or nothing measured.
+  // readings that point different ways, only the held-still reading, or nothing measured. On a
+  // retest whose saddle change moved the knee into range (ui.retestWin), the win is the headline and
+  // the before and after is its reason.
   const h = fit.headline(r);
-  el.rWhat.textContent = h.what;
-  el.rWhy.textContent = [h.why, ...r.notes].join(' ');
+  const win = ui.retestWin(r);
+  const focus = ui.focusArea(r, lastAreas);
+  const grade = win ? 'green' : focus?.grade || 'na';
+  el.rStatus.className = 'pill ' + grade;
+  el.rStatus.textContent = fit.STATUS[grade];
+  el.rStatus.setAttribute('aria-label', `${ui.AREA_TITLE[focus?.key || 'saddle']}: ${fit.STATUS[grade]}`);
+  el.rWhat.textContent = ui.titleCase(win ? 'Your saddle change worked' : h.what);
+  el.rWhy.textContent = win ? ui.winLine(r) : h.short;
   // Before and after a change marked last time, with how much it should have moved.
-  el.rCompare.hidden = !r.retest;
+  el.rCompare.hidden = !r.retest || win;
   el.rCompare.textContent = r.retest?.text || '';
-  renderMade(r.change);
   // How the bike stayed up, because sessions are only compared with others filmed the same way.
   const bike = fit.setupOf(r.setup).bike;
-  el.rSetup.hidden = !bike;
+  el.rSetup.hidden = true; // kept for Copy Results, not shown: the sheet carries one short line
   el.rSetup.textContent = bike ? `Bike ${bike}, pedalling ${r.pedalDir}.` : '';
   renderHowHeld(r);
   el.rDisagree.hidden = !r.stillOut || !!r.stillOutAgain;
   const w = fit.warnLine(warnings, r.setup);
   el.rWarn.hidden = !w;
   el.rWarn.textContent = w;
-  // One item per area (fit.areas): its name and status, why, and one step, then the angles behind
-  // it as detail, with no status or step of their own. "More numbers" starts folded away. Under a
-  // saddle change, how to make it, folded away too.
-  el.rList.replaceChildren(...lastAreas.map((a) => {
-    const li = document.createElement('li');
-    li.className = 'area ' + a.key;
-    const detail = document.createElement('ul');
-    detail.className = 'detail';
-    detail.append(...a.rows.map(x => detailRow(x, history)));
-    if (a.key === 'more') {
-      const d = document.createElement('details');
-      d.innerHTML = '<summary></summary><p class="why"></p>';
-      d.querySelector('summary').textContent = a.name;
-      d.querySelector('.why').textContent = a.why;
-      d.append(detail);
-      li.append(d);
-      return li;
-    }
-    li.innerHTML = '<div class="head"><span class="an"></span><span class="pill"></span></div><p class="why"></p><p class="step"></p>';
-    li.querySelector('.an').textContent = a.name;
-    const pill = li.querySelector('.pill');
-    pill.className = 'pill ' + a.grade;
-    pill.textContent = a.status;
-    li.querySelector('.why').textContent = a.why;
-    li.querySelector('.step').textContent = a.step;
-    if (a.key === 'saddle' && r.change?.kind === 'saddle') li.append(howTo(r.change.raise));
-    li.append(detail);
-    return li;
-  }));
+  el.rHowToSlot.replaceChildren(...(r.change?.kind === 'saddle' ? [howTo(r.change.raise)] : []));
+  renderMade(r.change);
+  // The area the headline is about first, then the others in their usual order.
+  const order = [...lastAreas].sort((a, b) => (b === focus) - (a === focus));
+  el.rList.replaceChildren(...order.map(a => areaCard(a, r, history, { focus: a === focus, win })));
   // The picture is titled "with the pedal at its lowest point", so not shown when it was not there.
   const shot = Number.isFinite(r.stillOffBottom) ? null : session.stillShot;
   el.shotCard.hidden = !shot;
@@ -1419,17 +2293,106 @@ function renderResults(r, rows, history) {
   el.saveVideo.hidden = !videoBlob;
 }
 
-// "How to raise the saddle" (fit.saddleHowTo, from Park Tool), closed by default.
+const make = (tag, cls, text) => {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+};
+const chevron = () => { const s = make('span', 'chevw'); s.innerHTML = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><use href="#chev"/></svg>'; return s; };
+const glyph = (key) => { const s = make('span'); s.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><use href="#${key === 'reach' ? 'reachGlyph' : 'saddleGlyph'}"/></svg>`; return s; };
+function catLine(key) {
+  const c = make('span', 'cat ' + key);
+  c.append(glyph(key), make('span', null, ui.AREA_TITLE[key]));
+  return c;
+}
+function pillFor(grade, status) { return make('span', 'pill ' + (fit.STATUS[grade] ? grade : 'na'), status); }
+
+// One reading as VoiceOver hears it, "Saddle height, 44 degrees, target 30 to 40, Needs attention",
+// with the big number and the range bar under it. The bar draws prev as the reading before (a win).
+function readingBlock(name, value, metric, [lo, hi], status, { prev = null, big = true, pill = null } = {}) {
+  const box = make('div', big ? 'reading' : 'mini');
+  box.setAttribute('role', 'img');
+  box.setAttribute('aria-label', ui.rangeLabel(name, value, [lo, hi], status)
+    + (prev != null ? `, ${Math.round(prev)} degrees before` : ''));
+  if (big) {
+    const val = make('div', 'val');
+    val.append(make('span', 'big', Number.isFinite(value) ? `${Math.round(value)}°` : 'No reading'), make('span', 'metric', metric));
+    box.append(val);
+    if (pill) box.append(pill);
+  } else {
+    const mh = make('div', 'mh');
+    mh.append(make('span', null, metric), make('b', null, Number.isFinite(value) ? `${Math.round(value)}°` : 'No reading'));
+    box.append(mh);
+  }
+  if (Number.isFinite(value)) {
+    const bar = make('div');
+    bar.innerHTML = ui.rangeBar({ value, lo, hi, prev, nowLabel: prev != null ? `${Math.round(value)}° now` : null, prevLabel: prev != null ? `${Math.round(prev)}° before` : null });
+    box.append(bar);
+  }
+  return box;
+}
+
+// An area's details, folded away: its reason and step in words, any note, then the readings behind
+// it with how each compares with last time.
+const detailList = (a, history) => { const ul = make('ul', 'detail'); ul.append(...a.rows.map(x => detailRow(x, history))); return ul; };
+function readings(a, history, lines = [], nodes = []) {
+  const d = make('details', 'readings');
+  d.append(make('summary', null, 'Details'), ...nodes, ...lines.filter(Boolean).map(l => make('p', 'why', l)), detailList(a, history));
+  return d;
+}
+
+// An area as a card: its colour line and status, the reading on its range bar, why, and one step.
+// An area that waits for the saddle, and "More numbers", are one line that opens.
+function areaCard(a, r, history, { focus, win }) {
+  if (a.key === 'more' || (a.grade === 'after' && !focus)) {
+    const d = make('details', 'card oneline');
+    const s = make('summary');
+    const line = make('span');
+    line.append(make('b', a.key, `${ui.AREA_TITLE[a.key]}: `), make('span', 'sec', a.key === 'more' ? 'for reference' : 'checked after the saddle'));
+    s.append(line, chevron());
+    d.append(s, ...[a.why, a.step, ...(a.key === 'reach' ? r.notes || [] : [])].filter(Boolean).map(l => make('p', 'why', l)), detailList(a, history));
+    d.classList.add('area');
+    return d;
+  }
+  const card = make('section', 'card area ' + a.key);
+  const top = make('div', 'top');
+  top.append(catLine(a.key), pillFor(a.grade, a.status));
+  card.append(top);
+  const by = Object.fromEntries(a.rows.map(x => [x.key, x]));
+  // The back, elbow and shoulder bars when reach and bars is not what the headline is about: one tap
+  // away, with the step in plain words on the card (DECISIONS.md, 2026-10-10: one change at a time on
+  // top, the expert numbers underneath).
+  let minis = [];
+  if (a.key === 'saddle') {
+    const k = Number.isFinite(by.kneePedal?.value) ? 'kneePedal' : Number.isFinite(by.kneeStill?.value) ? 'kneeStill' : 'kneePedal';
+    const [lo, hi] = fit.TARGETS[ui.METRIC[k].target];
+    card.append(readingBlock('Saddle height', by[k]?.value, ui.METRIC[k].name, [lo, hi], a.status, { prev: win ? r.retest.before : null }));
+  } else {
+    minis = ['torso', 'elbow', 'shoulder'].filter(k => by[k]).map(k => readingBlock(ui.METRIC[k].short, by[k].value, ui.METRIC[k].short, fit.TARGETS[k], '', { big: false }));
+    if (focus) { card.append(...minis); minis = []; } else card.append(make('p', 'step', a.step));
+  }
+  // The reason, the step and, after a saddle change that worked, when to check again (whenever
+  // something that moves the fit changes: the customer research's suggestion; there is no set time to
+  // wait, README) are one tap away: the headline and the voice already say them.
+  const stepShown = a.key !== 'saddle' && !focus;
+  card.append(readings(a, history, [a.why, stepShown ? null : a.step, ui.checkDone(r) && a.key === 'saddle' ? fit.COME_BACK : null, ...(a.key === 'reach' ? r.notes || [] : [])], minis));
+  return card;
+}
+
+// "How to Do It" (fit.saddleHowTo, from Park Tool), in the order the hands do it, one tap away
+// (DECISIONS.md, 2026-10-10: details one tap away; the headline says what to change).
 function howTo(raise) {
   const h = fit.saddleHowTo(raise);
-  const d = document.createElement('details');
-  d.className = 'howto';
+  const d = make('details', 'card howto');
   d.id = 'rHowTo';
-  const s = document.createElement('summary');
-  s.textContent = h.title;
-  const ol = document.createElement('ol');
-  ol.append(...h.steps.map(x => { const li = document.createElement('li'); li.textContent = x; return li; }));
-  d.append(s, ol, ...h.notes.map(x => { const p = document.createElement('p'); p.className = 'small'; p.textContent = x; return p; }));
+  d.open = false;
+  const s = make('summary');
+  s.setAttribute('aria-label', ui.titleCase(h.title));
+  s.append(make('span', null, 'How to Do It'), chevron());
+  const ol = make('ol', 'nums');
+  ol.append(...h.steps.map(x => make('li', null, x)));
+  d.append(s, ol, ...h.notes.map(x => make('p', 'small', x)));
   return d;
 }
 
@@ -1466,7 +2429,7 @@ function detailRow(x, history) {
   const li = document.createElement('li');
   li.innerHTML = '<span class="n"></span><span class="v"></span><span class="meta"><span class="t"></span><span class="p"></span></span><span class="why"></span>';
   li.querySelector('.n').textContent = x.name;
-  li.querySelector('.v').textContent = Number.isFinite(x.value) ? `${round(x.value)}°` : '–';
+  li.querySelector('.v').textContent = Number.isFinite(x.value) ? `${round(x.value)}°` : 'No reading';
   li.querySelector('.t').textContent = x.target;
   // Compared with the last session, inside the camera's error (fit.compareLast), saying whether it
   // came closer to the target. The hip is for reference only and is not compared.
@@ -1482,35 +2445,126 @@ function detailRow(x, history) {
 }
 
 // ── "how far did you move it?" ───────────────────────────────────────────────────────────────
-// The change card, on the results screen ('r') and at home ('h'): the only way the app learns what
-// was really changed. For a saddle change, buttons for 5, 10 and 15 mm and Other, nothing chosen
-// beforehand and nothing saved until he chooses; for the handlebars, one "I made this change". Only
-// the change (which way, how many millimetres) and when are stored, in that session's history entry.
-const card = (p) => ({ q: p === 'r' ? $('made-h') : el.hMadeQ, mmRow: $(p + 'MadeMmRow'), otherRow: $(p + 'MadeOtherRow'), input: $(p + 'MadeMm'),
-  err: $(p + 'MadeErr'), yes: $(p + 'MadeYes'), no: $(p + 'MadeNo'), tip: $(p + 'MadeTip') });
-function fillCard(p, words) {
+// The change card, on the results sheet ('r', "I Made This Change") and on the Check tab ('h', "Your
+// Last Change"): the only way the app learns what was really changed. For a saddle change, a
+// millimetre stepper (type a number, or tap minus and plus) that starts at the low end of the
+// suggestion, "How far did it move? Less is fine."; nothing is saved until he taps a button. For
+// the handlebars, no number. Only the change (which way, how many millimetres) and when are
+// stored, in that session's history entry. The words come from fit.madeQuestion.
+const card = (p) => ({ q: p === 'r' ? $('made-h') : el.hMadeQ, mmRow: $(p + 'MadeMmRow'), input: $(p + 'MadeMm'),
+  err: $(p + 'MadeErr'), yes: $(p + 'MadeYes'), no: $(p + 'MadeNo') });
+function fillCard(p, words, sug) {
   const c = card(p);
   c.q.textContent = words.q;
   c.mmRow.hidden = !words.mm;
-  c.otherRow.hidden = true;
   c.err.hidden = true;
-  c.input.value = '';
-  c.yes.hidden = !words.yes;
-  c.yes.textContent = words.yes || '';
+  c.input.value = words.mm && sug?.kind === 'saddle' ? String(Math.max(1, sug.mm[0])) : '';
   c.no.hidden = !words.no;
   c.no.textContent = words.no || '';
-  c.tip.hidden = !words.mm;
+}
+// The stepper: whole millimetres from 1 to fit.MADE_MAX, the field's own limits.
+function stepMm(p, d) {
+  const c = card(p);
+  const v = Math.round(Number(c.input.value));
+  c.input.value = String(Math.max(1, Math.min(fit.MADE_MAX, (Number.isFinite(v) && v > 0 ? v : 0) + d)));
+  c.err.hidden = true;
+  if (p === 'r') { renderNowLabel(); nudgeCheckNow(); }
+}
+// The results' primary button while a change waits says what it saves, from the stepper as it is
+// now: "I Moved It 9 mm, Check Now" (ui.checkNowLabel), redrawn with every change to the number.
+function renderNowLabel() {
+  const l = ui.checkNowLabel(lastResult?.change, card('r').input.value);
+  el.rMadeNow.textContent = l.text;
+  el.rMadeNow.setAttribute('aria-label', l.aria);
+}
+
+// Once he has set how far it moved on the results, the voice points at Check It Now (the customer
+// research, item 1): "Check it now. The phone is already in place.", or only "Check it now." once
+// the phone has moved. Once per result, NUDGE_SECS after the last change to the number, so a few
+// taps on the stepper are not talked over (a design choice).
+const NUDGE_SECS = 1.5;
+// nudgedAt: when it was said, so Check It Now right after it does not say "already in place" twice
+// (within 20 s, a design choice).
+let nudged = false, nudgeTimer = null, nudgedAt = -Infinity;
+function nudgeCheckNow() {
+  if (nudged || !lastResult?.change) return;
+  clearTimeout(nudgeTimer);
+  nudgeTimer = setTimeout(() => {
+    nudgeTimer = null;
+    if (nudged || el.results.hidden || running || !['ask', 'later'].includes(rMadeMode)) return;
+    nudged = true;
+    nudgedAt = now();
+    Voice.say(phoneState() === 'moved' ? CHECK_NOW_MOVED : CHECK_NOW_LINE);
+  }, NUDGE_SECS * 1000);
 }
 
 let rMadeMode = null;
 function renderMade(change, mode = 'ask') {
   rMadeMode = change ? mode : null;
   el.rMade.hidden = !change;
-  if (!change) return;
-  fillCard('r', fit.madeQuestion('results', mode, fit.suggestedChange(change)));
-  el.rMadeAsk.hidden = false;
+  if (!change) { renderBar(); return; }
+  const sug = fit.suggestedChange(change);
+  const words = fit.madeQuestion('results', mode, sug);
+  fillCard('r', words, sug);
+  // The card's own title says what it asks; the question shows only when it says something more
+  // ("Before you film again: ...", "I will ask when you come back ...").
+  $('made-h').hidden = mode === 'ask';
+  renderNowLabel();
+  el.rMadeYes.hidden = mode === 'before';
+  el.rMadeYes.textContent = 'Save, Check Later';
+  // "Later" first asks when he will move it (renderWhen); after that, the card as before.
+  el.rMadeAsk.hidden = mode === 'when';
+  el.rWhen.hidden = mode !== 'when';
+  if (mode === 'when') { el.whenPickRow.hidden = true; el.whenPick.hidden = false; }
+  if (mode === 'ask') el.rWhenDone.hidden = true;
   el.rMadeSaved.hidden = true;
+  renderBar();
 }
+
+// ── "When will you move it?" ──────────────────────────────────────────────────────────────────
+// After "Later" on the results (the change is not made yet): Tonight, Weekend or Pick a Day makes a
+// calendar file on the phone (ui.icsReminder: no server, no web push) whose event opens this app.
+// Nothing about it is stored. Not checked on an iPhone yet: what Safari does with the file, from
+// Safari and from a Home Screen app (the customer research marks it a hypothesis).
+const appUrl = () => { try { return new URL('./', location.href).href; } catch { return String(location.href); } };
+const whenLabel = (d) => d.toLocaleString(undefined, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+function remind(choice) {
+  const sug = fit.suggestedChange(lastResult?.change);
+  const at = ui.remindAt(choice, new Date(), choice === 'pick' ? el.whenDate.value : null);
+  if (!at) { el.whenDate.focus?.(); return; }
+  const words = ui.reminderWords(sug);
+  const text = ui.icsReminder({ start: at, title: words.title, notes: words.notes, url: appUrl(), uid: `${Date.now()}-${Math.random().toString(36).slice(2)}@bike-fit-coach` });
+  offerFile(text, 'bike-fit-check.ics', 'text/calendar;charset=utf-8');
+  debug.ics = text;
+  renderMade(lastResult?.change, 'later');
+  el.rWhenDone.hidden = false;
+  el.rWhenDone.textContent = `Calendar reminder made for ${whenLabel(at)}.`;
+}
+function offerFile(text, name, type) {
+  try {
+    const url = URL.createObjectURL(new Blob([text], { type }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) { if (debug.errors.length < 50) debug.errors.push(`calendar: ${e?.message || e}`); }
+}
+for (const [b, choice] of [[el.whenTonight, 'tonight'], [el.whenWeekend, 'weekend']]) b.addEventListener('click', () => remind(choice));
+el.whenPick.addEventListener('click', () => {
+  // Tomorrow at 10 am to start from (a design choice); the picker changes it.
+  const d = new Date(Date.now() + 864e5);
+  d.setHours(10, 0, 0, 0);
+  const pad = (n) => String(n).padStart(2, '0');
+  el.whenDate.value ||= `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T10:00`;
+  el.whenPickRow.hidden = false;
+  el.whenPick.hidden = true;
+  el.whenDate.focus?.();
+});
+el.whenAdd.addEventListener('click', () => remind('pick'));
+el.whenSkip.addEventListener('click', () => renderMade(lastResult?.change, 'later'));
 
 // Stores the change on the history entry id. Returns { made, saved }, or null without a usable number.
 function markMade(id, change, mm) {
@@ -1519,14 +2573,19 @@ function markMade(id, change, mm) {
   const h = loadHistory(), entry = h.find(s => s.at === id);
   let saved = false;
   if (entry) {
+    // In the simulation the made-up saddle moves by what he says he moved it (makeSim).
+    const mmOf = (x) => (x?.kind === 'saddle' ? x.dir * x.mm : 0);
+    if (SIM) simSaddle += mmOf(made) - mmOf(entry.made);
     entry.made = made;
-    try { localStorage.setItem(HKEY, JSON.stringify(h)); saved = true; } catch { /* private mode */ }
+    saved = storeHistory(h);
   }
   renderHistory();
   return { made, saved };
 }
 
-function madeHere(mm) {
+// startNow: "I Moved It <n> mm, Check Now", which saves the change and starts a check straight away:
+// the phone is already in place and the questions were answered for this check.
+function madeHere(mm, startNow = false) {
   const before = rMadeMode === 'before';
   const m = markMade(lastId, lastResult?.change, mm);
   if (!m) { card('r').err.hidden = false; return; }
@@ -1534,8 +2593,10 @@ function madeHere(mm) {
   el.rMadeAsk.hidden = true;
   el.rMadeSaved.hidden = false;
   el.rMadeSaved.textContent = m.saved ? fit.madeNote(m.made) : 'This browser is not keeping your sessions, so I cannot check it next time.';
-  if (m.saved && m.made.mm > fit.MADE_STEP_MAX) { Voice.unlock(); Voice.say(fit.madeNote(m.made)); }
-  if (before) start();
+  renderBar();
+  if (m.saved && m.made.mm > fit.MADE_STEP_MAX && !startNow && !before) { unlockSound(); Voice.say(fit.madeNote(m.made)); }
+  // The phone is where it was for the check just done, unless the motion sensor says otherwise.
+  if (before || startNow) checkNow();
 }
 
 // Sessions whose change he said he did not make ("No, film anyway"), for this page view only, until Stop.
@@ -1546,24 +2607,29 @@ function unanswered() {
   return e && !declined.has(e.at) ? e : null;
 }
 
-// The same question on the home screen, for when he has left the results screen without answering.
+// The same question on the Check tab, for when he has left the results without answering.
 let hMadeMode = 'ask', hMadeId = null;
 function renderHomeMade() {
   const e = unanswered();
   el.hMade.hidden = !e;
   if (!e) { hMadeId = null; return; }
   if (e.at !== hMadeId) { hMadeId = e.at; hMadeMode = 'ask'; }
-  fillCard('h', fit.madeQuestion('home', hMadeMode, e.suggested, dayLabel(e.at)));
-  // "Before you start" already starts the check with either answer.
-  el.hMadeStart.hidden = hMadeMode === 'before';
+  const words = fit.madeQuestion('home', hMadeMode, e.suggested, dayLabel(e.at));
+  fillCard('h', words, e.suggested);
+  const saddle = e.suggested?.kind === 'saddle';
+  $('hMadeYes').hidden = false;
+  $('hMadeYes').textContent = saddle ? (hMadeMode === 'before' ? 'Save and Start' : 'Save') : (words.yes || 'Yes, I made it');
+  // Its own Start stays hidden: the assessment card right under it has Start a Check, and "Before
+  // you start" already starts the check with either answer.
+  el.hMadeStart.hidden = true;
 }
 function madeHome(mm) {
   const e = unanswered(), before = hMadeMode === 'before';
   if (!e) return;
   const m = markMade(e.at, e.suggested, mm);
   if (!m) { card('h').err.hidden = false; return; }
-  if (m.saved && m.made.mm > fit.MADE_STEP_MAX) { setStatus(fit.madeNote(m.made)); Voice.unlock(); Voice.say(fit.madeNote(m.made)); }
-  if (before) start();
+  if (m.saved && m.made.mm > fit.MADE_STEP_MAX) { setStatus(fit.madeNote(m.made)); unlockSound(); Voice.say(fit.madeNote(m.made)); }
+  if (before) newCheck();
 }
 
 // Asks the question in place of starting, once, when a change is still unanswered.
@@ -1578,6 +2644,7 @@ function askFirst(where) {
   if (where === 'home' && !el.hMade.hidden) {
     hMadeMode = 'before';
     renderHomeMade();
+    selectTab('check');
     el.hMade.scrollIntoView({ block: 'center' });
     el.hMadeQ.focus({ preventScroll: true });
     return true;
@@ -1590,6 +2657,8 @@ function resultText(r) {
   return [
     `Bike Fit Coach, ${new Date().toLocaleString()}`,
     `Result: ${fit.headline(r).what}.`,
+    fit.headline(r).why, // the full reason, which the screen keeps to one short line
+    ...(r.notes || []),
     fit.setupOf(r.setup).bike ? `Bike ${fit.setupOf(r.setup).bike}, pedalling ${r.pedalDir}.` : '',
     r.retest ? r.retest.text : '',
     ...lastAreas.flatMap(a => [
@@ -1597,13 +2666,25 @@ function resultText(r) {
       ...a.rows.map(x => `  ${x.name}: ${Number.isFinite(x.value) ? round(x.value) + '°' : 'no reading'} (${x.target})`),
     ]),
     `Pedal strokes measured: ${session.pedal?.strokes ?? 0}.`,
+    cameraLine(),
     w, // the same words as on the screen
     'Not medical advice.',
   ].filter(Boolean).join('\n');
 }
 
 const HKEY = 'bfc.history.v1';
-function loadHistory() { try { return JSON.parse(localStorage.getItem(HKEY) || '[]'); } catch { return []; } }
+// ?sim&seed=<name> fills a made-up history for testing the screens (see SEEDS below) and keeps it in
+// memory only, so a simulation never touches the history stored on this phone.
+const MEMORY = SIM && params.has('seed') ? { h: null } : null;
+function loadHistory() {
+  if (MEMORY) return JSON.parse(JSON.stringify(MEMORY.h || []));
+  try { return JSON.parse(localStorage.getItem(HKEY) || '[]'); } catch { return []; }
+}
+// Returns whether it was kept.
+function storeHistory(h) {
+  if (MEMORY) { MEMORY.h = JSON.parse(JSON.stringify(h)); return true; }
+  try { localStorage.setItem(HKEY, JSON.stringify(h)); return true; } catch { return false; } // private mode: keep going without history
+}
 // replaceAt: the id of this session's entry, to file it again (a different setup chosen afterwards);
 // a change already marked as made is kept when the suggestion still stands.
 function saveHistory(r, rows, areas, replaceAt = null) {
@@ -1619,45 +2700,34 @@ function saveHistory(r, rows, areas, replaceAt = null) {
   // suggested: the change itself, so "Did you make this change?" can still be asked from the home screen.
   // v: how the angles were measured (2: the pedalling knee interpolated to the true bottom).
   // setup: how the bike stayed up, so it is only compared with sessions filmed the same way.
+  // screen: which way the screen faced ('towards': the front camera, 'away': the back one), so the
+  // two cameras' readings can be told apart later (camera panel, 2026-10-10); camera: the camera the
+  // browser really filmed with ('front' or 'rear'), which can differ on a device with only one.
   // stillOut: the held-still reading was out of range while pedalling was in range (fit.withStillHistory).
-  // nothing: nothing to do after it, for "Your fit ... Nothing to change" at home.
-  h.unshift({ at, v: 2, setup: r.setup, pedalDir: r.pedalDir, knee: round(r.knee), src: r.kneeSource, values, areas: grades, change: r.change ? r.change.headline : null,
+  // nothing: nothing to do after it, for "Nothing to change" at home.
+  h.unshift({ at, v: 2, setup: r.setup, screen: session?.screen || null, camera: session?.camera || null, pedalDir: r.pedalDir, knee: round(r.knee), src: r.kneeSource, values, areas: grades, change: r.change ? r.change.headline : null,
     ...(r.change ? { suggested: fit.suggestedChange(r.change) } : {}), warn: [...warnings], ...(r.held ? { held: true } : {}),
     ...(r.stillOut ? { stillOut: true } : {}), ...(fit.nothingToDo(r) ? { nothing: true } : {}),
+    // tape: day one asked for tape marks on the floor, so the short run can say "on your tape marks".
+    ...(session?.tapeSaid || old?.tape ? { tape: true } : {}),
     ...(old?.made && old.made.kind === r.change?.kind ? { made: old.made } : {}) });
-  try { localStorage.setItem(HKEY, JSON.stringify(h.slice(0, 30))); } catch { /* private mode: keep going without history */ }
+  storeHistory(h.slice(0, 30));
   renderHistory();
   return at;
 }
 const dayLabel = (iso) => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+
+// Everything drawn from the history: the Check tab, Progress, and the setup steps on Getting Ready.
 function renderHistory() {
   const h = loadHistory();
-  // The retest card while a marked change is waiting to be checked, with its own Start.
   const pending = fit.pendingChange(h);
-  el.retestCard.hidden = !pending;
-  retestNote(pending);
+  renderAssess(pending);
   renderHomeMade();
+  // The setup steps on Getting Ready stay folded away, one tap from the list, the first time too:
+  // the voice says each of them during the check (DECISIONS.md, 2026-10-10: details one tap away).
+  renderCheckTab(h);
+  renderProgress(h);
   el.histCard.hidden = !h.length;
-  el.home.classList.toggle('returning', h.length > 0);
-  // For a rider who has filmed before, the setup steps fold away, so Start is on the first screen.
-  el.stepsFold.open = !h.length;
-  el.stepsFold.classList.toggle('first', !h.length);
-  // The newest session that measured something, its two areas like a summary you can glance at.
-  const latest = fit.lastChecked(h);
-  el.histLatest.hidden = !latest?.areas;
-  if (latest?.areas) {
-    const line = document.createElement('span');
-    line.textContent = `Your fit, last checked ${dayLabel(latest.at)}` + (fit.setupOf(latest.setup).bike ? `, bike ${fit.setupOf(latest.setup).bike}` : '');
-    const parts = [line];
-    // "Nothing to change" when no area has a step (saved with nothing: true; older sessions: both Good).
-    if (latest.nothing || (latest.nothing == null && latest.areas.saddle === 'green' && latest.areas.reach === 'green' && !latest.change)) {
-      const n = document.createElement('span');
-      n.className = 'nothing';
-      n.textContent = 'Nothing to change';
-      parts.push(n);
-    }
-    el.histLatest.replaceChildren(...parts, areaPills(latest.areas));
-  }
   el.history.replaceChildren(...h.slice(0, 8).map(s => {
     const li = document.createElement('li');
     const d = new Date(s.at);
@@ -1668,19 +2738,149 @@ function renderHistory() {
     // Sessions saved before the areas existed show their knee reading instead.
     let b;
     if (s.areas) b = areaPills(s.areas);
-    else { b = document.createElement('span'); b.className = 'num small'; b.textContent = `knee ${s.knee ?? '–'}°`; }
+    else { b = document.createElement('span'); b.className = 'num small'; b.textContent = s.knee != null ? `knee ${s.knee}°` : 'knee not measured'; }
     li.append(a, b);
     return li;
   }));
 }
-// The retest card's words, dated by the check that suggested the change, and a warning when the
-// choice above is not how the bike was held for that check: then the next film cannot check it.
-function retestNote(pending = fit.pendingChange(loadHistory())) {
-  if (!pending) { el.retestText.textContent = ''; return; }
-  const differs = setup && !fit.sameSetup(setup, pending.setup) && fit.setupOf(pending.setup).bike;
-  el.retestText.textContent = fit.retestPrompt(pending.made, dayLabel(pending.at), pending.setup)
-    + (differs ? ` You have chosen "${fit.setupOf(setup).name}" above, so that film would not check it.` : '');
+
+// The assessment card on the Check tab: "Check Your Change" with its own Check It Now while a marked
+// change waits to be checked, otherwise "Check Your Road Bike Position" and Start a Check.
+function renderAssess(pending) {
+  el.retestCard.hidden = !pending;
+  el.retestStart.hidden = !pending;
+  el.freshCard.hidden = !!pending;
+  el.newCheck.hidden = !!pending;
+  el.assessCard.setAttribute('aria-labelledby', pending ? 'retestTitle' : 'assessTitle');
+  retestNote(pending);
 }
+
+// The retest card's words, dated by the check that suggested the change, and a warning when the
+// setup chosen is not how the bike was held for that check: then the next check cannot check it.
+// The same warning shows on the Setup screen, under the question.
+function retestNote(pending = fit.pendingChange(loadHistory())) {
+  const differs = !!(pending && setup && !fit.sameSetup(setup, pending.setup) && fit.setupOf(pending.setup).bike);
+  el.setupNote.hidden = !differs;
+  el.setupNote.textContent = differs ? `Your last change was checked with the bike ${fit.setupOf(pending.setup).bike}. Choose that again.` : '';
+  if (!pending) { el.retestTitle.textContent = ''; el.retestText.textContent = ''; return; }
+  const text = fit.retestPrompt(pending.made, dayLabel(pending.at), pending.setup);
+  const cut = text.indexOf('. ');
+  el.retestTitle.textContent = cut > 0 ? text.slice(0, cut + 1) : text;
+  el.retestText.textContent = (cut > 0 ? text.slice(cut + 2) : '')
+    + (differs ? ` Your next check is set to "${fit.setupOf(setup).name}", so it would not show it.` : '');
+}
+
+// The Check tab: the Add to Home Screen card on a first visit in Safari; then one summary sentence,
+// the assessment card, and the latest check's two areas on their range bars.
+let inSafari = false;
+function renderCheckTab(h) {
+  el.today.textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+  el.a2hs.hidden = !(inSafari && !h.length);
+  // One primary button on the tab: Start a Check (the Home Screen card's Show Me How is a quiet one),
+  // or, opened inside another app's browser, Copy the Link, with Start a Check stepping back.
+  el.newCheck.className = el.inApp.hidden ? 'primary' : 'tinted';
+  const latest = fit.lastChecked(h);
+  const summary = ui.homeSummary(latest);
+  el.homeSummary.hidden = !summary;
+  el.homeSummary.textContent = summary;
+  el.latestHead.hidden = !latest;
+  el.latestSub.textContent = latest ? [dayLabel(latest.at), fit.setupOf(latest.setup).name].filter(Boolean).join(' · ') : '';
+  el.latestCards.replaceChildren(...ui.latestCards(latest).map(latestCard));
+}
+// A card under Latest Check. It opens that area on Progress.
+function latestCard(c) {
+  const b = make('button', c.collapsed ? 'card oneline' : 'card area');
+  b.type = 'button';
+  b.setAttribute('aria-label', c.label);
+  b.addEventListener('click', () => { progArea = c.key; selectTab('progress'); renderProgress(); });
+  if (c.collapsed) {
+    const line = make('span', 'stack');
+    line.append(make('b', c.key, c.title), make('span', 'sec', c.line));
+    b.append(line, chevron());
+    return b;
+  }
+  const top = make('div', 'top');
+  top.append(catLine(c.key), chevron());
+  b.append(top);
+  if (c.key === 'saddle') {
+    b.append(readingBlock('Saddle height', c.value, c.metric, [c.lo, c.hi], c.status, { pill: pillFor(c.grade, c.status) }));
+  } else {
+    b.append(pillFor(c.grade, c.status));
+    for (const r of c.rows) b.append(readingBlock(r.name, r.value, r.name, [r.lo, r.hi], '', { big: false }));
+  }
+  if (c.step) b.append(make('p', 'step', c.step));
+  return b;
+}
+
+// ── Progress ─────────────────────────────────────────────────────────────────────────────────
+// Saddle Height: the pedalling knee over the last checks filmed the same way, on its target band,
+// with a marker for each change made. Reach and Bars: the back, elbow and shoulder the same way.
+// Under each, how the newest compares with the first one shown (fit.compareLast), and which way the
+// bike was held for the checks shown: checks are only compared with checks filmed the same way. The
+// camera's limits are in Learn, How Exact It Is. Then the changes he made, and every check.
+let progArea = 'saddle';
+function renderProgress(h = loadHistory()) {
+  el.segSaddle.setAttribute('aria-checked', String(progArea === 'saddle'));
+  el.segReach.setAttribute('aria-checked', String(progArea === 'reach'));
+  const pending = fit.pendingChange(h);
+  const c = el.progCard;
+  c.className = 'card prog ' + progArea;
+  const keys = progArea === 'saddle' ? ['kneePedal'] : ['torso', 'elbow', 'shoulder'];
+  const parts = [];
+  let shownSetup = null;
+  for (const key of keys) {
+    const t = ui.trend(h, key);
+    if (!t.points.length) continue;
+    shownSetup = t.setup;
+    const pts = t.points, last = pts[pts.length - 1], first = pts[0];
+    const [lo, hi] = fit.TARGETS[ui.METRIC[key].target];
+    const sub = make('div', 'sub');
+    if (!parts.length) sub.append(make('span', 'eyebrow', 'Latest'));
+    const head = make('div', 'latest');
+    head.append(make('span', 'big', `${Math.round(last.value)}°`), make('span', 'small', `${ui.METRIC[key].short.toLowerCase()} · ${dayLabel(last.at)}`));
+    sub.append(head);
+    const grade = last.areas?.[progArea];
+    if (!parts.length && grade) sub.append(pillFor(grade, fit.STATUS[grade] || fit.STATUS.na));
+    const chart = make('div');
+    chart.setAttribute('role', 'img');
+    chart.setAttribute('aria-label', ui.trendLabel(ui.METRIC[key].short, pts, [lo, hi], dayLabel));
+    chart.innerHTML = ui.trendChart(pts, [lo, hi], dayLabel, { pending: !!pending && pending.at === last.at });
+    sub.append(chart);
+    let note = pts.length > 1 ? fit.compareLast(last.value, first.value, dayLabel(first.at), [lo, hi]) : 'One check so far. The next one shows here beside it.';
+    if (pts.length > 1 && /^About the same as last time/.test(note)) note = note.replace('last time', `on ${dayLabel(first.at)}`);
+    sub.append(make('p', null, /\.$/.test(note) ? note : `${note}.`));
+    parts.push(sub);
+  }
+  if (!parts.length) {
+    c.replaceChildren(make('p', null, progArea === 'saddle' ? 'No knee reading yet. Your checks show here.'
+      : 'No back, elbow or shoulder reading yet. Your checks show here.'));
+    const go = make('button', 'primary', 'Start a Check');
+    go.type = 'button';
+    go.addEventListener('click', beginCheck);
+    c.append(go);
+  } else {
+    if (pending && progArea === 'saddle' && pending.made?.kind === 'saddle') parts.push(make('p', null, `Not checked yet: ${ui.madeWords(pending.made).toLowerCase()}.`));
+    const bike = fit.setupOf(shownSetup).bike;
+    if (bike) parts.push(make('p', 'small', `Checks with the bike ${bike}.`));
+    c.replaceChildren(...parts);
+  }
+  const changes = ui.changesList(h);
+  el.changesH.hidden = el.changes.hidden = !changes.length;
+  el.changes.replaceChildren(...changes.map(x => {
+    const li = make('li');
+    const words = make('span');
+    words.append(make('b', null, x.title), make('br'), make('span', 'small', [dayLabel(x.at), x.then].filter(Boolean).join(' · ')));
+    li.append(words);
+    if (x.pending) {
+      const b = make('button', 'soft', 'Check It Now');
+      b.type = 'button';
+      b.addEventListener('click', beginCheck);
+      li.append(b);
+    }
+    return li;
+  }));
+}
+for (const b of [el.segSaddle, el.segReach]) b.addEventListener('click', () => { progArea = b === el.segReach ? 'reach' : 'saddle'; renderProgress(); });
 
 function areaPills(g) {
   const wrap = document.createElement('span');
@@ -1695,7 +2895,17 @@ function areaPills(g) {
   return wrap;
 }
 
-function setStatus(msg, err = false) { el.status.textContent = msg; el.status.classList.toggle('err', err); }
+// The status line sits above Start on Getting Ready; an error is also shown on the Check tab, where
+// Stop leaves him.
+function setStatus(msg, err = false) {
+  el.status.textContent = msg;
+  el.status.classList.toggle('err', err);
+  // The permission screen already says nothing leaves the phone: there, only loading and errors.
+  el.allowStatus.textContent = err || !/^(Ready|Simulation)/.test(msg) ? msg : '';
+  el.allowStatus.classList.toggle('err', err);
+  el.homeStatus.hidden = !err;
+  el.homeStatus.textContent = err ? msg : '';
+}
 
 async function saveVideo() {
   if (!videoBlob) return;
@@ -1713,54 +2923,180 @@ async function saveVideo() {
   a.remove();
 }
 
-// Start, from the main button or a card's own: ask how the bike stays up first, then about an
-// unanswered change, then start.
-const startFromHome = () => { if (!askSetup() && !askFirst('home')) start(); };
-el.start.addEventListener('click', startFromHome);
-el.retestStart.addEventListener('click', startFromHome);
-el.hMadeStart.addEventListener('click', startFromHome);
-el.again.addEventListener('click', () => { if (!askFirst('results')) start(); });
+// ── the way in ───────────────────────────────────────────────────────────────────────────────
+// A check starts from the Check tab (Start a Check, Check It Now, the Home Screen card's Try It in
+// Safari First) or from Progress: first the question about an unanswered change, then the Setup
+// screen, then Getting Ready, whose Start starts the camera. From the results, Check It Now and
+// Check Again start straight away: the phone is already in place.
+function beginCheck() { if (!askFirst('home')) newCheck(); }
+// The Setup screen for a new check: the pain question is asked afresh each time, nothing pressed.
+function newCheck() { clearPain(); showFlow('setup'); }
+for (const b of [el.newCheck, el.retestStart, el.hMadeStart]) b.addEventListener('click', beginCheck);
+el.flowNext.addEventListener('click', () => { if (!askSetup()) showFlow('screen'); });
+el.screenNext.addEventListener('click', () => showFlow('pain'));
+el.screenBack.addEventListener('click', () => showFlow('setup'));
+// The pain question's Next waits for No or Yes: a rider with pain that keeps coming back must not
+// skip it unseen (the advice to see a doctor or physio, and the line to stop pedalling if the knee
+// hurts, come only with Yes).
+el.painNext.addEventListener('click', () => {
+  if (!painSet) {
+    el.painCard.classList.add('needs');
+    el.painErr.hidden = false;
+    el.painQ.focus?.({ preventScroll: true });
+    unlockSound();
+    Voice.say(PAIN_ASK);
+    return;
+  }
+  showFlow('ready');
+});
+el.painBack.addEventListener('click', () => showFlow('screen'));
+for (const b of [el.flowClose, el.screenClose, el.painClose]) b.addEventListener('click', () => show('home'));
+el.readyClose.addEventListener('click', () => show('home'));
+el.readyBack.addEventListener('click', () => showFlow('pain'));
+// Getting Ready's button: before the first check in a page view it is Next, to the screen that says
+// why the iPhone asks for the camera and motion (the customer research, item 4); after that, Start.
+el.start.addEventListener('click', () => {
+  if (askSetup()) return;
+  if (allowDue()) { showFlow('allow'); return; }
+  // After a check in this page view, the phone may still be where it was levelled.
+  checkNow('ready');
+});
+el.allowStart.addEventListener('click', () => { if (askSetup()) return; allowSeen = true; start(); });
+el.allowBack.addEventListener('click', () => showFlow('ready'));
+el.allowClose.addEventListener('click', () => show('home'));
+// "Is the phone where it was?": Yes starts at getting on, No sets the phone up again. The close
+// button goes back to where it was asked from.
+el.whereYes.addEventListener('click', () => start({ quick: true, answered: true }));
+el.whereNo.addEventListener('click', () => start());
+el.whereClose.addEventListener('click', () => { Voice.stop(); if (whereFrom === 'ready') showFlow('ready'); else show('results'); });
+el.again.addEventListener('click', () => { if (!askFirst('results')) checkNow(); });
 el.stop.addEventListener('click', stop);
 el.done.addEventListener('click', () => {
   quietResults();
-  // The picture is only for the results screen; it is not kept once you leave it.
+  dropWake();
+  // The picture is only for the results; it is not kept once they close.
   el.rShot.removeAttribute('src');
   if (session) session.stillShot = null;
+  selectTab('check');
   show('home');
   setStatus(landmarker || SIM ? 'Ready.' : '');
 });
-// "Say it again": the longer version, with the reason and the other angles.
-el.speak.addEventListener('click', () => { Voice.unlock(); if (lastResult) Voice.say(fit.spokenSummary(lastResult, { pain, long: true }), { interrupt: true }); });
-for (const p of ['r', 'h']) {
-  const c = card(p), save = p === 'r' ? madeHere : madeHome;
-  for (const b of c.mmRow.querySelectorAll('[data-mm]')) {
-    b.addEventListener('click', () => {
-      if (b.dataset.mm !== 'other') { save(Number(b.dataset.mm)); return; }
-      c.otherRow.hidden = false;
-      c.input.focus();
-    });
-  }
-  $(p + 'MadeSave').addEventListener('click', () => save(c.input.value));
-  c.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(c.input.value); });
+el.showAll.addEventListener('click', () => selectTab('progress'));
+el.showShare.addEventListener('click', () => { el.shareHint.hidden = false; el.shareHintClose.focus?.(); });
+el.shareHintClose.addEventListener('click', () => { el.shareHint.hidden = true; el.showShare.focus?.(); });
+
+// Getting Ready's clip: the How to Set Up guide, a narrated drawn guide of this check's own steps,
+// played in place, muted (the captions are drawn into it).
+function pauseHowTo() {
+  if (!el.howVideo || el.howVideo.hidden) return;
+  try { el.howVideo.pause(); } catch { /* not playing */ }
+  playLabel(false);
 }
-el.rMadeYes.addEventListener('click', () => madeHere(null)); // the handlebars: no number
+function playLabel(playing) {
+  el.howPlayText.textContent = playing ? 'Pause' : 'Play';
+  el.howPlay.setAttribute('aria-label', playing ? 'Pause the setup guide' : 'Play the setup guide');
+  el.howPlayPath.setAttribute('d', playing ? 'M4 2h3.5v14H4zM10.5 2H14v14h-3.5z' : 'M4 2.5v13l11-6.5z');
+}
+el.howPlay.addEventListener('click', () => {
+  const v = el.howVideo;
+  if (!v.hidden && !v.paused) { pauseHowTo(); return; }
+  v.hidden = false;
+  el.howPoster.hidden = true;
+  v.muted = true;
+  playLabel(true);
+  const p = v.play?.();
+  // Offline the clip is not there (the service worker leaves video to the network): the picture
+  // comes back and the pill says so.
+  p?.catch?.(() => { v.hidden = true; el.howPoster.hidden = false; playLabel(false); el.howPlayText.textContent = 'Needs a Connection'; });
+});
+el.howVideo.addEventListener('ended', () => playLabel(false));
+
+// "Say It Again": the longer version, with the reason and the other angles.
+el.speak.addEventListener('click', () => { unlockSound(); if (lastResult) Voice.say(fit.spokenSummary(lastResult, { pain, long: true }), { interrupt: true }); });
+for (const p of ['r', 'h']) {
+  const c = card(p);
+  $(p + 'MadeLess').addEventListener('click', () => stepMm(p, -1));
+  $(p + 'MadeMore').addEventListener('click', () => stepMm(p, 1));
+  c.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') (p === 'r' ? madeHere(c.input.value) : madeHome(c.input.value)); });
+  if (p === 'r') c.input.addEventListener('input', () => { renderNowLabel(); nudgeCheckNow(); });
+}
+
+// ── the permission screen and the sound check ───────────────────────────────────────────────────
+// Shown once a page view, before the first Start: an iPhone asks for the camera and for motion, and
+// may name the site. allowSeen: it has been shown and its Start tapped.
+let allowSeen = false, starting = false, startText = 'Loading…', startReady = false;
+const allowDue = () => !allowSeen;
+function setStart(text, ready) { startText = text; startReady = ready; renderStart(); }
+function renderStart() {
+  const due = allowDue();
+  el.start.textContent = due ? 'Next' : startText;
+  el.start.disabled = starting || (!due && !startReady);
+  el.allowStart.textContent = startText;
+  el.allowStart.disabled = starting || !startReady;
+}
+// "Tap to Hear Me": the coach's own recorded line, played like every other line through the one
+// shared <audio id="voice"> element, so what is heard here is what the check will sound like (and a
+// media element is likely heard on silent, not yet confirmed on a phone). Inside the tap, sound is
+// unlocked first, in the live app's order (unlockSound). The clip is fetched when the page loads
+// (boot), so it starts inside the tap.
+el.hearMe.addEventListener('click', () => {
+  // What to do when nothing was heard: only the volume and silent mode, the two settings the app may
+  // mention (DECISIONS.md, 2026-10-10).
+  el.hearHint.hidden = false;
+  el.hearHint.scrollIntoView?.({ block: 'nearest', behavior: reduceMotion() ? 'auto' : 'smooth' });
+  unlockSound();
+  Voice.say(HEAR_LINE, { interrupt: true });
+});
+
+// ── opened inside another app ───────────────────────────────────────────────────────────────────
+// A link opened from Instagram, Facebook, LinkedIn and the like opens in that app's own browser,
+// which may not keep the results or allow the camera (the customer research, first run, step 1). The
+// card there says to open it in Safari, with the link to copy. Found by the app names those browsers
+// put in their user agent; &inapp in the simulation.
+const IN_APP = /FBAN|FBAV|FB_IAB|Instagram|LinkedInApp|Line\/|Twitter|Snapchat|GSA\//;
+const inAppBrowser = () => IN_APP.test(navigator.userAgent || '') || (SIM && params.has('inapp'));
+el.copyLink.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(appUrl()); el.copyDone.hidden = false; } catch { prompt?.('Copy this link, then open it in Safari:', appUrl()); }
+});
+// The value for a saddle change, or null for the handlebars (no number).
+const mmFor = (change, p) => (change?.kind === 'saddle' ? card(p).input.value : null);
+// The results' primary button saves exactly the change it names, never a number it did not show: a
+// label that has fallen behind the stepper is redrawn, and nothing is saved by that tap.
+el.rMadeNow.addEventListener('click', () => {
+  if (el.rMadeNow.textContent !== ui.checkNowLabel(lastResult?.change, card('r').input.value).text) { renderNowLabel(); return; }
+  madeHere(mmFor(lastResult?.change, 'r'), true);
+});
+el.rMadeYes.addEventListener('click', () => madeHere(mmFor(lastResult?.change, 'r')));
 el.rMadeNo.addEventListener('click', () => {
-  if (rMadeMode === 'before') { declined.add(lastId); renderHistory(); start(); return; }
+  if (rMadeMode === 'before') { declined.add(lastId); renderHistory(); checkNow(); return; }
+  // Not made yet: when will it be (the customer research, item 9), once; then the card as before.
+  if (rMadeMode === 'ask') { renderMade(lastResult?.change, 'when'); unlockSound(); Voice.say(WHEN_LINE, { interrupt: true }); $('when-t').focus?.({ preventScroll: true }); return; }
   renderMade(lastResult?.change, 'later');
 });
-$('hMadeYes').addEventListener('click', () => madeHome(null));
+$('hMadeYes').addEventListener('click', () => { const e = unanswered(); madeHome(mmFor(e?.suggested, 'h')); });
 $('hMadeNo').addEventListener('click', () => {
   const e = unanswered();
   if (!e) return;
-  if (hMadeMode === 'before') { declined.add(e.at); renderHistory(); start(); return; }
+  if (hMadeMode === 'before') { declined.add(e.at); renderHistory(); newCheck(); return; }
   hMadeMode = 'later';
   renderHomeMade();
 });
 for (const b of el.rHow.querySelectorAll('[data-refile]')) b.addEventListener('click', () => refile(b.dataset.refile));
 function setPain(v) {
   pain = v;
-  el.painYes.setAttribute('aria-pressed', String(v));
-  el.painNo.setAttribute('aria-pressed', String(!v));
+  painSet = true;
+  renderPain();
+}
+function clearPain() {
+  pain = false;
+  painSet = false;
+  renderPain();
+}
+function renderPain() {
+  el.painYes.setAttribute('aria-checked', String(painSet && pain));
+  el.painNo.setAttribute('aria-checked', String(painSet && !pain));
+  el.painNext.setAttribute('aria-disabled', String(!painSet));
+  if (painSet) { el.painCard.classList.remove('needs'); el.painErr.hidden = true; }
 }
 el.painYes.addEventListener('click', () => setPain(true));
 el.painNo.addEventListener('click', () => setPain(false));
@@ -1768,12 +3104,16 @@ el.saveVideo.addEventListener('click', saveVideo);
 el.copy.addEventListener('click', async () => {
   const text = resultText(lastResult);
   try { await navigator.clipboard.writeText(text); el.copy.textContent = 'Copied'; } catch { prompt?.('Copy your results:', text); }
-  setTimeout(() => { el.copy.textContent = 'Copy results'; }, 2000);
+  setTimeout(() => { el.copy.textContent = 'Copy Results'; }, 2000);
 });
 el.skip.addEventListener('click', () => {
   const t = now();
   if (phase === 'phone') {
-    if (ph.noSensor) { levelByEye(t); return; } // the button reads "It is level"
+    // Back here after a correction, the phone has been moved, so that correction has been carried
+    // out: the walk back to the bike shows GET ON, as when it is levelled (the phone step), not the
+    // old MOVE sign, which would have him move the phone a second time (QA round 3).
+    session.fix = null;
+    if (ph.noSensor) { levelByEye(t); return; } // the button reads "It Is Level"
     skipped.add('level'); warnings.add('level'); Voice.say('Skipping the level check.', { interrupt: true }); go('mount', t); return;
   }
   if (phase === 'frame') {
@@ -1804,9 +3144,16 @@ el.skip.addEventListener('click', () => {
 // what the voice asks: turns the pedals twice once the question who the rider is has begun to play,
 // and after a correction of the picture gets off, moves the phone (so it has to be levelled again,
 // unless &slide) and gets back on.
+// The made-up saddle's height in mm from where &low puts it: each saddle change marked in this page
+// view moves it by that much (markMade), so Check It Now can show what a change did.
+let simSaddle = 0;
+// The made-up phone, once moved square to the bike, stays square for the next check in this page view,
+// unless &moved (it is picked up after each check).
+let simSquare = false;
 async function makeSim() {
-  const { synthPose, synthHelper, seeded } = await import('./test/synth.js');
+  const { synthPose, synthHelper, seeded, rolledPhone, rollPicture } = await import('./test/synth.js');
   const low = params.has('low');
+  const lowMm = low ? (Number(params.get('low')) || 35) : 0;
   const helper = params.get('helper');
   const late = Number(params.get('late')) || 3;
   const back = Number(params.get('back')) || 3;
@@ -1820,12 +3167,17 @@ async function makeSim() {
     braced: { at: -650, frontal: false, lean: 45, kneeBend: 35, depth: 0.9, reach: [450, 700] } }[params.get('ah') || 'bars'];
   const arriveMiss = Number(params.get('miss')) || 0.01;
   const restPose = params.get('restpose') === 'braced';
+  // &roll=<degrees>: the phone stands rolled about its lens, the picture rolled with it and the
+  // motion sensor reading it (synth.js rolledPhone, built from the device's axes, not from fit.js).
+  const rollDeg = Number(params.get('roll')) || 0;
+  const phone = rollDeg ? rolledPhone({ camera, side: params.get('land') === 'right' ? 'right' : 'left', roll: rollDeg, convention: params.get('conv') === 'spec' ? 'spec' : 'ios' }) : null;
   const shuffle = seeded(5);
   Tilt.available = true;
   Tilt.landscape = true;
+  Tilt.g = phone ? phone.g : null;
   // off: when the last correction of the picture was said; moved: the phone has been moved since;
   // fixed: the picture is right (the camera was at an angle, farGap, until the phone was moved).
-  const s = { off: null, moved: false, tilted: false, fixed: false, frozen: null };
+  const s = { off: null, moved: false, tilted: false, fixed: simSquare && !params.has('moved'), frozen: null };
   s.frame = (t) => {
     const dt = t - phaseT0;
     if (phase === 'frame' && ph.askedOff != null && ph.askedOff !== s.off) Object.assign(s, { off: ph.askedOff, moved: false, tilted: false });
@@ -1833,12 +3185,12 @@ async function makeSim() {
     // the phone step has him level it again. With &slide=<px> it is turned or slid along without
     // tilting it, and at 6 s he is back on the bike, <px> further along in the picture.
     const pending = s.off != null && !s.moved;
-    if (pending && slide && t - s.off > 6) Object.assign(s, { moved: true, fixed: !unfixed });
+    if (pending && slide && t - s.off > 6) { Object.assign(s, { moved: true, fixed: !unfixed }); simSquare = s.fixed; }
     if (pending && !slide && t - s.off > 3) s.tilted = true;
     // The phone is levelled once the placement instructions have been heard, as a rider would.
     Tilt.pitch = phase === 'phone' ? Math.max(0, 7 - 3 * Math.max(0, quiet(t))) : s.tilted ? 6 : 0.4;
-    Tilt.roll = 0.3;
-    if (phase === 'phone' && s.tilted) Object.assign(s, { moved: true, tilted: false, fixed: !unfixed });
+    Tilt.roll = phone ? Math.abs(rollDeg) : 0.3;
+    if (phase === 'phone' && s.tilted) { Object.assign(s, { moved: true, tilted: false, fixed: !unfixed }); simSquare = s.fixed; }
     const offBike = s.off != null && !s.moved && t - s.off >= 1; // off the bike, at the phone
     // &away=<s>: once a session, 1 s into holding still, he gets off for that long to rest, then gets
     // back on, &awayshift=<px> further along in the picture if set (the bike rolled, or the friend
@@ -1848,7 +3200,7 @@ async function makeSim() {
     let lm = null;
     // farGap: the camera at an angle until the phone has been moved (farGap in synth.js), in every
     // step he is on the bike, as a real phone at an angle would see him.
-    const o = { noise: 1.2, hipShift: low ? [0, -35] : [0, 0], farGap: s.fixed ? 0 : -80 };
+    const o = { noise: 1.2, hipShift: [0, simSaddle - lowMm], farGap: s.fixed ? 0 : -80 };
     // Forwards turns the crank clockwise (synth.js). &pedal=wrong pedals the other way, to try the
     // "pedal forwards" line.
     const way = (session?.setup === 'trainer' ? -1 : 1) * (pedalMode === 'wrong' ? -1 : 1);
@@ -1890,7 +3242,8 @@ async function makeSim() {
       poses.push(synthHelper({ at: -650, frontal: false, lean: 45, kneeBend: 35, depth: 0.9, reach: [450, 700], noise: 1.2 }));
     }
     if (poses.length > 1 && shuffle() < 0.5) poses.reverse();
-    return { poses, W: 1280, H: 720, rider: lm ? poses.indexOf(lm) : -1 };
+    const rider = lm ? poses.indexOf(lm) : -1;
+    return { poses: phone ? poses.map(p => rollPicture(p, phone.theta, 1280, 720)) : poses, W: 1280, H: 720, rider };
   };
   return s;
 }
@@ -1915,43 +3268,82 @@ async function loadPose() {
   throw lastErr;
 }
 
+// Escape closes what is on top: the Share hint, the results, the check flow (with a keyboard).
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!el.shareHint.hidden) el.shareHint.hidden = true;
+  else if (!el.results.hidden) el.done.click();
+  else if (!el.flow.hidden) show('home');
+});
+
 const VKEY = 'bfc.keepVideo';
 try { el.keepVideo.checked = localStorage.getItem(VKEY) === '1'; } catch { /* default stays off */ }
 el.keepVideo.addEventListener('change', () => { try { localStorage.setItem(VKEY, el.keepVideo.checked ? '1' : '0'); } catch { /* not remembered */ } });
 
+// ?sim&seed=<name>: a made-up history, kept in memory only (MEMORY above), to see the screens.
+//   asked: one check that suggested raising the saddle, not answered yet (the Check tab asks).
+//   trend: three checks with the bike leaning on a wall, the saddle raised 5 mm after the first and
+//          10 mm after the last, not checked yet (Check Your Change, the Progress chart).
+//   good: one check with nothing to change.
+function seedHistory(name) {
+  const day = (n) => new Date(Date.now() - n * 864e5).toISOString();
+  const entry = (n, knee, sh, more) => ({ at: day(n), v: 2, setup: 'wall', screen: 'away', pedalDir: 'backwards', knee, src: 'pedalling',
+    values: { kneePedal: knee, kneeStill: knee - 4, torso: 46, elbow: 22, shoulder: sh, hipBottom: 98 }, warn: [], ...more });
+  const raise = (a, b, g) => ({ areas: { saddle: g, reach: 'after' }, change: `Raise the saddle about ${a === b ? a : `${a} to ${b}`} mm`, suggested: { kind: 'saddle', raise: true, mm: [a, b] } });
+  const made = (n, mm) => ({ made: { kind: 'saddle', dir: 1, mm, at: day(n) } });
+  if (name === 'asked') return [entry(7, 47, 79, raise(15, 15, 'red'))];
+  if (name === 'trend') return [entry(7, 44, 79, { ...raise(12, 15, 'amber'), ...made(6, 10) }), entry(14, 47, 78, { ...raise(15, 15, 'red'), ...made(13, 5) }), entry(21, 49, 76, raise(15, 15, 'red'))];
+  if (name === 'good') return [entry(7, 36, 86, { areas: { saddle: 'green', reach: 'green' }, change: null, nothing: true })];
+  return [];
+}
+
 async function boot() {
   Voice.init();
-  renderSetup();
-  renderHistory();
+  // The sound check's line, ready before its tap, so it plays inside the tap.
+  Clips.loading?.then(() => Clips.prefetch(HEAR_LINE));
+  if (MEMORY) MEMORY.h = seedHistory(params.get('seed'));
   // Safari can delete a site's storage after 7 days without a visit; a Home Screen web app keeps
-  // its own count (WebKit, "Full Third-Party Cookie Blocking and More", 2020).
-  const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
-  el.homeScreenTip.hidden = !(isIOS && !standalone);
+  // its own count (WebKit, "Full Third-Party Cookie Blocking and More", 2020). So a first visit in
+  // Safari opens with the Add to Home Screen card. The simulation shows it too, so it can be seen
+  // headless; &installed acts as if the app were opened from the Home Screen.
+  const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || params.has('installed');
+  const inApp = !standalone && inAppBrowser();
+  el.inApp.hidden = !inApp;
+  inSafari = !standalone && !inApp && (isIOS || SIM);
+  renderStart();
+  renderSetup();
+  renderScreen();
+  renderHistory();
+  selectTab(TABS[params.get('tab')] ? params.get('tab') : 'check');
+  show('home');
   requestAnimationFrame(loop);
   if (SIM) {
-    el.start.disabled = false;
-    el.start.textContent = 'Start the simulation';
+    setStart('Start the Simulation', true);
     setStatus('Simulation: no camera, a made-up rider on a made-up bike.');
     return;
   }
   // The service worker is registered once the model has loaded (or failed to), so when it caches the
   // engine and the model on install, the browser's own cache can answer instead of a second download.
-  const registerWorker = () => { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {}); };
+  // Once it runs, it is asked to bring the voice clips up to date (sw.js, 'bfc-voice').
+  const registerWorker = () => {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.ready?.then((r) => r.active?.postMessage('bfc-voice')).catch(() => {});
+  };
   if (!navigator.mediaDevices?.getUserMedia) {
     registerWorker();
     setStatus('This browser cannot use the camera. Open the page in Safari or Chrome.', true);
-    el.start.textContent = 'Camera not available';
+    setStart('Camera not available', false);
     return;
   }
   setStatus('Getting the pose model ready. The first time it downloads about 20 MB.');
   try {
     landmarker = await loadPose();
-    el.start.disabled = false;
-    el.start.textContent = 'Start';
+    setStart('Start', true);
     setStatus('Ready. Everything runs on this phone.');
   } catch (e) {
     setStatus('The pose model did not load (' + (e?.message || e) + '). Check the connection and reload the page.', true);
-    el.start.textContent = 'Not ready';
+    setStart('Not ready', false);
   }
   registerWorker();
 }

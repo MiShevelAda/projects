@@ -6,384 +6,1155 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Bike Fit Coach</title>
 <meta name="description" content="Checks your road bike position with your phone camera and talks you through it.">
-<meta name="theme-color" content="#07111f">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Bike Fit">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
 <style>
-  /* Layout: one column of cards at home, a full-bleed camera view while running. */
+  /* Three tabs (Check, Progress, Learn) in the iOS 26 system colours, light and dark; the check flow
+     (Setup, Getting Ready, the camera view) is its own dark world in both, like Apple's assessment
+     flow. Colour values: the design review's token table (iOS 26). Text sizes are in rem on the
+     iPhone's own text size (font: -apple-system-body), so they grow with Dynamic Type. */
   :root {
-    --bg: #07111f; --panel: #0f1d33; --line: #213656; --text: #eef3fa; --muted: #9fb0c8;
-    --accent: #2e8cff; --good: #34c759; --warn: #ffb020; --bad: #ff7b72;
-    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --r: 14px;
-    color-scheme: dark;
+    --bg: #F2F2F7; --bg-clear: rgba(242,242,247,0); --card: #FFFFFF; --fill: #E5E5EA; --seg-on: #FFFFFF;
+    --label: #000000; --sec: #6C6C70; --ter: #C7C7CC; --sep: rgba(60,60,67,0.18);
+    --blue: #0088FF; --blue-text: #0066D6; --blue-bg: rgba(0,136,255,0.12);
+    --red-bg: rgba(255,56,60,0.14); --red-text: #C4001A; --orange-bg: rgba(255,141,40,0.18); --orange-text: #A82C00;
+    --green-bg: rgba(52,199,89,0.18); --green-text: #1E7A35; --band: rgba(52,199,89,0.22);
+    --indigo: #6155F5; --teal-text: #0E7C93;
+    --glass: rgba(255,255,255,0.72); --glass-line: rgba(0,0,0,0.06); --lens: rgba(0,0,0,0.08); --lens-cut: #F7F7F9;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06); --behind: #C7C7CC;
+    --hero-field: #D6E8FF; --hero-ring1: #C7DFFF; --hero-ring2: #B8D6FF; --hero-ink: #1C2A3D; --rider-far: #7FB6F5;
+    /* The check flow, the same in light and dark. */
+    --f-bg: #131A24; --f-bg-clear: rgba(19,26,36,0); --f-hero: #1A2B45; --f-ring1: #1E3352; --f-ring2: #223B5E; --f-ring3: #27446B; --f-ring4: #2D4E79;
+    --f-card: #000000; --f-chip: #2A3240; --f-sec: #9AA3B2; --f-accent: #0091FF; --f-off: #343B47; --f-off-text: #7D8590;
+    --f-glass: rgba(255,255,255,0.12); --f-glass-line: rgba(255,255,255,0.16);
+    --font: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    --rounded: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+    color-scheme: light dark;
   }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000; --bg-clear: rgba(0,0,0,0); --card: #1C1C1E; --fill: #2C2C2E; --seg-on: #636366;
+      --label: #FFFFFF; --sec: #AEAEB2; --ter: #48484A; --sep: rgba(84,84,88,0.6);
+      --blue: #0091FF; --blue-text: #409CFF; --blue-bg: rgba(0,145,255,0.2);
+      --red-bg: rgba(255,66,69,0.22); --red-text: #FF6961; --orange-bg: rgba(255,146,48,0.2); --orange-text: #FFB340;
+      --green-bg: rgba(48,209,88,0.2); --green-text: #30D158; --band: rgba(48,209,88,0.28);
+      --indigo: #6D7CFF; --teal-text: #5AC8E0;
+      --glass: rgba(44,44,46,0.72); --glass-line: rgba(255,255,255,0.12); --lens: rgba(255,255,255,0.14); --lens-cut: #2A2A2C;
+      --shadow: none; --behind: #2C2C2E;
+      --hero-field: #1A2B45; --hero-ring1: #1F3554; --hero-ring2: #264065; --hero-ink: #FFFFFF; --rider-far: #2F6DB5;
+    }
+  }
+  html { font-size: 106.25%; -webkit-text-size-adjust: 100%; }
+  @supports (font: -apple-system-body) { html { font: -apple-system-body; } }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 var(--font); -webkit-text-size-adjust: 100%; }
-  button { font: inherit; color: inherit; }
+  body { margin: 0; background: var(--bg); color: var(--label); font-family: var(--font); font-size: 1rem; line-height: 1.3; }
+  /* The check flow and the results are pages of their own that scroll like any page (so Safari's
+     toolbar still shrinks, and a full-page screenshot shows all of them); the body takes their colour. */
+  body.in-flow { background: var(--f-bg); }
+  body.in-sheet { background: var(--behind); }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
   [hidden] { display: none !important; }
   .num { font-variant-numeric: tabular-nums; }
-  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  h1, h2, h3, p { margin: 0; }
 
-  /* ── home and results ── */
-  .page { max-width: 600px; margin: 0 auto; padding-inline: 16px; padding-block: calc(env(safe-area-inset-top, 0px) + 20px) calc(env(safe-area-inset-bottom, 0px) + 32px); display: grid; gap: 16px; }
-  h1 { font-size: 30px; line-height: 1.1; margin: 0; letter-spacing: -0.01em; }
-  h2 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; font-weight: 700; }
-  .lede { color: var(--muted); margin: 6px 0 0; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; min-width: 0; }
-  .checklist { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-  .checklist li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; }
-  .checklist li::before { content: ""; width: 8px; height: 8px; margin: 8px 0 0 4px; border-radius: 50%; background: var(--accent); }
-  .primary { appearance: none; border: 0; border-radius: 999px; background: var(--accent); color: #fff; font-weight: 700; font-size: 19px; padding: 16px 22px; width: 100%; cursor: pointer; }
+  /* ── the tabs ── */
+  .tab { max-width: 600px; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 48px) max(16px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom, 0px) + 132px) max(16px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 16px; }
+  .tab > * { flex: none; }
+  .eyebrow { font-size: 0.765rem; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--sec); }
+  .large { font-size: 2rem; line-height: 1.2; font-weight: 700; }
+  .h2 { font-size: 1.294rem; line-height: 1.27; font-weight: 700; }
+  .lede { font-size: 1.176rem; line-height: 1.25; color: var(--sec); margin-top: -6px; }
+  .card { background: var(--card); border-radius: 22px; padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .card.flat { padding: 0; gap: 0; overflow: hidden; }
+  .sec { color: var(--sec); }
+  .small { font-size: 0.882rem; line-height: 1.33; color: var(--sec); }
+  .foot { font-size: 0.765rem; line-height: 1.38; color: var(--sec); text-align: center; margin: 0 4px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .between { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+  /* Buttons: capsules sized by padding, so they grow with the text and never drop below 44 pt. */
+  /* The blue primaries: bold and at least 18.7 px at every text size, so white on the iOS 26 blue
+     (3.52:1 light, 3.23:1 dark) is WCAG large text, which needs 3:1. */
+  .primary { appearance: none; border: 0; border-radius: 999px; background: var(--blue); color: #fff; font-size: max(18.7px, 1.1rem); font-weight: 700; min-height: 50px; padding: 12px 20px; width: 100%; line-height: 1.2; }
   .primary:disabled { opacity: 0.55; cursor: progress; }
-  .secondary { appearance: none; border: 1px solid var(--line); border-radius: 999px; background: transparent; padding: 11px 16px; font-weight: 600; cursor: pointer; }
-  .row { display: flex; flex-wrap: wrap; gap: 10px; }
-  .ask { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 14px; }
-  .ask p { margin: 0; font-weight: 600; flex: 1 1 14em; }
-  .ask .secondary { min-width: 4.5em; }
-  .secondary[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .status { color: var(--muted); font-size: 14px; margin: 8px 0 0; text-align: center; }
-  .status.err { color: var(--bad); }
-  video.howto { width: 100%; max-width: 100%; border-radius: 10px; background: #000; display: block; }
-  details.other summary { cursor: pointer; font-weight: 600; }
-  details.other[open] summary { margin-bottom: 10px; }
-  .history { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-  .history li { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 15px; }
-  .latest { margin: 0 0 14px; display: grid; gap: 8px; font-weight: 700; }
-  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pill.sm { font-size: 14px; letter-spacing: 0; text-transform: none; padding: 2px 8px; }
-  .history li:first-child { border-top: 0; padding-top: 0; }
-  .small { font-size: 14px; color: var(--muted); }
+  .tinted { appearance: none; border: 0; border-radius: 999px; background: var(--fill); color: var(--blue-text); font-size: 1rem; font-weight: 600; min-height: 50px; padding: 12px 20px; width: 100%; line-height: 1.2; }
+  .soft { appearance: none; border: 0; border-radius: 999px; background: var(--blue-bg); color: var(--blue-text); font-size: 0.882rem; font-weight: 600; min-height: 44px; padding: 8px 16px; line-height: 1.2; }
+  .plain { appearance: none; border: 0; background: none; color: var(--blue-text); font-size: 1rem; min-height: 44px; padding: 8px 4px; text-align: left; line-height: 1.25; }
+  .link { appearance: none; border: 0; background: none; color: var(--blue-text); font-size: 1rem; min-height: 44px; padding: 0 2px; }
+  /* Status pills: 13 pt bold, normal capitals ("Needs attention"). */
+  .pill { display: inline-block; align-self: flex-start; font-size: 0.765rem; font-weight: 700; line-height: 1.4; padding: 3px 10px; border-radius: 999px; background: var(--fill); color: var(--sec); white-space: nowrap; }
+  .pill.green { background: var(--green-bg); color: var(--green-text); }
+  .pill.amber { background: var(--orange-bg); color: var(--orange-text); }
+  .pill.red { background: var(--red-bg); color: var(--red-text); }
+  .pill.sm { font-size: 0.706rem; padding: 2px 8px; }
+  .chev { flex: none; width: 14px; height: 14px; color: var(--ter); }
+  .nums { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; counter-reset: n; }
+  .nums > li { display: grid; grid-template-columns: 1.65rem minmax(0, 1fr); gap: 12px; align-items: start; counter-increment: n; }
+  .nums > li::before { content: counter(n); width: 1.65rem; height: 1.65rem; border-radius: 50%; background: var(--blue-bg); color: var(--blue-text); font-size: 0.882rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .list { list-style: none; margin: 0; padding: 0; }
+  .list > li { padding: 12px 16px; border-top: 1px solid var(--sep); }
+  .list > li:first-child { border-top: 0; }
+  .list.nums { gap: 0; }
+  .note { border-radius: 18px; padding: 12px 16px; background: var(--orange-bg); font-size: 0.882rem; line-height: 1.38; }
+  .note.compare { background: var(--blue-bg); }
+  .err { color: var(--red-text); }
 
-  /* ── results ── */
-  .verdict { display: grid; gap: 6px; }
-  .verdict .pill { justify-self: start; }
-  .verdict .big { font-size: 26px; font-weight: 800; line-height: 1.15; text-wrap: balance; }
-  .verdict .why { color: var(--muted); }
-  .pill { display: inline-block; font-size: 14px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--line); color: var(--text); }
-  .pill.green { background: color-mix(in srgb, var(--good) 22%, transparent); color: var(--good); }
-  .pill.amber { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
-  .pill.red { background: color-mix(in srgb, var(--bad) 22%, transparent); color: var(--bad); }
-  .pill.info { background: color-mix(in srgb, var(--accent) 20%, transparent); color: #6fb0ff; }
-  .pill.after { background: var(--line); color: var(--text); }
-  /* One item per area: name and status, why, the step in bold, then the angles as smaller detail. */
-  .areas { list-style: none; margin: 0; padding: 0; display: grid; }
-  .areas > li { display: grid; gap: 6px; padding: 16px 0; border-top: 1px solid var(--line); }
-  .areas > li:first-child { border-top: 0; padding-top: 0; }
-  .areas > li:last-child { padding-bottom: 0; }
-  .area .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; }
-  .area .an { font-size: 19px; font-weight: 800; }
-  .area p { margin: 0; }
-  .area .why { color: var(--muted); }
-  .area .step { font-weight: 700; }
-  .area details summary { cursor: pointer; font-size: 17px; font-weight: 700; }
-  .area details[open] summary { margin-bottom: 6px; }
-  .detail { list-style: none; margin: 4px 0 0; padding: 0; display: grid; font-size: 14px; color: var(--muted); }
-  .detail li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 10px 0 0; margin-top: 10px; border-top: 1px dashed var(--line); }
-  .detail .n { font-weight: 600; color: var(--text); }
-  .detail .v { font-size: 17px; font-weight: 800; color: var(--text); text-align: right; white-space: nowrap; }
-  .detail .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 13px; }
+  /* The rider on a bike, drawn once (#riderArt) and used on the Check card and the setup hero. */
+  .rider { --ink: var(--hero-ink); --far: var(--rider-far); --acc: var(--blue); }
+
+  /* Check tab */
+  .a2hs .head { display: flex; align-items: center; gap: 10px; }
+  .a2hs .head b { font-size: 1.176rem; line-height: 1.25; }
+  .a2hs ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .a2hs ol li { display: grid; grid-template-columns: 1.65rem minmax(0, 1fr); gap: 10px; align-items: center; }
+  .a2hs ol li > span:first-child { width: 1.65rem; height: 1.65rem; border-radius: 50%; background: var(--blue-bg); color: var(--blue-text); font-size: 0.882rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .a2hs .btns { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
+  .assess { padding: 0; gap: 0; overflow: hidden; border-radius: 26px; }
+  .assess .art { height: 140px; background: var(--hero-field); position: relative; overflow: hidden; }
+  .assess .art > svg { position: absolute; left: 50%; top: 0; transform: translateX(-50%); }
+  .assess .body { padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 6px; }
+  .assess .body > div { display: flex; flex-direction: column; gap: 6px; }
+  .assess .kicker { display: flex; align-items: center; gap: 4px; font-size: 0.882rem; font-weight: 600; color: var(--sec); }
+  .assess .title { font-size: 1.294rem; line-height: 1.27; font-weight: 700; }
+  .assess .meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.882rem; color: var(--sec); }
+  .assess .meta span { display: inline-flex; align-items: center; gap: 5px; }
+  .assess .primary, .assess .tinted { margin-top: 8px; }
+  .made-home .q { font-size: 1rem; line-height: 1.3; }
+  .made-home .q:focus { outline: none; }
+  .stopped { border: 2px solid var(--orange-text); }
+  .homeStatus { color: var(--red-text); font-weight: 600; }
+
+  /* Area cards: a coloured category line, the big number, the status, the range bar. */
+  .area { gap: 8px; }
+  .area .cat { display: flex; align-items: center; gap: 6px; font-size: 0.882rem; font-weight: 600; }
+  .area .cat.saddle { color: var(--indigo); }
+  .area .cat.reach { color: var(--teal-text); }
+  .area .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .area .reading { display: flex; flex-direction: column; gap: 8px; }
+  .area .val { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .area .big { font-family: var(--rounded); font-size: 2rem; line-height: 1.18; font-weight: 700; }
+  .area .metric { font-size: 0.882rem; color: var(--sec); }
+  .area .why { font-size: 0.882rem; line-height: 1.33; color: var(--sec); }
+  .area .step { font-size: 0.882rem; line-height: 1.33; font-weight: 600; }
+  .area .mini { display: flex; flex-direction: column; gap: 2px; }
+  .area .mini .mh { display: flex; justify-content: space-between; gap: 8px; font-size: 0.882rem; }
+  .area .mini .mh b { font-family: var(--rounded); }
+  button.area { appearance: none; border: 0; text-align: left; width: 100%; color: inherit; font: inherit; }
+  .oneline { padding: 14px 18px; }
+  .oneline > summary, button.oneline { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr) 14px; gap: 10px; align-items: center; cursor: pointer; font-size: 0.882rem; line-height: 1.33; min-height: 24px; }
+  button.oneline { appearance: none; border: 0; width: 100%; text-align: left; color: inherit; }
+  .oneline > summary::-webkit-details-marker { display: none; }
+  .oneline .stack { display: flex; flex-direction: column; gap: 2px; font-size: 0.882rem; }
+  .oneline .stack b { font-weight: 600; }
+  .oneline b.reach { color: var(--teal-text); }
+  .oneline b.more { color: var(--sec); }
+  .oneline .sec { color: var(--sec); }
+  .oneline[open] > summary .chev { transform: rotate(90deg); }
+  .oneline[open] > summary { margin-bottom: 10px; }
+  .rbar { display: block; width: 100%; max-width: 400px; height: auto; overflow: visible; }
+  .rb-track { fill: var(--fill); }
+  .rb-band { fill: var(--band); stroke: var(--green-text); stroke-width: 1.5; }
+  .rb-dot { fill: var(--label); stroke: var(--card); stroke-width: 3; }
+  .rb-prev { fill: var(--card); stroke: var(--sec); stroke-width: 3; }
+  .rb-move { stroke: var(--label); stroke-width: 2.5; stroke-dasharray: 3 4; fill: none; }
+  .rb-arrow { stroke: var(--label); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .rb-end { font-size: 12px; fill: var(--sec); font-family: var(--font); }
+  .rb-target { font-size: 12px; font-weight: 600; fill: var(--green-text); font-family: var(--font); }
+  .rb-cap { font-size: 12px; font-weight: 600; fill: var(--sec); font-family: var(--font); }
+  .rb-cap.now { fill: var(--label); font-weight: 700; }
+  details.readings > summary { cursor: pointer; font-size: 0.882rem; font-weight: 600; color: var(--blue-text); min-height: 44px; display: flex; align-items: center; }
+  .detail { list-style: none; margin: 0; padding: 0; display: grid; font-size: 0.882rem; color: var(--sec); }
+  .detail li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 10px 0 0; margin-top: 10px; border-top: 1px solid var(--sep); }
+  .detail li:first-child { margin-top: 0; }
+  .detail .n { font-weight: 600; color: var(--label); }
+  .detail .v { font-family: var(--rounded); font-size: 1rem; font-weight: 700; color: var(--label); text-align: right; white-space: nowrap; }
+  .detail .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.765rem; }
   .detail .why { grid-column: 1 / -1; }
-  .toggle { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; cursor: pointer; }
-  .toggle input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--accent); }
-  .shot { width: 100%; max-width: 100%; border-radius: 10px; display: block; }
-  .note { border-left: 3px solid var(--warn); padding-left: 12px; color: var(--text); margin: 0; }
-  .note.compare { border-left-color: var(--accent); }
-  .retest { border-color: var(--accent); }
-  .retest p { margin: 0; font-size: 17px; }
-  .retest p.small { font-size: 14px; }
-  .made { display: grid; gap: 10px; }
-  .made > div { display: grid; gap: 10px; }
-  .made .q { margin: 0; font-size: 17px; font-weight: 700; }
-  .made p { margin: 0; }
-  .mm { display: flex; align-items: center; gap: 8px; font-weight: 600; }
-  /* How the bike stays up: three large choices, one per line. */
-  .setup .q { margin: 0 0 12px; font-size: 21px; font-weight: 800; line-height: 1.2; }
-  .choices { display: grid; gap: 10px; }
-  .choice { appearance: none; display: grid; gap: 2px; text-align: left; min-height: 64px; padding: 14px 16px; border-radius: var(--r); border: 2px solid var(--line); background: var(--bg); cursor: pointer; }
-  .choice b { font-size: 19px; }
-  .choice span { font-size: 14px; color: var(--muted); }
-  .choice[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--bg)); }
-  .choice[aria-pressed="true"] b::after { content: "  ✓"; color: var(--accent); }
-  .setupLine { margin: 0; color: var(--muted); font-size: 15px; }
-  .mm input { width: 5.5em; font: inherit; font-size: 18px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
-  /* The change card: big millimetre buttons, nothing chosen beforehand. */
-  .mmChoices { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-  .mmChoices .secondary { min-height: 52px; font-size: 18px; font-weight: 800; padding: 10px 4px; }
-  .err { color: var(--bad); }
-  /* Start before choosing how the bike stays up: the card says so where the eye is. */
-  .card.needs { outline: 3px solid var(--bad); outline-offset: 2px; }
-  .setup .needsLine { margin: 0 0 12px; color: var(--bad); font-weight: 700; }
-  .stopped { border-color: var(--warn); }
-  .stopped p { margin: 0; }
-  .stopped p + p { margin-top: 6px; }
-  .card .primary.inCard { margin-top: 12px; font-size: 17px; padding: 13px 18px; }
-  .pain-note { margin: 6px 0 0; flex-basis: 100%; }
-  /* The setup steps, folded away for a rider who has filmed before; open, with no fold, the first time. */
-  .fold > summary { cursor: pointer; font-weight: 700; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); }
-  .fold[open] > summary { margin-bottom: 16px; }
-  .fold.first > summary { display: none; }
-  .fold > .card + .card { margin-top: 16px; }
-  .latest .nothing { color: var(--good); }
-  /* A rider who has filmed before knows the choices: the short version, so Start is on the first screen. */
-  .returning .ledeLong, .returning #setup-h, .returning .choice span { display: none; }
-  .returning .choice { min-height: 48px; padding: 10px 14px; }
-  .returning .setup .q { margin-bottom: 10px; }
-  details.howto { margin-top: 4px; }
-  details.howto summary { cursor: pointer; font-weight: 700; color: #6fb0ff; }
-  details.howto ol { margin: 8px 0 6px; padding-left: 22px; display: grid; gap: 4px; }
-  details.howto p { margin: 4px 0 0; }
-  .refile { display: grid; gap: 8px; margin-top: 10px; }
-  .refile .secondary { text-align: left; }
-  /* The run screen: how the bike is held, under the step pills; the last correction under the line
-     being said; the three points of the phone step. */
-  .runSetup { margin: 0; font-size: 13px; font-weight: 700; color: var(--muted); }
-  #sayNote { margin: 0; font-size: clamp(14px, 2.4vmin + 4px, 20px); font-weight: 600; color: #ffd27a; max-width: 900px; text-shadow: 0 1px 3px #000; }
-  .phoneList { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 8px; }
-  .phoneList li { font-size: clamp(13px, 2vmin + 4px, 17px); font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #0009; border: 1px solid #ffffff40; }
 
-  /* ── running: the camera view ── */
-  #run { position: fixed; inset: 0; background: #000; overflow: hidden; }
-  #run video, #run canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  #run video { object-fit: contain; }
-  .hud-top { position: absolute; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 12px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); background: linear-gradient(#000d, #0000); display: grid; gap: 8px; }
-  .steps { display: flex; gap: 6px; flex-wrap: wrap; }
-  .steps span { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #ffffff1f; color: var(--muted); }
-  .steps span.on { background: var(--accent); color: #fff; }
-  .steps span.done { color: var(--good); }
-  #say { font-size: clamp(18px, 3.6vmin + 6px, 30px); font-weight: 700; line-height: 1.25; text-wrap: balance; max-width: 900px; margin: 0; text-shadow: 0 1px 3px #000; }
-  .hud-bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px); padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); background: linear-gradient(#0000, #000d); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+  /* Progress */
+  .seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 22px; background: var(--fill); }
+  .seg button { appearance: none; border: 0; background: transparent; border-radius: 19px; min-height: 44px; padding: 6px 8px; font-size: 0.882rem; font-weight: 600; line-height: 1.2; }
+  .seg button[aria-checked="true"] { background: var(--seg-on); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+  .chart { display: block; width: 100%; max-width: 520px; height: auto; margin-top: 4px; overflow: visible; }
+  .ch-grid { stroke: var(--sep); stroke-width: 1; }
+  .ch-axis, .ch-day { font-size: 11px; fill: var(--sec); font-family: var(--font); }
+  .ch-day.last { fill: var(--label); font-weight: 700; }
+  .ch-band { fill: var(--band); }
+  .ch-bandlabel { font-size: 11px; font-weight: 700; fill: var(--green-text); font-family: var(--font); }
+  .ch-line { fill: none; stroke: var(--line, var(--indigo)); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+  .ch-pt { fill: var(--card); stroke: var(--line, var(--indigo)); stroke-width: 3; }
+  .ch-pt.last { fill: var(--line, var(--indigo)); stroke: var(--card); }
+  .ch-val { font-size: 12px; font-weight: 700; fill: var(--label); font-family: var(--font); }
+  .ch-mark { stroke: var(--line, var(--indigo)); stroke-width: 2; stroke-dasharray: 5 4; }
+  .ch-mark.next { stroke: var(--sec); stroke-dasharray: 2 4; }
+  .ch-marklabel { font-size: 11px; font-weight: 700; fill: var(--line, var(--indigo)); font-family: var(--font); }
+  .ch-marklabel.next { fill: var(--sec); }
+  .ch-halo { paint-order: stroke; stroke: var(--card); stroke-width: 4px; stroke-linejoin: round; }
+  .prog.reach { --line: var(--teal-text); }
+  .prog .latest { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .prog .latest .big { font-family: var(--rounded); font-size: 2rem; line-height: 1.18; font-weight: 700; }
+  .prog .sub { display: flex; flex-direction: column; gap: 6px; }
+  .prog .sub + .sub { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--sep); }
+  .changes li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+  .changes li b { font-size: 1rem; }
+  .history li { display: grid; gap: 6px; font-size: 0.882rem; }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* Learn */
+  .steps8 > li { font-size: 0.941rem; line-height: 1.3; }
+  .place > li { font-size: 0.882rem; line-height: 1.33; }
+  .learnrow { display: grid; grid-template-columns: 2.1rem minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 16px; border-top: 1px solid var(--sep); }
+  .learnrow:first-child { border-top: 0; }
+  .learnrow svg { width: 2.1rem; height: auto; color: var(--blue); }
+  .learnrow b { display: block; font-size: 1rem; font-weight: 600; }
+  .learnrow span { font-size: 0.882rem; line-height: 1.33; color: var(--sec); }
+  /* Details one tap away on the tabs: a row that opens. */
+  .learnmore > summary { list-style: none; cursor: pointer; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 1rem; font-weight: 600; }
+  .learnmore > summary::-webkit-details-marker { display: none; }
+  .learnmore > summary::after { content: ""; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--ter); border-bottom: 2px solid var(--ter); transform: rotate(-45deg); margin-right: 4px; }
+  .learnmore[open] > summary::after { transform: rotate(45deg); }
+  .card.learnmore { padding: 6px 18px; gap: 6px; }
+  .learnmore.hist > summary { font-size: 1.294rem; font-weight: 700; }
+  .learnmore.hist > ul { margin-top: 8px; }
+  .card.learnmore[open] { padding-bottom: 16px; }
+  .learnmore.inset > summary { padding: 0 16px; color: var(--blue-text); font-size: 0.941rem; border-top: 1px solid var(--sep); }
+  .above { display: block; width: 100%; height: auto; background: var(--fill); }
+  .above .t { font-size: 11px; fill: var(--sec); font-family: var(--font); }
+  .above .t.b { fill: var(--label); font-weight: 700; }
+  .above .t.blue { fill: var(--blue-text); font-size: 13px; font-weight: 700; }
+  .toggle { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; cursor: pointer; }
+  .toggle { grid-template-columns: 1fr auto; }
+  .toggle .switch { appearance: none; -webkit-appearance: none; flex: none; width: 51px; height: 31px; margin: 0; border-radius: 16px; background: var(--fill); position: relative; cursor: pointer; transition: background 0.2s; }
+  .toggle .switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s; }
+  .toggle .switch:checked { background: #34C759; }
+  @media (prefers-color-scheme: dark) { .toggle .switch:checked { background: #30D158; } }
+  .toggle .switch:checked::before { transform: translateX(20px); }
+  video.howto { width: 100%; border-radius: 12px; background: #000; display: block; }
+
+  /* The floating glass tab bar: a centred capsule, the selected tab in an inner pill, filled
+     symbols, labels a fixed size (they do not grow with the text, as in Apple's tab bars). */
+  .tabfade { position: fixed; left: 0; right: 0; bottom: 0; height: calc(env(safe-area-inset-bottom, 0px) + 112px); background: linear-gradient(var(--bg-clear), var(--bg) 62%); pointer-events: none; z-index: 9; }
+  .tabbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 4px)); width: 284px; height: 62px; padding: 4px; border-radius: 31px; background: var(--glass); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border: 1px solid var(--glass-line); box-shadow: 0 8px 30px rgba(0,0,0,0.12); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); z-index: 10; }
+  .tabbar button { appearance: none; border: 0; background: transparent; border-radius: 27px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 11px; line-height: 13px; font-weight: 600; color: var(--label); padding: 0; }
+  .tabbar button[aria-selected="true"] { background: var(--lens); color: var(--blue); }
+  .tabbar svg { width: 28px; height: 24px; }
+
+  /* Glass circle buttons: back top left, close top right, no "Cancel" or "Done" words. */
+  .glass { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 12px); width: 44px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; padding: 0; -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); z-index: 3; }
+  .glass.close { right: max(16px, env(safe-area-inset-right)); }
+  .glass.back { left: max(16px, env(safe-area-inset-left)); }
+  .flow .glass { position: fixed; background: var(--f-glass); border: 1px solid var(--f-glass-line); color: #fff; }
+  /* Once the flow has scrolled, a fade under the glass buttons keeps them clear of the text. */
+  .ftopfade { position: fixed; left: 0; right: 0; top: 0; height: calc(env(safe-area-inset-top, 0px) + 72px); background: linear-gradient(var(--f-bg) 60%, var(--f-bg-clear)); opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 2; }
+  .flow.scrolled .ftopfade { opacity: 1; }
+  .sheet .glass { position: sticky; align-self: flex-end; margin: 0 0 -44px; top: 12px; background: var(--glass); border: 1px solid var(--glass-line); box-shadow: 0 4px 16px rgba(0,0,0,0.10); color: var(--label); }
+
+  /* ── the check flow: its own dark world ── */
+  .flow { position: relative; min-height: 100%; background: var(--f-bg); color: #fff; color-scheme: dark; --blue: var(--f-accent); }
+  .fscreen { position: relative; min-height: 100%; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 132px); }
+  .fhero { position: relative; height: calc(env(safe-area-inset-top, 0px) + 196px); background: var(--f-hero); overflow: hidden; }
+  .fhero > svg { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); }
+  .fhero .rider { --ink: #FFFFFF; --far: #2F6DB5; --acc: var(--f-accent); }
+  .fhead { padding: 18px 24px 4px; display: flex; flex-direction: column; gap: 4px; max-width: 600px; margin: 0 auto; }
+  .fhead h1, .readybody h1 { font-size: 1.647rem; line-height: 1.21; font-weight: 700; text-wrap: balance; }
+  /* A question screen: the answers start a little under the title's line. */
+  .fhead + .fq { padding-top: 14px; }
+  .fhead p { font-size: 1rem; line-height: 1.3; color: var(--f-sec); }
+  .fq { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; max-width: 600px; margin: 0 auto; }
+  .fq h2 { margin: 22px 8px 2px; font-size: 1.176rem; line-height: 1.25; font-weight: 600; }
+  .fq h2:focus, .fhead h1:focus { outline: none; }
+  .fnote { margin: 2px 8px 0; font-size: 0.765rem; line-height: 1.38; color: var(--f-sec); }
+  /* A detail one tap away, under a question: a quiet text button that opens a short note. */
+  .finfo > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 8px; color: var(--f-accent); font-size: 0.882rem; font-weight: 600; }
+  .finfo > summary::-webkit-details-marker { display: none; }
+  .finfo > summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); margin: -3px 0 0 2px; }
+  .finfo[open] > summary::after { transform: rotate(-135deg); margin-top: 3px; }
+  .finfo > p { margin: 0 8px 4px; font-size: 0.882rem; line-height: 1.38; color: var(--f-sec); }
+  .needsLine { margin: 0 8px; color: #FF6961; font-weight: 700; }
+  .fq.needs .choice { border-color: #FF6961; }
+  .choices { display: flex; flex-direction: column; gap: 8px; }
+  .choice { appearance: none; width: 100%; min-height: 66px; padding: 12px 18px; border-radius: 24px; background: var(--f-card); border: 2px solid transparent; color: #fff; text-align: left; display: grid; grid-template-columns: minmax(0, 1fr) 26px; gap: 12px; align-items: center; }
+  .choice.pic { grid-template-columns: 44px minmax(0, 1fr) 26px; padding-left: 14px; min-height: 76px; }
+  .choice .ct { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .choice .ct b { font-size: 1rem; line-height: 1.3; font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  .choice .ct > span { font-size: 0.882rem; line-height: 1.33; color: var(--f-sec); }
+  .chip { font-size: 0.706rem; line-height: 1.6; font-weight: 600; padding: 0 8px; border-radius: 10px; background: var(--f-chip); color: var(--f-sec); }
+  .tick { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; }
+  .tick svg { display: none; }
+  [aria-checked="true"] > .tick, [aria-pressed="true"] > .tick { background: var(--f-accent); border-color: var(--f-accent); }
+  [aria-checked="true"] > .tick svg, [aria-pressed="true"] > .tick svg { display: block; }
+  .choice[aria-checked="true"], .choice[aria-pressed="true"] { border-color: var(--f-accent); }
+  .pains { display: grid; grid-template-columns: repeat(auto-fit, minmax(8em, 1fr)); gap: 8px; }
+  .pains .choice { min-height: 56px; font-size: 1rem; font-weight: 600; }
+  .fbar { position: fixed; left: 0; right: 0; bottom: 0; padding: 40px max(38px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom, 0px) + 24px) max(38px, env(safe-area-inset-left)); background: linear-gradient(var(--f-bg-clear), var(--f-bg) 36px); display: flex; flex-direction: column; gap: 8px; align-items: stretch; z-index: 4; pointer-events: none; }
+  .fbar > * { pointer-events: auto; max-width: 524px; width: 100%; margin: 0 auto; }
+  .fprimary { appearance: none; border: 0; border-radius: 999px; background: var(--f-accent); color: #fff; font-size: max(18.7px, 1.1rem); font-weight: 700; min-height: 52px; padding: 12px 20px; line-height: 1.2; }
+  .fprimary[aria-disabled="true"] { background: var(--f-off); color: var(--f-off-text); }
+  .fprimary:disabled { background: var(--f-off); color: var(--f-off-text); cursor: progress; }
+  .status { color: var(--f-sec); font-size: 0.882rem; text-align: center; }
+  .status:empty { display: none; }
+  /* The second button of the dark flow: a glass capsule. */
+  .ftinted { appearance: none; border: 1px solid var(--f-glass-line); border-radius: 999px; background: var(--f-glass); color: #fff; font-size: 1rem; font-weight: 600; min-height: 52px; padding: 12px 20px; line-height: 1.2; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+  #flowAllow, #flowWhere { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 190px); }
+  #flowAllow .readybody { padding-top: 0; }
+  .fhead.flush { padding: 18px 0 0; margin: 0; }
+  #flowWhere .fbar { gap: 10px; }
+  .status.err { color: #FF6961; }
+  /* Getting Ready: the hero video slot with a glass Play pill, then the checklist. */
+  #flowReady { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 190px); }
+  .vhero { position: relative; height: calc(env(safe-area-inset-top, 0px) + 320px); overflow: hidden; background: #0B1220; }
+  /* The poster in the same box as the video, whole (the guide's title card has its words on it), so
+     Play swaps one for the other in place; at the bottom of the box, clear of the glass buttons. */
+  .vhero img, .vhero video { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top, 0px); width: 100%; height: calc(100% - env(safe-area-inset-top, 0px) - 70px); object-fit: contain; object-position: 50% 100%; background: #0B1220; }
+  .vhero .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(var(--f-bg-clear), var(--f-bg)); pointer-events: none; }
+  .gpill { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); min-height: 48px; padding: 0 22px 0 18px; border-radius: 24px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.22); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); display: inline-flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600; color: #fff; white-space: nowrap; }
+  .readybody { padding: 4px 24px 0; display: flex; flex-direction: column; gap: 18px; max-width: 600px; margin: 0 auto; }
+  .ilist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+  .ilist li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 16px; align-items: start; font-size: 1.118rem; line-height: 1.26; color: var(--f-sec); }
+  .ilist svg { width: 34px; height: 34px; color: var(--f-accent); }
+  .fold { border-radius: 20px; background: var(--f-card); padding: 0 18px; }
+  .fold > summary { cursor: pointer; list-style: none; min-height: 52px; display: flex; align-items: center; font-weight: 600; }
+  .fold > summary::-webkit-details-marker { display: none; }
+  .fold > summary { justify-content: space-between; }
+  .fold > summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--f-sec); border-bottom: 2px solid var(--f-sec); transform: rotate(45deg); margin: -4px 4px 0 0; }
+  .fold[open] > summary::after { transform: rotate(-135deg); margin-top: 4px; }
+  .fold[open] { padding-bottom: 16px; }
+  .fold h2 { font-size: 0.882rem; font-weight: 600; color: var(--f-sec); margin: 0 0 8px; }
+  .checklist { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 0.882rem; line-height: 1.38; color: #fff; }
+  .checklist li { display: grid; grid-template-columns: 14px 1fr; gap: 8px; align-items: start; }
+  .checklist li::before { content: ""; width: 7px; height: 7px; margin: 7px 0 0 3px; border-radius: 50%; background: var(--f-accent); }
+  .setupNote { margin: 0 8px; font-size: 0.882rem; color: #FFB340; }
+
+  /* ── the results: a sheet over the tabs ── */
+  .sheet { position: relative; margin-top: calc(env(safe-area-inset-top, 0px) + 10px); min-height: calc(100% - env(safe-area-inset-top, 0px) - 10px); background: var(--bg); border-radius: 12px 12px 0 0; box-shadow: 0 -4px 24px rgba(0,0,0,0.18); }
+  .sheet .in { max-width: 600px; margin: 0 auto; padding: 12px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 14px; }
+  .sheet .in > * { flex: none; }
+  .verdict { display: flex; flex-direction: column; gap: 8px; padding-top: 52px; }
+  .verdict .big { font-size: 1.647rem; line-height: 1.21; font-weight: 700; text-wrap: balance; }
+  .verdict .big:focus { outline: none; }
+  .verdict .why { font-size: 1rem; line-height: 1.3; color: var(--sec); }
+  .setupLine { font-size: 0.882rem; color: var(--sec); }
+  .howto { padding: 0; gap: 0; }
+  .howto > summary { list-style: none; cursor: pointer; min-height: 52px; padding: 0 18px; display: flex; align-items: center; justify-content: space-between; font-size: 1rem; font-weight: 600; }
+  .howto > summary::-webkit-details-marker { display: none; }
+  .howto[open] > summary .chev { transform: rotate(90deg); }
+  .howto .nums { padding: 0 18px 12px; font-size: 0.941rem; line-height: 1.3; }
+  .howto .small { padding: 0 18px; }
+  .howto .small:last-child { padding-bottom: 18px; }
+  .made .t { font-size: 1rem; font-weight: 600; }
+  .made .q { font-size: 0.882rem; line-height: 1.33; color: var(--label); }
+  .made .q:focus { outline: none; }
+  .steprow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  .steprow label { font-size: 0.882rem; line-height: 1.33; color: var(--sec); flex: 1 1 9em; }
+  .stepper { flex: none; display: flex; align-items: center; padding: 2px; border-radius: 22px; background: var(--fill); }
+  .stepper button { appearance: none; border: 0; background: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--label); }
+  .stepper .mmv { display: flex; align-items: baseline; gap: 4px; font-family: var(--rounded); font-weight: 700; }
+  .stepper input { width: 2.4em; border: 0; background: transparent; text-align: right; font-family: var(--rounded); font-size: 1rem; font-weight: 700; padding: 6px 0; -moz-appearance: textfield; appearance: textfield; }
+  .stepper input::-webkit-inner-spin-button, .stepper input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .center { text-align: center; }
+  .shot { width: 100%; border-radius: 12px; display: block; }
+  .actions { display: flex; flex-direction: column; gap: 8px; }
+  .made .quiet { display: flex; flex-wrap: wrap; gap: 0 18px; margin: -4px 0 -6px; }
+  /* The results' bottom bar: sticks to the bottom of the screen while the sheet scrolls. */
+  .sbar { position: sticky; bottom: 0; z-index: 5; max-width: 600px; margin: 0 auto; padding: 22px max(16px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom, 0px) + 14px) max(16px, env(safe-area-inset-left)); background: linear-gradient(var(--bg-clear), var(--bg) 22px); display: flex; flex-direction: column; gap: 6px; }
+  .sbar .plain { align-self: center; text-align: center; }
+  .painbox > summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; font-weight: 600; min-height: 24px; }
+  .painbox > summary::-webkit-details-marker { display: none; }
+  .painbox > summary::after { content: "More"; flex: none; color: var(--blue-text); font-weight: 600; }
+  .painbox[open] > summary::after { content: "Less"; }
+  .painbox > p { margin-top: 8px; }
+  .refile { display: grid; gap: 8px; }
+  .when { display: flex; flex-direction: column; gap: 12px; }
+  .whenrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.5em, 1fr)); gap: 8px; }
+  .whenrow .soft { padding: 8px 10px; }
+  .whendate { min-height: 44px; border: 0; border-radius: 12px; background: var(--fill); padding: 8px 12px; font: inherit; color: var(--label); flex: 1 1 12em; }
+  .refile button { appearance: none; border: 2px solid transparent; border-radius: 16px; background: var(--fill); min-height: 44px; padding: 8px 14px; text-align: left; font-weight: 600; }
+  .refile button[aria-pressed="true"] { border-color: var(--blue); }
+
+  /* "Show Me How": three short steps and an arrow at Safari's own toolbar, under the page. */
+  .sharehint { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.6); color: #fff; display: flex; flex-direction: column; justify-content: flex-end; padding: 24px 24px calc(env(safe-area-inset-bottom, 0px) + 8px); }
+  .sharehint .box { background: rgba(28,28,30,0.94); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 10px; font-size: 1rem; line-height: 1.35; }
+  .sharehint .steps3 { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .sharehint .steps3 li { display: grid; grid-template-columns: 1.65rem minmax(0, 1fr); gap: 10px; align-items: center; }
+  .sharehint .steps3 li > span:first-child { width: 1.65rem; height: 1.65rem; border-radius: 50%; background: rgba(64,156,255,0.22); color: #409CFF; font-size: 0.882rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .sharehint .arrow { align-self: center; width: 64px; height: 96px; color: #fff; margin-top: 8px; }
+  .sharehint .glass { background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.22); color: #fff; right: 16px; }
+  /* While it shows, the tab bar steps aside, so the arrow down to Safari's toolbar crosses nothing. */
+  body:has(#shareHint:not([hidden])) .tabbar, body:has(#shareHint:not([hidden])) .tabfade { visibility: hidden; }
+
+  /* ── running: the camera view, dark in both modes ──
+     Sizes in pt, as the design review gives them for a 393 pt wide iPhone seen from 3 m, so they do
+     not grow with the text size: 120 to 128 pt words, a 250 pt ring with 128 pt digits, a 14 pt
+     border, 160 pt on the result. The captions and the frosted card are in rem and do grow. Colours
+     are the iOS 26 dark system values, one meaning each: blue working, dashed yellow needs you,
+     green good or done (not orange, which means Fair). */
+  #run { position: fixed; inset: 0; background: #000; overflow: hidden; color: #fff; color-scheme: dark; z-index: 25;
+    --muted: #9AA3B2; --l-blue: #0091FF; --l-green: #30D158; --l-yellow: #FFD600; --capH: 24px;
+    --top: calc(env(safe-area-inset-top, 0px) + 76px); --padL: max(28px, env(safe-area-inset-left)); --padR: max(28px, env(safe-area-inset-right)); }
+  .stage { position: absolute; inset: 0; overflow: hidden; }
+  /* The video's box is set by app.js to the same place the figure is drawn, so the two line up. */
+  .stage video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: fill; }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #run.mirror .stage { transform: scaleX(-1); }
+  #run.front .stage video { filter: blur(8px) brightness(0.5); }
+  #run.front.clear .stage video { filter: none; }
+  /* Beside the word, the figure keeps the left of the screen, top to bottom; the caption sits under
+     the word, so it never covers the figure. */
+  @media (orientation: landscape) {
+    #run.front.layer-avatar .stage { right: 48%; }
+    #run.front.layer-avatar .caption { left: 52%; right: var(--padR); }
+  }
+  .border { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; }
+  .vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; padding: 0; }
+  .hud-top { position: absolute; left: 0; right: 0; top: 0; z-index: 8; padding: calc(env(safe-area-inset-top, 0px) + 24px) var(--padR) 0 var(--padL); display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; pointer-events: none; }
+  .hud-top .chips { flex-wrap: nowrap; overflow: hidden; min-width: 0; }
+  .hud-top > * { pointer-events: auto; }
+  .hud-top .grow { flex: 1; }
+  .stepPill { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 16px; background: rgba(44,44,46,0.78); font-size: 15px; font-weight: 600; white-space: nowrap; }
+  .runbtn { appearance: none; min-height: 44px; padding: 10px 18px; border-radius: 999px; background: rgba(44,44,46,0.78); border: 1px solid rgba(255,255,255,0.14); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); color: #fff; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; }
+  .runbtn.stop { padding: 10px 16px 10px 14px; }
+  #run.onfield .stepPill, #run.onfield .runbtn { background: rgba(0,0,0,0.12); border-color: rgba(0,0,0,0.08); color: #000; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: #ffffff1f; color: var(--muted); }
-  .chip.ok { background: color-mix(in srgb, var(--good) 25%, #0000); color: var(--good); }
-  .chip.bad { background: color-mix(in srgb, var(--warn) 25%, #0000); color: var(--warn); }
-  .hud-bottom .secondary { background: #0008; border-color: #ffffff40; }
-  #timer { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); font-size: 64px; font-weight: 800; text-shadow: 0 2px 8px #000; }
-  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  .hud-top .chip { font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: rgba(44,44,46,0.78); color: var(--muted); line-height: 1.3; }
+  .hud-top .chip.ok { color: var(--l-green); }
+  .hud-top .chip.bad { color: var(--l-yellow); }
+  #run.front .chips, #run.front .runSetup, #run.onfield .runSetup { display: none; }
+  .runSetup { position: absolute; left: var(--padL); top: calc(env(safe-area-inset-top, 0px) + 64px); margin: 0; font-size: 13px; font-weight: 700; color: var(--muted); text-shadow: 0 1px 3px #000; z-index: 7; }
+  /* The caption: 15 pt, for reading up close, only in the setup steps (#run.nocap hides it). */
+  .caption { position: absolute; left: var(--padL); right: var(--padR); bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); z-index: 7; margin: 0 auto; max-width: 860px;
+    padding: 8px 14px; border-radius: 14px; background: rgba(28,28,30,0.78); font-size: 0.882rem; line-height: 1.33; font-weight: 600; text-align: center; text-wrap: balance; }
+  .caption:empty, #run.nocap .caption { display: none; }
+  .word { font-family: var(--rounded); font-weight: 800; text-transform: uppercase; line-height: 0.87; letter-spacing: -0.01em; white-space: nowrap; }
+  .tone-yellow { color: var(--l-yellow); }
+  .tone-green { color: var(--l-green); }
+  /* Step 1: where the phone goes. */
+  .placeView { position: absolute; inset: 0; z-index: 3; background: var(--f-bg); display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: 32px; align-items: center;
+    padding: var(--top) var(--padR) calc(var(--capH) + 12px) var(--padL); }
+  .keyframe { position: relative; border-radius: 26px; overflow: hidden; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); }
+  .keyframe svg { display: block; width: 100%; height: auto; }
+  .keyframe .kt { font-family: var(--font); font-size: 10px; fill: rgba(235,235,245,0.7); }
+  .keyframe .kt.lens { font-size: 11px; font-weight: 700; fill: #5CB8FF; }
+  .keyframe .kt.box { font-size: 9px; font-weight: 700; fill: #3B2C1C; }
+  .keyframe .kt.b { font-size: 11px; font-weight: 700; fill: #FFFFFF; }
+  .kfnote { position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 13px; background: rgba(0,0,0,0.5); font-size: 12px; font-weight: 600; }
+  .placeText { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .placeText h1 { font-size: clamp(28px, 4.8vw, 40px); line-height: 1.15; font-weight: 700; }
+  .placeText p { font-size: 1rem; line-height: 1.3; color: rgba(235,235,245,0.78); }
+  /* Step 1: level. */
+  .levelView { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: var(--top) 24px calc(var(--capH) + 12px); }
+  #run.rear .levelView { background: rgba(0,0,0,0.35); }
+  .levelView .deg { font-family: var(--rounded); font-size: 140px; line-height: 0.86; font-weight: 800; color: var(--l-yellow); text-transform: uppercase; }
+  .levelView .sub { font-size: 20px; font-weight: 700; color: var(--l-yellow); text-align: center; }
+  .bubbleBar { position: relative; width: 320px; max-width: 80vw; height: 30px; border-radius: 15px; background: rgba(255,255,255,0.18); }
+  .bubbleBar .mid { position: absolute; left: 50%; top: 3px; width: 4px; height: 24px; margin-left: -2px; border-radius: 2px; background: #FFFFFF; }
+  .bubbleBar .bubble { position: absolute; left: 50%; top: 3px; width: 24px; height: 24px; margin-left: -12px; border-radius: 12px; background: var(--l-yellow); }
+  /* The 3 m word, screen towards the rider, beside the figure. */
+  .sign { position: absolute; z-index: 2; left: 52%; right: var(--padR); top: var(--top); bottom: calc(var(--capH) + 8px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
+  .sign .sarrow { width: 96px; height: 56px; flex: none; margin-bottom: 12px; }
+  .sign .scheck { width: 60px; height: 60px; flex: none; margin-bottom: 12px; }
+  .sign .word { font-size: 120px; }
+  .sign .sub { font-size: 20px; line-height: 1.25; font-weight: 700; text-align: center; }
+  /* Holding still and pedalling: the screen goes still, only the ring fills. */
+  .ringView { position: absolute; inset: 0; z-index: 3; background: #000; display: flex; align-items: center; justify-content: center; gap: 36px; padding: var(--top) var(--padR) 24px var(--padL); }
+  .ring { position: relative; width: 250px; height: 250px; flex: none; }
+  .ring > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ring .digits { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--rounded); font-size: 128px; font-weight: 800; letter-spacing: -0.02em; }
+  .ringWords { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+  .ringWords .word { font-size: 128px; }
+  .ringWords .sub { font-size: 30px; line-height: 1.2; font-weight: 700; color: rgba(255,255,255,0.86); }
+  /* Screen away: the ring stays small over the picture, for a helper. */
+  #run.rear .ringView { inset: auto; right: var(--padR); bottom: calc(var(--capH) + 12px); width: 132px; height: 132px; padding: 0; border-radius: 50%; background: rgba(0,0,0,0.45); }
+  #run.rear .ring { width: 132px; height: 132px; }
+  #run.rear .ring .digits { font-size: 56px; }
+  #run.rear .ringWords { display: none; }
+  /* Screen away: the last correction on a frosted card. */
+  .fixCard { position: absolute; z-index: 7; left: var(--padL); right: var(--padR); width: fit-content; margin: 0 auto; bottom: calc(var(--capH) + 12px); display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; border-radius: 22px; background: rgba(28,28,30,0.72); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); font-size: 1.412rem; line-height: 1.2; font-weight: 700; color: var(--l-yellow); }
+  .fixCard svg { width: 44px; height: 26px; flex: none; }
+  /* A note rather than a correction (the bike guide, the tape tip): white, not yellow. */
+  .fixCard.note { color: #FFFFFF; max-width: min(720px, calc(100% - var(--padL) - var(--padR))); }
+  .fixCard svg.tape { width: 34px; height: 34px; color: #FFB340; }
+  /* A full screen of colour. */
+  .field { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: var(--top) var(--padR) 24px var(--padL); color: #000; text-align: center; }
+  .field.green { background: var(--l-green); --fc: var(--l-green); }
+  .field.yellow { background: var(--l-yellow); --fc: var(--l-yellow); }
+  .field .frow { display: flex; align-items: center; justify-content: center; gap: 22px; max-width: 100%; }
+  .field #fieldCheck { width: 112px; height: 112px; flex: none; color: var(--fc); }
+  .field .farrow { width: 92px; height: 124px; flex: none; }
+  .field .word { font-size: 160px; line-height: 0.85; }
+  .field .word.mm { text-transform: none; }
+  .field .fsub { font-size: 28px; line-height: 1.2; font-weight: 700; text-wrap: balance; }
+  .seeWhat { appearance: none; border: 0; margin-top: 14px; min-height: 48px; padding: 0 26px; border-radius: 24px; background: #000; color: #fff; font-size: 17px; font-weight: 600; }
+  @media (orientation: portrait) {
+    /* Upright, the Stop button keeps its 44 pt circle and drops the word, so the top bar fits. */
+    .runbtn.stop { width: 44px; padding: 0; justify-content: center; }
+    .runbtn.stop span { display: none; }
+    #run.front.layer-avatar .stage { right: 0; bottom: 48%; }
+    .sign { left: var(--padL); top: 52%; }
+    .placeView { grid-template-columns: minmax(0, 1fr); align-content: center; gap: 20px; }
+    .keyframe { max-width: 330px; width: 100%; justify-self: center; }
+    .ringView { flex-direction: column; gap: 18px; }
+    .ringWords { align-items: center; }
+    .ringWords .word { font-size: 96px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
 </style>
 </head>
 <body>
 
-<main id="home" class="page">
-  <header>
-    <h1>Bike Fit Coach</h1>
-    <p class="lede ledeLong">Checks your road bike position with your phone camera and talks you through it, so you can stay on the bike. A few minutes.</p>
-    <p class="lede">For road bikes with drop handlebars. It cannot check a time trial or triathlon position on aero bars.</p>
-  </header>
+<!-- Symbols drawn once and used where they are needed. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="riderArt" viewBox="0 0 280 200">
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M118 80 L169 89 L134 124 L145 128" style="stroke:var(--far)" stroke-width="11"/>
+      <circle cx="70" cy="150" r="44" style="stroke:var(--ink)" stroke-width="5"/>
+      <circle cx="230" cy="150" r="44" style="stroke:var(--ink)" stroke-width="5"/>
+      <path d="M70 150 L140 156 L122 92 Z M122 92 L214 96 L210 112 L140 156 M210 112 L230 150 M214 96 L216 90 M122 92 L120 86" style="stroke:var(--ink)" stroke-width="5"/>
+      <path d="M102 85 L136 85" style="stroke:var(--ink)" stroke-width="6"/>
+      <path d="M216 90 L228 90 Q238 90 236 102 Q234 114 226 114" style="stroke:var(--ink)" stroke-width="5"/>
+      <circle cx="140" cy="156" r="11" style="stroke:var(--ink)" stroke-width="4"/>
+      <path d="M140 131 L140 181 M133 131 L147 131 M133 181 L149 181" style="stroke:var(--ink)" stroke-width="5"/>
+      <path d="M118 80 L147 123 L136 172" style="stroke:var(--acc)" stroke-width="12"/>
+      <path d="M134 172 L151 179" style="stroke:var(--acc)" stroke-width="8"/>
+      <path d="M118 80 L165 40" style="stroke:var(--acc)" stroke-width="15"/>
+      <path d="M165 40 L191 71 L226 91" style="stroke:var(--acc)" stroke-width="8"/>
+      <circle cx="180" cy="22" r="11" style="fill:var(--acc)" stroke="none"/>
+    </g>
+  </symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="xmark" viewBox="0 0 16 16"><path d="M3 3l10 10M13 3 3 13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="checkmark" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="saddleGlyph" viewBox="0 0 24 24"><path d="M3 9c3-2 8-2 11-1l7 1c0 2-3 3-7 3H8c-3 0-5-1-5-3z M10 12h2v8h-2z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="reachGlyph" viewBox="0 0 24 24"><path d="M3 19 L10 9 H19 M19 9 q3 0 3 3 q0 3 -3 3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
 
-  <section class="card stopped" id="stopped" role="status" hidden>
-    <p><b>Stopped. Nothing was saved.</b></p>
-    <p id="stoppedWait">Your last change is still waiting to be checked.</p>
-  </section>
-
-  <section class="card setup" id="setupCard" aria-labelledby="setup-h">
-    <h2 id="setup-h">First question</h2>
-    <p id="setupQ" class="q" tabindex="-1">How will your bike stay up?</p>
-    <p id="setupErr" class="needsLine" hidden>First, tell me how your bike will stay up.</p>
-    <div class="choices" role="group" aria-labelledby="setupQ">
-      <button id="setupTrainer" class="choice" type="button" data-setup="trainer" aria-pressed="false"><b>On a trainer or rollers</b><span>You pedal forwards for 30 seconds.</span></button>
-      <button id="setupWall" class="choice" type="button" data-setup="wall" aria-pressed="false"><b>Leaning on a wall</b><span>You pedal backwards for 20 seconds.</span></button>
-      <button id="setupFriend" class="choice" type="button" data-setup="friend" aria-pressed="false"><b>A friend holds it</b><span>You pedal backwards for 20 seconds.</span></button>
+<!-- ── the check flow: Setup, then Getting Ready (its own dark world) ── -->
+<div id="flow" class="flow" hidden>
+  <div class="ftopfade" aria-hidden="true"></div>
+  <!-- A new check asks one question a screen, as Apple's "Choose How to Measure" does: how the bike
+       stays up, which way the screen faces, then the pain question. Each has one title, one short
+       line and one Next at the bottom. -->
+  <section id="flowSetup" class="fscreen" aria-labelledby="setupQ">
+    <div class="fhero" aria-hidden="true">
+      <svg width="390" height="196" viewBox="0 0 390 196">
+        <circle cx="195" cy="112" r="150" fill="var(--f-ring1)"/><circle cx="195" cy="112" r="112" fill="var(--f-ring2)"/>
+        <circle cx="195" cy="112" r="76" fill="var(--f-ring3)"/><circle cx="195" cy="112" r="42" fill="var(--f-ring4)"/>
+        <svg class="rider" x="102" y="34" width="174" height="124" viewBox="0 0 280 200"><use href="#riderArt"/></svg>
+      </svg>
     </div>
-  </section>
-
-  <div>
-    <div class="ask" role="group" aria-labelledby="pain-q">
-      <p id="pain-q">Do you get pain or numbness that keeps coming back when you ride?</p>
-      <div class="row">
-        <button id="painNo" class="secondary" type="button" aria-pressed="false">No</button>
-        <button id="painYes" class="secondary" type="button" aria-pressed="false">Yes</button>
+    <button id="flowClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+    <div class="fhead">
+      <h1 id="setupQ" class="q" tabindex="-1">How Will Your Bike Stay Up?</h1>
+      <p>Then the voice guides you.</p>
+    </div>
+    <section id="setupCard" class="fq setup" aria-labelledby="setupQ">
+      <p id="setupErr" class="needsLine" hidden>First, tell me how your bike will stay up.</p>
+      <p id="setupNote" class="setupNote" hidden></p>
+      <div class="choices" role="radiogroup" aria-labelledby="setupQ">
+        <button id="setupTrainer" class="choice" type="button" role="radio" data-setup="trainer" aria-checked="false"><span class="ct"><b>On a trainer or rollers</b><span>Pedal forwards, 30 seconds</span></span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+        <button id="setupWall" class="choice" type="button" role="radio" data-setup="wall" aria-checked="false"><span class="ct"><b>Leaning on a wall</b><span>Pedal backwards, 20 seconds</span></span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+        <button id="setupFriend" class="choice" type="button" role="radio" data-setup="friend" aria-checked="false"><span class="ct"><b>A friend holds it</b><span>Pedal backwards, 20 seconds</span></span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
       </div>
-      <p class="small pain-note">I ask every time. Your answer is not saved.</p>
-    </div>
-    <button id="start" class="primary" type="button" disabled>Loading…</button>
-    <p id="status" class="status" role="status">Getting the pose model ready.</p>
-  </div>
-
-  <section class="card retest" id="retestCard" aria-labelledby="retest-h" hidden>
-    <h2 id="retest-h">Film again</h2>
-    <p id="retestText"></p>
-    <button id="retestStart" class="primary inCard" type="button">Start</button>
+    </section>
+    <div class="fbar"><button id="flowNext" class="fprimary" type="button">Next</button></div>
   </section>
 
-  <section class="card retest made" id="hMade" aria-labelledby="hmade-h" hidden>
-    <h2 id="hmade-h" style="margin:0">Your last change</h2>
+  <section id="flowScreen" class="fscreen" aria-labelledby="screenQ" hidden>
+    <div class="fhero" aria-hidden="true">
+      <svg width="390" height="196" viewBox="0 0 390 196">
+        <circle cx="195" cy="112" r="150" fill="var(--f-ring1)"/><circle cx="195" cy="112" r="112" fill="var(--f-ring2)"/>
+        <circle cx="195" cy="112" r="76" fill="var(--f-ring3)"/>
+        <path d="M150 178V138M240 178V138M144 138h102M150 138V96" stroke="#C9CDD4" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <rect x="160" y="114" width="62" height="24" rx="4" fill="#C8A27A"/>
+        <rect x="200" y="62" width="30" height="52" rx="7" fill="#0B1220" stroke="#FFFFFF" stroke-width="4"/>
+        <rect x="205" y="68" width="20" height="40" rx="3" fill="var(--f-accent)"/>
+      </svg>
+    </div>
+    <button id="screenBack" class="glass back" type="button" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button id="screenClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+    <div class="fhead">
+      <h1 id="screenQ" class="q" tabindex="-1">Where Will the Screen Face?</h1>
+      <p>The phone stands on the chair either way.</p>
+    </div>
+    <section class="fq" aria-labelledby="screenQ">
+      <div class="choices" role="radiogroup" aria-labelledby="screenQ">
+        <button id="screenAway" class="choice pic" type="button" role="radio" data-screen="away" aria-checked="true">
+          <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="7" cy="12" r="5" fill="#9AA3B2"/><path d="M7 18v14M7 23l-4 6M7 23l4 6" stroke="#9AA3B2" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M14 16a8 8 0 0 1 0 12M18 13a12 12 0 0 1 0 18" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" fill="none"/><rect x="29" y="8" width="12" height="28" rx="3.5" fill="#343B47" stroke="#FFFFFF" stroke-width="2.2"/><circle cx="35" cy="14" r="3" fill="#0B1220" stroke="#FFFFFF" stroke-width="1.6"/></svg>
+          <span class="ct"><b>Away from me <span class="chip">Default</span></b><span>Back camera. The voice guides you.</span></span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+        <button id="screenTowards" class="choice pic" type="button" role="radio" data-screen="towards" aria-checked="false">
+          <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="7" cy="12" r="5" fill="#9AA3B2"/><path d="M7 18v14M7 23l-4 6M7 23l4 6" stroke="#9AA3B2" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M13 12h13M13 17h13" stroke="#9AA3B2" stroke-width="2" stroke-dasharray="2 3"/><rect x="29" y="8" width="12" height="28" rx="3.5" fill="#0091FF" stroke="#FFFFFF" stroke-width="2.2"/><path d="M32 22l2.5 2.5 4-5" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          <span class="ct"><b>Towards me</b><span>Front camera. Big words you can see.</span></span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+      </div>
+      <details class="finfo"><summary>Which Should I Pick?</summary><p>Either works. The phone stands sideways on the chair, about 3 m from the pedals. Towards me is still being tested on a real iPhone.</p></details>
+    </section>
+    <div class="fbar"><button id="screenNext" class="fprimary" type="button">Next</button></div>
+  </section>
+
+  <section id="flowPain" class="fscreen" aria-labelledby="painQ" hidden>
+    <div class="fhero" aria-hidden="true">
+      <svg width="390" height="196" viewBox="0 0 390 196">
+        <circle cx="195" cy="112" r="150" fill="var(--f-ring1)"/><circle cx="195" cy="112" r="112" fill="var(--f-ring2)"/>
+        <circle cx="195" cy="112" r="76" fill="var(--f-ring3)"/><circle cx="195" cy="112" r="42" fill="var(--f-ring4)"/>
+        <svg class="rider" x="102" y="34" width="174" height="124" viewBox="0 0 280 200"><use href="#riderArt"/></svg>
+      </svg>
+    </div>
+    <button id="painBack" class="glass back" type="button" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button id="painClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+    <div class="fhead">
+      <h1 id="painQ" class="q" tabindex="-1">Pain or Numbness That Keeps Coming Back When You Ride?</h1>
+      <p>Your answer is never saved.</p>
+    </div>
+    <section id="painCard" class="fq" aria-labelledby="painQ">
+      <p id="painErr" class="needsLine" hidden>First, tap No or Yes.</p>
+      <div class="pains" role="radiogroup" aria-labelledby="painQ">
+        <button id="painNo" class="choice" type="button" role="radio" aria-checked="false"><span>No</span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+        <button id="painYes" class="choice" type="button" role="radio" aria-checked="false"><span>Yes</span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+      </div>
+    </section>
+    <div class="fbar"><button id="painNext" class="fprimary" type="button" aria-disabled="true">Next</button></div>
+  </section>
+
+  <section id="flowReady" class="fscreen" aria-labelledby="readyH" hidden>
+    <!-- The clip slot: the How to Set Up guide (the live hotfix), a narrated drawn guide of this
+         check's own steps. Its poster is in sw.js CORE; the video is left to the network (range
+         requests). Never the older Camera app clip (assets/how-to.mp4): that belongs to Learn's
+         "Another Way: Film a Clip". -->
+    <div class="vhero" data-clip="guide">
+      <img id="howPoster" src="assets/setup-guide-poster.jpg" alt="">
+      <video id="howVideo" src="assets/setup-guide.mp4" poster="assets/setup-guide-poster.jpg" muted playsinline preload="none" hidden></video>
+      <div class="fade" aria-hidden="true"></div>
+      <button id="howPlay" class="gpill" type="button" aria-label="Play the setup guide"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path id="howPlayPath" d="M4 2.5v13l11-6.5z" fill="#FFFFFF"/></svg><span id="howPlayText">Play</span></button>
+    </div>
+    <button id="readyBack" class="glass back" type="button" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button id="readyClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+    <div class="readybody">
+      <h1 id="readyH">Getting Ready</h1>
+      <ul class="ilist">
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 31V19M25 31V19M7 19h20M9 19V5M13 15h12v4H13z"/></svg><span>A chair and a 20 cm box</span></li>
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 24a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M21 24a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M8 24l6-10h7l5 10M14 14l3 10H8M12 10h5M21 14l2-4h3"/></svg><span>Your road bike, kit and shoes</span></li>
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10V5h5M25 5h5v5M30 24v5h-5M9 29H4v-5M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0M17 13v8M13 16h8M15 21l-1 5M19 21l1 5"/></svg><span>3 m of space, with light on you</span></li>
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 9 9 14H5v6h4l6 5zM20 13a5 5 0 0 1 0 8M24 9.5a10 10 0 0 1 0 15"/></svg><span>Volume up, silent mode off</span></li>
+      </ul>
+      <details class="fold" id="stepsFold">
+        <summary>Setup Steps</summary>
+        <ul class="checklist">
+          <li data-for="none">Choose how your bike stays up first.</li>
+          <li data-for="trainer" hidden>Level the bike: both wheel centres at the same height. A book under the front wheel helps.</li>
+          <li data-for="trainer" hidden>On rollers, set up with a wall on the far side, away from the phone, so you can hold on while you get on, hold still, and start and stop pedalling.</li>
+          <li data-for="wall" hidden>A wall on the far side, away from the phone. The bike leans a little, bars straight.</li>
+          <li data-for="wall" hidden>Front brake gently on, the near hand on top of the brake lever.</li>
+          <li data-for="friend" hidden>Your friend stands up straight on the far side, by the saddle.</li>
+          <li>The phone sideways on the box, 4 big steps from the pedals. Learn has a drawing.</li>
+        </ul>
+      </details>
+    </div>
+    <div class="fbar">
+      <p id="status" class="status" role="status">Getting the pose model ready.</p>
+      <button id="start" class="fprimary" type="button" disabled>Loading…</button>
+    </div>
+  </section>
+
+  <!-- Before the first Start in a page view: why the iPhone asks, and a sound check. -->
+  <section id="flowAllow" class="fscreen" aria-labelledby="allowH" hidden>
+    <div class="fhero" aria-hidden="true">
+      <svg width="390" height="196" viewBox="0 0 390 196">
+        <circle cx="195" cy="112" r="150" fill="var(--f-ring1)"/><circle cx="195" cy="112" r="112" fill="var(--f-ring2)"/>
+        <circle cx="195" cy="112" r="76" fill="var(--f-ring3)"/>
+        <rect x="129" y="78" width="132" height="66" rx="14" fill="#0B1220" stroke="#FFFFFF" stroke-width="4"/>
+        <circle cx="145" cy="111" r="7" fill="var(--f-accent)"/>
+        <rect x="170" y="104" width="76" height="14" rx="7" fill="rgba(255,255,255,0.2)"/>
+        <circle cx="208" cy="111" r="6" fill="#30D158"/>
+      </svg>
+    </div>
+    <button id="allowBack" class="glass back" type="button" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button id="allowClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+    <div class="readybody">
+      <div class="fhead flush">
+        <h1 id="allowH">Allow Camera and Motion</h1>
+        <p>Your iPhone will ask twice. Tap Allow both times.</p>
+      </div>
+      <ul class="ilist">
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11h6l2.5-4h9L24 11h6v16H4zM17 14a5 5 0 1 0 0 10a5 5 0 1 0 0-10"/></svg><span>Camera: to see how you sit on the bike.</span></li>
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11h24v12H5zM9 17h16M17 14v6M3 6c4-3 9-3 13 0M31 28c-4 3-9 3-13 0"/></svg><span>Motion: to beep when the phone is level.</span></li>
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 4a13 13 0 1 0 0 26a13 13 0 1 0 0-26M4 17h26M17 4c-4 4-5 9-5 13s1 9 5 13c4-4 5-9 5-13s-1-9-5-13"/></svg><span>It may say mishevelada.github.io. That is this app.</span></li>
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 15h18v15H8zM12 15v-4a5 5 0 0 1 10 0v4M17 21v4"/></svg><span>Nothing leaves this phone.</span></li>
+      </ul>
+      <button id="hearMe" class="ftinted" type="button"><svg width="22" height="20" viewBox="0 0 22 20" aria-hidden="true"><path d="M9 3 4 7H1v6h3l5 4zM13 6.5a5 5 0 0 1 0 7M16 3.5a9 9 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Tap to Hear Me</button>
+      <p id="hearHint" class="status" role="status" hidden>No sound? Turn the volume up and switch off silent mode.</p>
+    </div>
+    <div class="fbar">
+      <p id="allowStatus" class="status" role="status"></p>
+      <button id="allowStart" class="fprimary" type="button" disabled>Loading…</button>
+    </div>
+  </section>
+
+  <!-- Check It Now when the motion sensor cannot tell whether the phone moved. -->
+  <section id="flowWhere" class="fscreen" aria-labelledby="whereH" hidden>
+    <div class="fhero" aria-hidden="true">
+      <svg width="390" height="196" viewBox="0 0 390 196">
+        <circle cx="195" cy="112" r="150" fill="var(--f-ring1)"/><circle cx="195" cy="112" r="112" fill="var(--f-ring2)"/>
+        <path d="M150 168V128M240 168V128M144 128h102M150 128V86" stroke="#C9CDD4" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <rect x="160" y="104" width="62" height="24" rx="4" fill="#C8A27A"/>
+        <rect x="214" y="80" width="8" height="24" rx="3" fill="#FFFFFF"/>
+        <circle cx="226" cy="90" r="3" fill="var(--f-accent)"/>
+      </svg>
+    </div>
+    <button id="whereClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+    <div class="fhead">
+      <h1 id="whereH">Is the Phone Where It Was?</h1>
+      <p>If you have not moved it, I skip setting it up.</p>
+    </div>
+    <div class="fbar">
+      <button id="whereYes" class="fprimary" type="button">Yes, Start</button>
+      <button id="whereNo" class="ftinted" type="button">No, It Moved</button>
+    </div>
+  </section>
+</div>
+
+<!-- ── the three tabs ── -->
+<div id="home">
+  <section id="tabCheck" class="tab" role="tabpanel" aria-labelledby="tabBtnCheck">
     <div>
-      <p id="hMadeQ" class="q" tabindex="-1"></p>
-      <div id="hMadeMmRow" class="mmChoices" role="group" aria-labelledby="hMadeQ">
-        <button class="secondary" type="button" data-mm="5">5 mm</button>
-        <button class="secondary" type="button" data-mm="10">10 mm</button>
-        <button class="secondary" type="button" data-mm="15">15 mm</button>
-        <button id="hMadeOther" class="secondary" type="button" data-mm="other">Other</button>
+      <p id="today" class="eyebrow"></p>
+      <h1 class="large">Check</h1>
+    </div>
+
+    <section class="card stopped" id="stopped" role="status" hidden>
+      <p><b>Stopped. Nothing was saved.</b></p>
+      <p id="stoppedWait" class="small">Your last change is still waiting to be checked.</p>
+    </section>
+    <p id="homeStatus" class="homeStatus" role="alert" hidden></p>
+
+    <section id="inApp" class="card a2hs" aria-labelledby="inAppH" hidden>
+      <div class="head">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="12" fill="var(--blue)"/><path d="M15 6l3 9-3 9-3-9z" fill="#FFFFFF"/></svg>
+        <b id="inAppH">Open This in Safari</b>
       </div>
-      <div id="hMadeOtherRow" class="mm" hidden>
-        <label for="hMadeMm">How far</label>
-        <input id="hMadeMm" type="number" min="1" max="50" step="1" inputmode="numeric" placeholder="mm">
-        <button id="hMadeSave" class="secondary" type="button">Save</button>
+      <p class="small">Here the camera may not work, and results may not be kept.</p>
+      <button id="copyLink" class="primary" type="button">Copy the Link</button>
+      <p id="copyDone" class="small" role="status" hidden>Copied. Paste it into Safari's address bar.</p>
+    </section>
+
+    <section id="a2hs" class="card a2hs" aria-labelledby="a2hsH" hidden>
+      <div class="head">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="3" y="3" width="24" height="24" rx="7" fill="var(--blue)"/><path d="M15 9v12M9 15h12" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/></svg>
+        <b id="a2hsH">Keep Your Results</b>
       </div>
-      <p id="hMadeErr" class="small err" hidden>Type how many millimetres it moved, a whole number from 1 to 50.</p>
+      <p class="small">Add it to your Home Screen, so Safari keeps your results.</p>
       <div class="row">
-        <button id="hMadeYes" class="secondary" type="button">Yes, I made it</button>
-        <button id="hMadeNo" class="secondary" type="button">Later: I will ask when you come back.</button>
+        <button id="showShare" class="soft" type="button">Show Me How</button>
       </div>
-      <p id="hMadeTip" class="small">Tip: mark the seat post with tape before you move it, so you know how far it went.</p>
-      <button id="hMadeStart" class="primary inCard" type="button">Start</button>
-    </div>
-  </section>
-
-  <section class="card" aria-labelledby="hist-h" id="histCard" hidden>
-    <h2 id="hist-h">Your sessions on this phone</h2>
-    <p id="histLatest" class="latest" hidden></p>
-    <ul id="history" class="history"></ul>
-  </section>
-
-  <label class="toggle card" for="keepVideo">
-    <input type="checkbox" id="keepVideo">
-    <span>Keep a video of each session<br><span class="small">Off: no video is kept. One still picture is shown on the results screen and is not saved. On: you can save the clip at the end and send it for the full analysis.</span></span>
-  </label>
-
-  <details class="fold" id="stepsFold" open>
-    <summary>Show the setup steps again</summary>
-    <section class="card" aria-labelledby="need-h">
-      <h2 id="need-h">Before you start</h2>
-      <ul class="checklist">
-        <li data-for="none">Choose how your bike will stay up, above. The steps here change to match.</li>
-        <li data-for="trainer" hidden>Level the bike first. The middle of the front wheel should be as high off the floor as the middle of the back wheel. A trainer that holds the back wheel lifts it, so if the front sits lower, put a riser block or a thick book under the front wheel.</li>
-        <li data-for="trainer" hidden>On rollers, set up with a wall on the far side, away from the phone, so you can hold on while you get on, hold still, and start and stop pedalling.</li>
-        <li data-for="wall" hidden>A wall on the far side of the bike, away from the phone. Lean the bike only a little, with the bars straight.</li>
-        <li data-for="wall" hidden>Squeeze the front brake gently to keep the bike still. Only the hand nearest the phone needs to be on top of the brake lever (the hood).</li>
-        <li data-for="friend" hidden>Your friend stands up straight on the far side, away from the phone, next to the saddle, and holds the bike still. Where they hold it is up to them, as long as they do not crouch.</li>
-        <li>Turn the volume up and switch off silent mode. Everything is spoken.</li>
-        <li>When you tap Start, an iPhone asks twice: for the camera and for motion. Tap Allow both times. Motion is how it knows the phone is level.</li>
-        <li>Rotation lock off. Open Control Centre (swipe down from the top-right corner, or up from the bottom on an iPhone with a Home button) and check the lock with the circle arrow is not lit.</li>
-        <li>About 3 m of space beside the bike, and something 60 to 80 cm high for the phone, such as a chair with a box on it.</li>
-        <li>Light on you, not a window behind you.</li>
-        <li>Normal riding kit and shoes.</li>
-      </ul>
     </section>
-    <section class="card" aria-labelledby="what-h">
-      <h2 id="what-h">What it checks</h2>
-      <ul class="checklist">
-        <li>Your saddle height first, then your reach and bar height, on a road bike with drop handlebars.</li>
-        <li>A few minutes.</li>
-        <li>You need: a trainer or rollers, a wall or a friend to keep the bike up, something 60 to 80 cm high for the phone, and 3 m of space.</li>
-        <li>You hold the pedal at its lowest point for 3 seconds, then pedal: forwards for 30 seconds on a trainer or rollers, backwards for 20 seconds against a wall or with a friend holding the bike.</li>
-        <li>No video is kept unless you switch it on above.</li>
-      </ul>
+
+    <p id="homeSummary" class="lede" hidden></p>
+
+    <section class="card retest made-home" id="hMade" aria-labelledby="hmade-h" hidden>
+      <h2 id="hmade-h" class="h2">Your Last Change</h2>
+      <p id="hMadeQ" class="q" tabindex="-1"></p>
+      <div id="hMadeMmRow" class="steprow">
+        <label for="hMadeMm">How far did it move?</label>
+        <div class="stepper" role="group" aria-label="Millimetres">
+          <button id="hMadeLess" type="button" aria-label="Less"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+          <span class="mmv"><input id="hMadeMm" type="number" min="1" max="50" step="1" inputmode="numeric" aria-label="Millimetres it moved"><span aria-hidden="true">mm</span></span>
+          <button id="hMadeMore" type="button" aria-label="More"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M8 3v10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <p id="hMadeErr" class="small err" hidden>Type a whole number of millimetres, 1 to 50.</p>
+      <button id="hMadeYes" class="tinted" type="button">Save</button>
+      <div class="row">
+        <button id="hMadeNo" class="plain" type="button">Not Yet</button>
+      </div>
+      <button id="hMadeStart" class="tinted" type="button" hidden>Start a Check</button>
     </section>
-  </details>
 
-  <section class="card small" id="homeScreenTip" hidden>
-    <p style="margin:0">Add this to your Home Screen: tap Share, then Add to Home Screen. In Safari, your past sessions can be deleted if you do not open this page for 7 days.</p>
-  </section>
+    <section id="assessCard" class="card assess" aria-labelledby="assessTitle">
+      <div class="art" aria-hidden="true">
+        <svg width="358" height="140" viewBox="0 0 358 140">
+          <circle cx="179" cy="82" r="108" fill="var(--hero-ring1)"/><circle cx="179" cy="82" r="72" fill="var(--hero-ring2)"/>
+          <svg class="rider" x="86" y="8" width="174" height="124" viewBox="0 0 280 200"><use href="#riderArt"/></svg>
+        </svg>
+      </div>
+      <div class="body">
+        <div id="retestCard" hidden>
+          <span class="kicker">Check Your Change</span>
+          <p id="retestTitle" class="title"></p>
+          <p id="retestText" class="small"></p>
+        </div>
+        <div id="freshCard">
+          <span class="kicker">Bike Fit Check</span>
+          <p id="assessTitle" class="title">Check Your Road Bike Position</p>
+        </div>
+        <span class="meta">
+          <span><svg width="18" height="16" viewBox="0 0 18 16" aria-hidden="true"><path d="M2 4.5h3.2L6.6 2h4.8l1.4 2.5H16v9.5H2z" fill="currentColor"/><circle cx="9" cy="9" r="2.8" fill="var(--card)"/></svg>Camera-Based</span>
+          <span><svg width="12" height="16" viewBox="0 0 12 16" aria-hidden="true"><rect x="1" y="1" width="10" height="14" rx="2.5" fill="currentColor"/><rect x="4" y="2.6" width="4" height="1.4" rx="0.7" fill="var(--card)"/></svg>On This iPhone</span>
+        </span>
+        <button id="retestStart" class="primary" type="button" hidden>Check It Now</button>
+        <button id="newCheck" class="primary" type="button">Start a Check</button>
+      </div>
+    </section>
 
-  <section class="card small" aria-labelledby="priv-h">
-    <h2 id="priv-h">Private by design</h2>
-    <p style="margin:0">Everything runs on this phone. No video is kept unless you switch it on above, and nothing is uploaded. Your results stay in this browser.</p>
-  </section>
-
-  <details class="card other">
-    <summary>Another way: film a clip for the full analysis</summary>
-    <p class="small">This shows a different way to do it: you film in the Camera app and send the clip yourself. You do not need it for this app.</p>
-    <video class="howto" src="assets/how-to.mp4" poster="assets/how-to-poster.jpg" controls playsinline preload="none"></video>
-  </details>
-</main>
-
-<div id="run" hidden>
-  <video id="cam" playsinline muted autoplay></video>
-  <canvas id="overlay"></canvas>
-  <div class="hud-top">
-    <div class="steps" id="steps">
-      <span data-step="phone">Phone</span><span data-step="mount">You</span><span data-step="frame">Picture</span><span data-step="still">Still</span><span data-step="pedal">Pedal</span>
+    <div id="latestHead" hidden>
+      <div class="between">
+        <h2 class="h2">Latest Check</h2>
+        <button id="showAll" class="link" type="button">Show All</button>
+      </div>
+      <p id="latestSub" class="small"></p>
     </div>
-    <p id="runSetup" class="runSetup"></p>
-    <p id="say" aria-live="polite"></p>
-    <p id="sayNote" hidden></p>
-    <ul id="phoneList" class="phoneList" aria-label="Where the phone goes" hidden>
-      <li>Sideways and upright</li>
-      <li>60 to 80 cm off the floor</li>
-      <li>About 3 m from the side of the bike, facing the pedals</li>
-    </ul>
+    <div id="latestCards" style="display:flex;flex-direction:column;gap:12px"></div>
+
+  </section>
+
+  <section id="tabProgress" class="tab" role="tabpanel" aria-labelledby="tabBtnProgress" hidden>
+    <h1 class="large">Progress</h1>
+    <div class="seg" role="radiogroup" aria-label="Area">
+      <button id="segSaddle" type="button" role="radio" aria-checked="true" data-area="saddle">Saddle Height</button>
+      <button id="segReach" type="button" role="radio" aria-checked="false" data-area="reach">Reach and Bars</button>
+    </div>
+    <section id="progCard" class="card prog"></section>
+    <h2 id="changesH" class="h2" hidden>Changes You Made</h2>
+    <ul id="changes" class="card flat list changes" aria-labelledby="changesH" hidden></ul>
+    <!-- Every check, one tap away: the chart and the changes above already tell the story. -->
+    <details id="histCard" class="learnmore hist" hidden>
+      <summary id="hist-h" class="h2">All Checks</summary>
+      <ul id="history" class="card flat list history" aria-labelledby="hist-h"></ul>
+    </details>
+  </section>
+
+  <section id="tabLearn" class="tab" role="tabpanel" aria-labelledby="tabBtnLearn" hidden>
+    <h1 class="large">Learn</h1>
+
+    <h2 class="h2">How a Check Works</h2>
+    <p class="small" style="margin-top:-8px">A few minutes. The voice guides every step.</p>
+    <ol class="card flat list nums steps8">
+      <li><span><b>Get ready.</b> A chair and a box.</span></li>
+      <li><span><b>Place the phone.</b> Sideways, 4 big steps out.</span></li>
+      <li><span><b>Level it.</b> Follow the beeps.</span></li>
+      <li><span><b>Get on.</b> Sit as you ride.</span></li>
+      <li><span><b>Hold.</b> Near pedal at its lowest, still.</span></li>
+      <li><span><b>Pedal.</b> 20 seconds, or 30 on a trainer.</span></li>
+      <li><span><b>One change.</b> The first thing to fix.</span></li>
+      <li><span><b>Check it now.</b> The phone stays put.</span></li>
+    </ol>
+
+    <h2 class="h2">Where the Phone Goes</h2>
+    <div class="card flat">
+      <svg class="above" viewBox="0 0 358 210" role="img" aria-label="Seen from above: the bike along the top, the pedals in the middle, a dashed line straight out from the pedals at a right angle, about 3 metres or 4 big steps, to the chair. The chair back is on the far side from the bike, the box and the phone at the front edge of the seat, a lamp behind the phone.">
+        <rect x="34" y="18" width="290" height="6" rx="3" fill="var(--ter)"/>
+        <text class="t" x="179" y="14" text-anchor="middle">wall, or your friend, on the far side</text>
+        <path d="M66 44h70M222 44h70" stroke="var(--label)" stroke-width="9" stroke-linecap="round"/>
+        <path d="M136 44h86" stroke="var(--label)" stroke-width="3"/>
+        <circle cx="179" cy="44" r="7" fill="#FF8D28"/>
+        <text class="t" x="101" y="64" text-anchor="middle">back wheel</text>
+        <text class="t b" x="179" y="64" text-anchor="middle">pedals</text>
+        <text class="t" x="257" y="64" text-anchor="middle">front wheel</text>
+        <path d="M179 70V138" stroke="var(--blue)" stroke-width="2.5" stroke-dasharray="6 5"/>
+        <path d="M179 76h8v-8" fill="none" stroke="var(--blue)" stroke-width="2"/>
+        <text class="t blue" x="190" y="104">about 3 m, 4 big steps</text>
+        <text class="t" x="190" y="120">2.5 to 3.5 m is fine</text>
+        <rect x="157" y="140" width="44" height="34" rx="5" fill="var(--card)" stroke="var(--sec)" stroke-width="2"/>
+        <rect x="157" y="174" width="44" height="7" rx="2" fill="var(--sec)"/>
+        <rect x="164" y="146" width="30" height="16" rx="2" fill="#C8A27A"/>
+        <rect x="164" y="141" width="30" height="5" rx="2" fill="var(--label)"/>
+        <text class="t b" x="208" y="150">phone sideways, front edge</text>
+        <text class="t" x="208" y="178">chair back away from bike</text>
+        <circle cx="110" cy="178" r="8" fill="#FFD600"/>
+        <text class="t" x="110" y="202" text-anchor="middle">lamp behind the phone</text>
+      </svg>
+      <details class="learnmore inset">
+        <summary>Every Detail</summary>
+        <ol class="list nums place">
+          <li><span>From the pedals, walk 4 big steps straight out, about 3 m. 2.5 to 3.5 m is fine.</span></li>
+          <li><span>Stop within a hand's width of straight opposite the pedals.</span></li>
+          <li><span>Chair back away from the bike, so it is never in the picture.</span></li>
+          <li><span>The front edges of the seat and the box parallel to the bike.</span></li>
+          <li><span>A box or books about 20 cm high on the seat.</span></li>
+          <li><span>The phone sideways and upright at the box's front edge, the lens 60 to 80 cm up, about level with the tyre tops.</span></li>
+          <li><span>Optional: both wheel centres the same distance from the phone, within a hand.</span></li>
+          <li><span>Light behind the phone, never behind the bike.</span></li>
+          <li><span>Nothing between the phone and your near leg and arm.</span></li>
+          <li><span>Level it by the beeps, then leave it.</span></li>
+        </ol>
+      </details>
+    </div>
+
+    <h2 class="h2">Three Ways to Hold the Bike</h2>
+    <div class="card flat">
+      <div class="learnrow"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 26a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M26 26a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M11 26l7-12h10l5 12M18 14l4 12h-11M28 26 33 38h-8l3-12M4 39h36"/></svg><div><b>On a trainer or rollers</b><span>Bike level. Pedal forwards, 30 seconds.</span></div></div>
+      <div class="learnrow"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M40 4v36M36 8l4 4M36 16l4 4M36 24l4 4M36 32l4 4M3 28a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M21 28a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M9 28l6-10h8l4 10M15 18l3 10H9M4 39h30"/></svg><div><b>Leaning on a wall</b><span>Wall on the far side, front brake on. Pedal backwards, 20 seconds.</span></div></div>
+      <div class="learnrow"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 30a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M23 30a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M9 30l6-10h8l4 10M15 20l3 10H9M32.5 8a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M36 12v12M36 16l-6 4M36 24l-3 8M36 24l3 8"/></svg><div><b>A friend holds it</b><span>Friend upright on the far side. Pedal backwards, 20 seconds.</span></div></div>
+    </div>
+
+    <h2 class="h2">Tips</h2>
+    <div class="card flat">
+      <div class="learnrow"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h18v18H5zM14 9v10M9 14h10"/></svg><div><b>Add to Home Screen First</b><span>So Safari keeps your results.</span></div></div>
+      <div class="learnrow"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M8.5 12a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0M11 19h14v5H11"/></svg><div><b>Mark the Spot</b><span>Tape the floor by the chair and the back wheel.</span></div></div>
+    </div>
+
+    <details class="card learnmore" aria-labelledby="what-h">
+      <summary id="what-h">What It Checks</summary>
+      <p class="small">Your saddle height first, then your reach and bar height, on a road bike with drop handlebars. It cannot check a time trial or triathlon position on aero bars.</p>
+    </details>
+
+    <section class="card" aria-labelledby="priv-h">
+      <h2 id="priv-h" class="h2" style="font-size:1rem">Private by Design</h2>
+      <p class="small">Everything stays on this phone. Your pain answer is never saved.</p>
+      <label class="toggle" for="keepVideo">
+        <span>Keep a Video of Each Session<br><span class="small">On: save each clip for the full analysis.</span></span>
+        <input type="checkbox" id="keepVideo" class="switch" role="switch">
+      </label>
+    </section>
+
+    <details class="card learnmore" aria-labelledby="exact-h">
+      <summary id="exact-h">How Exact It Is</summary>
+      <p class="small">In one study of 26 cyclists filmed from the side, this kind of phone pose model was typically off by 3 to 9 degrees against lab markers, so small changes can hide inside that error. Readings within 2.5 degrees of a target count as in range. It is a good start, not a professional fit. For pain or numbness that keeps coming back, see a professional bike fitter. Not medical advice.</p>
+    </details>
+
+    <details class="card learnmore">
+      <summary>Another Way: Film a Clip for the Full Analysis</summary>
+      <p class="small">You film in the Camera app and send the clip yourself. You do not need it for this app.</p>
+      <video class="howto" src="assets/how-to.mp4" poster="assets/how-to-poster.jpg" controls playsinline preload="none"></video>
+    </details>
+  </section>
+
+  <div class="tabfade" aria-hidden="true"></div>
+  <nav class="tabbar" aria-label="Tabs">
+    <div role="tablist" style="display:contents">
+      <button id="tabBtnCheck" type="button" role="tab" aria-selected="true" aria-controls="tabCheck" data-tab="check">
+        <svg viewBox="0 0 28 24" aria-hidden="true"><circle cx="6.5" cy="16.5" r="5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="21.5" cy="16.5" r="5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="15.5" cy="3.4" r="2.6" fill="currentColor"/><path d="M6.5 16.5 11 9.5l4 3.5h4.5M11 9.5l4.5-2 2.5 3.5M15 13l-1.5 3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Check</button>
+      <button id="tabBtnProgress" type="button" role="tab" aria-selected="false" aria-controls="tabProgress" data-tab="progress">
+        <svg viewBox="0 0 28 24" aria-hidden="true"><path d="M3 2v19h23" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 16l5-6 4 3 7-8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Progress</button>
+      <button id="tabBtnLearn" type="button" role="tab" aria-selected="false" aria-controls="tabLearn" data-tab="learn">
+        <svg viewBox="0 0 28 24" aria-hidden="true"><path d="M14 5.5C11.5 3.5 7.5 2.8 3 3.4v15.4c4.5-.6 8.5.1 11 2.1 2.5-2 6.5-2.7 11-2.1V3.4c-4.5-.6-8.5.1-11 2.1z" fill="currentColor"/><path d="M14 5.5v15.4" stroke="var(--lens-cut)" stroke-width="1.6"/></svg>
+        Learn</button>
+    </div>
+  </nav>
+</div>
+
+<!-- "Show Me How": the Add to Home Screen steps -->
+<div id="shareHint" class="sharehint" role="dialog" aria-modal="true" aria-labelledby="shareHintText" hidden>
+  <button id="shareHintClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+  <div class="box">
+    <p id="shareHintText"><b>Add to Home Screen</b></p>
+    <ol class="steps3">
+      <li><span aria-hidden="true">1</span><span>Tap Share <svg width="18" height="22" viewBox="0 0 18 22" role="img" aria-label="the Share symbol, a square with an arrow pointing up" style="vertical-align:-4px"><path d="M9 2v12M5 6l4-4 4 4M5 9H3v11h12V9h-2" fill="none" stroke="#409CFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> below</span></li>
+      <li><span aria-hidden="true">2</span><span>Tap Add to Home Screen</span></li>
+      <li><span aria-hidden="true">3</span><span>Tap Add</span></li>
+    </ol>
+    <p class="small" style="color:#C7C7CC">No Share below? Tap the three dots, or look up top.</p>
   </div>
-  <div id="timer" class="num" hidden></div>
-  <div class="hud-bottom">
-    <div class="chips" id="chips"></div>
-    <div class="row">
-      <button id="skip" class="secondary" type="button">Skip this check</button>
-      <button id="stop" class="secondary" type="button">Stop</button>
+  <svg class="arrow" viewBox="0 0 64 96" aria-hidden="true"><path d="M32 4v80M12 64l20 22 20-22" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</div>
+
+<!-- ── running: the camera view ──
+     Two ways to use the same spot on the chair (DECISIONS.md, 2026-10-10). Screen towards the rider
+     (class "front"): the 3 m layer, only big things (a coloured border, one word, a ring with a
+     countdown, the result), the picture mirrored like a mirror and dimmed behind the figure. Screen
+     away (class "rear"): for arm's length, the picture as it is, the same figure and outline, the
+     last correction on a frosted card, the ring for a helper. app.js sets the layer and the colours. -->
+<div id="run" class="rear" hidden>
+  <div id="stage" class="stage">
+    <video id="cam" playsinline muted autoplay></video>
+    <canvas id="overlay" role="img" aria-label=""></canvas>
+  </div>
+
+  <!-- Step 1: where the phone goes, with the key frame of the placement clip drawn. -->
+  <section id="placeView" class="placeView" aria-labelledby="placeH" hidden>
+    <div class="keyframe">
+      <svg viewBox="0 0 330 236" role="img" aria-label="Seen from the side: the chair with its back away from the bike, a box at the front edge of the seat, the phone standing sideways and edge-on at the front edge of the box with its lens level with the top of the tyres, and the bike about 3 metres away, 4 big steps from the pedals.">
+        <path d="M8 188H322" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+        <path d="M22 188V138M62 188V138M16 138H70M20 138V92" stroke="#C9CDD4" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <text x="10" y="84" class="kt">chair back</text>
+        <rect x="30" y="116" width="34" height="22" rx="3" fill="#C8A27A"/>
+        <text x="47" y="131" text-anchor="middle" class="kt box">box</text>
+        <rect x="60" y="106" width="4.5" height="10" rx="1.5" fill="#FFFFFF"/>
+        <circle cx="66.5" cy="110" r="2.5" fill="#0091FF"/>
+        <path d="M71 110H104M114 110H318" stroke="#0091FF" stroke-width="2" stroke-dasharray="6 5"/>
+        <path d="M104 117l6-14M110 117l6-14" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+        <text x="74" y="96" class="kt lens">lens at the top of the tyres</text>
+        <circle cx="177" cy="151" r="37" fill="none" stroke="#C9CDD4" stroke-width="4"/>
+        <circle cx="288" cy="151" r="37" fill="none" stroke="#C9CDD4" stroke-width="4"/>
+        <path d="M177 151L225 159L212 106Z M212 106L268 104L272 118L225 159 M272 118L288 151 M268 104L272 98H281Q287 98 286 106Q285 112 280 112 M212 106L211 99" fill="none" stroke="#C9CDD4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M200 99H222" stroke="#C9CDD4" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="225" cy="159" r="6" fill="#FF8D28"/>
+        <path d="M64 204H104M114 204H225" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+        <path d="M104 210l6-12M110 210l6-12" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+        <path d="M64 199v10M225 199v10" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+        <text x="145" y="226" text-anchor="middle" class="kt b">about 3 m, 4 big steps</text>
+      </svg>
     </div>
+    <div class="placeText">
+      <h1 id="placeH">Stand Your iPhone Sideways on the Chair</h1>
+      <p id="placeSub">On a box, 4 big steps from the pedals.</p>
+    </div>
+  </section>
+
+  <!-- Step 1: level. The degrees off level and a bubble. -->
+  <div id="levelView" class="levelView" hidden>
+    <span id="levelDeg" class="deg num"></span>
+    <div id="bubbleBar" class="bubbleBar" aria-hidden="true"><i class="mid"></i><i id="bubble" class="bubble"></i></div>
+    <span id="levelSub" class="sub"></span>
+  </div>
+
+  <!-- The 3 m word, screen towards the rider: an arrow or a tick, one word, a few words under it. -->
+  <div id="sign" class="sign" role="img" aria-label="" hidden>
+    <svg id="signArrow" class="sarrow" viewBox="0 0 96 56" aria-hidden="true" hidden><path d="M88 28H14M38 6 12 28l26 22" fill="none" stroke="currentColor" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg id="signCheck" class="scheck" viewBox="0 0 64 64" aria-hidden="true" hidden><circle cx="32" cy="32" r="30" fill="currentColor"/><path d="M18 33l9 9 19-20" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span id="signWord" class="word"></span>
+    <span id="signSub" class="sub"></span>
+  </div>
+
+  <!-- Holding still and pedalling: the ring, HOLD or the seconds left, and the word. -->
+  <div id="ringView" class="ringView" hidden>
+    <div id="ring" class="ring" role="img" aria-label="">
+      <svg viewBox="0 0 250 250" aria-hidden="true">
+        <circle cx="125" cy="125" r="110" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="24"/>
+        <circle id="ringArc" cx="125" cy="125" r="110" fill="none" stroke="#0091FF" stroke-width="24" stroke-linecap="round" stroke-dasharray="0 691.2" transform="rotate(-90 125 125)"/>
+      </svg>
+      <svg id="holdIcon" class="holdIcon" viewBox="0 0 250 250" aria-hidden="true"><circle cx="125" cy="104" r="38" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="6"/><line x1="125" y1="104" x2="125" y2="156" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round"/><rect x="100" y="152" width="50" height="16" rx="8" fill="#FFFFFF"/><circle cx="125" cy="104" r="10" fill="#FFFFFF"/></svg>
+      <span id="timer" class="digits num"></span>
+    </div>
+    <div class="ringWords"><span id="ringWord" class="word"></span><span id="ringSub" class="sub"></span></div>
+  </div>
+
+  <!-- Screen away: the last correction, on a frosted card. -->
+  <div id="fixCard" class="fixCard" role="status" hidden>
+    <svg id="fixTape" class="tape" viewBox="0 0 44 44" aria-hidden="true" hidden><circle cx="20" cy="22" r="15" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="20" cy="22" r="6" fill="none" stroke="currentColor" stroke-width="3"/><path d="M20 37h22" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>
+    <svg id="fixArrow" viewBox="0 0 96 56" aria-hidden="true" hidden><path d="M88 28H14M38 6 12 28l26 22" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span id="sayNote"></span>
+  </div>
+
+  <!-- A full screen of colour: LEVEL, the reading taken, DONE, and the result. -->
+  <div id="field" class="field" hidden>
+    <div class="frow">
+      <svg id="fieldCheck" viewBox="0 0 120 120" aria-hidden="true" hidden><circle cx="60" cy="60" r="56" fill="#000"/><path d="M34 62l17 17 36-38" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg id="fieldUp" class="farrow" viewBox="0 0 104 140" aria-hidden="true" hidden><path d="M52 128V18M12 56 52 16l40 40" fill="none" stroke="#000" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg id="fieldDown" class="farrow" viewBox="0 0 104 140" aria-hidden="true" hidden><path d="M52 12v110M12 84l40 40 40-40" fill="none" stroke="#000" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="fieldWord" class="word"></span>
+    </div>
+    <span id="fieldSub" class="fsub"></span>
+    <button id="seeWhat" class="seeWhat" type="button" hidden>See What to Do</button>
+  </div>
+
+  <svg id="border" class="border" aria-hidden="true"><rect id="borderRect" x="7" y="7" rx="40" fill="none" stroke-width="14" stroke-linecap="round"/></svg>
+
+  <div class="hud-top">
+    <span id="stepLabel" class="stepPill">Step 1 of 5</span>
+    <ol id="steps" class="vh" aria-label="Steps">
+      <li data-step="phone">Phone</li><li data-step="mount">You</li><li data-step="frame">Picture</li><li data-step="still">Still</li><li data-step="pedal">Pedal</li>
+    </ol>
+    <div class="chips" id="chips"></div>
+    <span class="grow"></span>
+    <button id="skip" class="runbtn" type="button">Skip</button>
+    <button id="stop" class="runbtn stop" type="button" aria-label="Stop the check"><svg width="14" height="14" aria-hidden="true"><use href="#xmark"/></svg><span>Stop</span></button>
+  </div>
+  <p id="runSetup" class="runSetup"></p>
+  <p id="say" class="caption" aria-live="polite"></p>
+</div>
+
+<!-- ── the results: a sheet over the tabs ── -->
+<div id="results" class="sheet" role="dialog" aria-modal="true" aria-labelledby="rWhat" hidden>
+  <div class="in">
+    <button id="done" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+    <header class="verdict">
+      <!-- No overall status: the status shown is the status of the area the headline is about
+           (rStatus). The summary pill disagreed with the areas in round 1. Kept hidden for the scripts. -->
+      <span id="rOverall" class="pill" hidden>Result</span>
+      <!-- Pain or numbness that keeps coming back: one short line, the full note one tap away. -->
+      <details id="rPainBox" class="note painbox" hidden><summary id="rPainShort"></summary><p id="rPain"></p></details>
+      <span id="rStatus" class="pill"></span>
+      <h1 id="rWhat" class="big" tabindex="-1"></h1>
+      <p id="rWhy" class="why"></p>
+      <p id="rSetup" class="setupLine" hidden></p>
+    </header>
+    <p id="rCompare" class="note compare" hidden></p>
+    <section id="rHow" class="card" aria-labelledby="rHowQ" hidden>
+      <p id="rHowQ" class="q" style="font-weight:600"></p>
+      <div class="refile" role="group" aria-labelledby="rHowQ">
+        <button type="button" data-refile="trainer" aria-pressed="false">On a trainer or rollers</button>
+        <button type="button" data-refile="wall" aria-pressed="false">Leaning on a wall</button>
+        <button type="button" data-refile="friend" aria-pressed="false">A friend holds it</button>
+      </div>
+    </section>
+    <p id="rDisagree" class="note" hidden>Your held-still reading was outside its range. Film once more to be sure.</p>
+    <p id="rWarn" class="note" hidden></p>
+    <div id="rHowToSlot"></div>
+    <section id="rMade" class="card made" aria-labelledby="made-t" hidden>
+      <div id="rMadeAsk" style="display:flex;flex-direction:column;gap:12px">
+        <h2 id="made-t" class="t">I Made This Change</h2>
+        <p id="made-h" class="q" tabindex="-1" hidden></p>
+        <div id="rMadeMmRow" class="steprow">
+          <label for="rMadeMm">How far did it move?</label>
+          <div class="stepper" role="group" aria-label="Millimetres">
+            <button id="rMadeLess" type="button" aria-label="Less"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+            <span class="mmv"><input id="rMadeMm" type="number" min="1" max="50" step="1" inputmode="numeric" aria-label="Millimetres it moved"><span aria-hidden="true">mm</span></span>
+            <button id="rMadeMore" type="button" aria-label="More"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M8 3v10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <p id="rMadeErr" class="small err" hidden>Type a whole number of millimetres, 1 to 50.</p>
+        <div class="quiet">
+          <button id="rMadeYes" class="plain" type="button">Save, Check Later</button>
+          <button id="rMadeNo" class="plain" type="button">Not Yet</button>
+        </div>
+        <p id="rWhenDone" class="small" role="status" hidden></p>
+      </div>
+      <!-- After "Later": when will he move it? A calendar reminder that opens this app. -->
+      <div id="rWhen" class="when" hidden>
+        <h2 id="when-t" class="t" tabindex="-1">When Will You Move It?</h2>
+        <p class="small">I can put a reminder in your calendar.</p>
+        <div class="whenrow" role="group" aria-labelledby="when-t">
+          <button id="whenTonight" class="soft" type="button">Tonight</button>
+          <button id="whenWeekend" class="soft" type="button">Weekend</button>
+          <button id="whenPick" class="soft" type="button">Pick a Day</button>
+        </div>
+        <div id="whenPickRow" class="steprow" hidden>
+          <label for="whenDate">Day and time</label>
+          <input id="whenDate" class="whendate" type="datetime-local">
+          <button id="whenAdd" class="primary" type="button">Add to Calendar</button>
+        </div>
+        <button id="whenSkip" class="plain" type="button">Not Now</button>
+      </div>
+      <p id="rMadeSaved" hidden></p>
+    </section>
+    <div id="rList" class="areas num" style="display:flex;flex-direction:column;gap:12px"></div>
+    <section class="card" aria-labelledby="shot-h" id="shotCard" hidden>
+      <h2 id="shot-h" class="t" style="font-size:1rem;font-weight:600">Pedal at Its Lowest Point</h2>
+      <img id="rShot" class="shot" alt="Your position with the pedal at its lowest point, with the measured joints marked">
+    </section>
+    <div class="actions">
+      <div class="row">
+        <button id="speak" class="soft" type="button">Say It Again</button>
+        <button id="copy" class="soft" type="button">Copy Results</button>
+        <button id="saveVideo" class="soft" type="button" hidden>Save the Video</button>
+      </div>
+    </div>
+    <p class="small">Not medical advice. For pain that keeps coming back, see a bike fitter.</p>
+  </div>
+  <!-- The one primary button, at the bottom where the thumb is: while a change waits, the button that
+       saves it and checks it now, named for what it saves ("I Moved It 9 mm, Check Now", app.js
+       renderNowLabel), else Check Again (app.js renderBar). -->
+  <div id="rBar" class="sbar">
+    <button id="rMadeNow" class="primary" type="button">I Moved It, Check Now</button>
+    <p id="rMadeHint" class="small center">The phone is already in place.</p>
+    <button id="again" class="tinted" type="button">Check Again</button>
   </div>
 </div>
 
-<main id="results" class="page" hidden>
-  <p id="rPain" class="note" hidden></p>
-  <p id="rCompare" class="note compare" hidden></p>
-  <header class="verdict">
-    <!-- No overall status on screen: each area has its own, and a summary pill disagreed with them
-         (Fair above "Nothing to change today"). Kept hidden for the test scripts. -->
-    <span id="rOverall" class="pill" hidden>Result</span>
-    <div id="rWhat" class="big"></div>
-    <div id="rWhy" class="why"></div>
-    <p id="rSetup" class="setupLine" hidden></p>
-  </header>
-  <section id="rMade" class="card made" aria-labelledby="made-h" hidden>
-    <div id="rMadeAsk">
-      <h3 id="made-h" class="q" tabindex="-1"></h3>
-      <div id="rMadeMmRow" class="mmChoices" role="group" aria-labelledby="made-h">
-        <button class="secondary" type="button" data-mm="5">5 mm</button>
-        <button class="secondary" type="button" data-mm="10">10 mm</button>
-        <button class="secondary" type="button" data-mm="15">15 mm</button>
-        <button id="rMadeOther" class="secondary" type="button" data-mm="other">Other</button>
-      </div>
-      <div id="rMadeOtherRow" class="mm" hidden>
-        <label for="rMadeMm">How far</label>
-        <input id="rMadeMm" type="number" min="1" max="50" step="1" inputmode="numeric" placeholder="mm">
-        <button id="rMadeSave" class="secondary" type="button">Save</button>
-      </div>
-      <p id="rMadeErr" class="small err" hidden>Type how many millimetres it moved, a whole number from 1 to 50.</p>
-      <div class="row">
-        <button id="rMadeYes" class="secondary" type="button">I made this change</button>
-        <button id="rMadeNo" class="secondary" type="button">Later: I will ask when you come back.</button>
-      </div>
-      <p id="rMadeTip" class="small">Tip: mark the seat post with tape before you move it, so you know how far it went.</p>
-    </div>
-    <p id="rMadeSaved" hidden></p>
-  </section>
-  <section id="rHow" class="card" aria-labelledby="rHowQ" hidden>
-    <p id="rHowQ" class="q" style="margin:0;font-weight:700"></p>
-    <div class="refile" role="group" aria-labelledby="rHowQ">
-      <button class="secondary" type="button" data-refile="trainer" aria-pressed="false">On a trainer or rollers</button>
-      <button class="secondary" type="button" data-refile="wall" aria-pressed="false">Leaning on a wall</button>
-      <button class="secondary" type="button" data-refile="friend" aria-pressed="false">A friend holds it</button>
-    </div>
-  </section>
-  <p id="rDisagree" class="note" hidden>Your held-still reading was outside its range. Film once more to be sure.</p>
-  <p id="rWarn" class="note" hidden></p>
-  <section class="card" aria-labelledby="ang-h">
-    <h2 id="ang-h">Your fit, by area</h2>
-    <ul id="rList" class="areas num"></ul>
-  </section>
-  <section class="card" aria-labelledby="shot-h" id="shotCard" hidden>
-    <h2 id="shot-h">With the pedal at its lowest point</h2>
-    <img id="rShot" class="shot" alt="Your position with the pedal at its lowest point, with the measured joints marked">
-  </section>
-  <div class="row">
-    <button id="again" class="primary" type="button">Film again</button>
-  </div>
-  <div class="row">
-    <button id="speak" class="secondary" type="button">Say it again</button>
-    <button id="saveVideo" class="secondary" type="button" hidden>Save the video</button>
-    <button id="copy" class="secondary" type="button">Copy results</button>
-    <button id="done" class="secondary" type="button">Home</button>
-  </div>
-  <p class="small">Phone cameras are only accurate to a few degrees, so small differences mean little. Change one thing at a time, then film again to see what it did. For pain or numbness that keeps coming back, see a professional bike fitter. For the most exact numbers, switch on Keep a video before you start, then save it here and send it for the full analysis. Not medical advice.</p>
-</main>
+<!-- The coach's voice: every line is a recorded clip (assets/voice/), played through this one element,
+     unlocked by the first tap that leads to sound. Not shown: no controls. -->
+<audio id="voice" preload="auto"></audio>
 
 <script type="module" src="app.js"></script>
 </body>

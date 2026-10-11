@@ -9,42 +9,140 @@ triathlon position on aero bars.
 
 ## Using it
 
+The app has three tabs, like Apple's Health app: **Check** (start a check; your latest result),
+**Progress** (each area over time on its target band) and **Learn** (how a check works, where the
+phone goes, the three setups, privacy). The tabs follow the phone's light or dark mode; the check
+itself (Setup, Getting Ready and the camera view) is always dark, like Apple's own assessment flow.
+
+Simple on purpose (Alex's ruling of 2026-10-10, "customer experience and simplicity first"): every
+screen has one title, at most one short line under it (about 12 words), one primary button at the
+bottom where the thumb is, and rows of a handful of words. Everything else is one tap away (a row
+that opens, or **Details**), and the voice and the drawings carry the instructions, in short
+sentences. The full reason and the numbers for a fitter are in **Say It Again** and **Copy Results**.
+`test/simple.test.mjs` checks the screens and the voice against this.
+
 1. Open the link in Safari on an iPhone, or Chrome on Android.
-2. Optional: tap Share, then **Add to Home Screen**. It then opens full screen, like an app, and in
-   Safari it also keeps your past sessions safe: Safari can delete a page's saved data after 7 days
-   without a visit.
-3. Answer the first question: **How will your bike stay up?** Tap **On a trainer or rollers**,
-   **Leaning on a wall** or **A friend holds it**. The phone remembers your answer for next time,
-   and the steps change to match (see "Three ways to hold the bike" below). If you tap Start
-   without answering, the question says so in red, and the voice says "First, tell me how your bike
-   will stay up."
-4. Answer the question under it: **Do you get pain or numbness that keeps coming back when you
-   ride?** Nothing is pressed at first, and no answer counts as No. It is asked every time and the
-   answer is never saved. A Yes adds a note first in the results (see "Pain or numbness" below); it
-   does not change the advice.
-5. Tap **Start** and allow the camera and the motion sensors (an iPhone asks twice). A rider who has
-   filmed before finds Start on the first screen; the setup steps fold into **Show the setup steps
-   again**.
+2. The first time, in Safari, the Check tab starts with **Keep Your Results**: "Add it to your Home
+   Screen, so Safari keeps your results." **Show Me How** opens three short steps over the page with
+   an arrow at Safari's own buttons: **Tap Share** below (on iOS 26 it may be under the three dots,
+   or at the top), **Tap Add to Home Screen**, **Tap Add**; then open it from there. It then opens full
+   screen, like an app, and in Safari it also keeps your past sessions safe: Safari can delete a
+   page's saved data after 7 days without a visit. **Start a Check** is the one primary button on
+   the tab, and goes straight to a check without it. Where iOS 26 puts Share is from
+   reports of its Safari layouts ([Glide community](https://community.glideapps.com/t/ios-26-add-to-home-screen-workflow-change/84599),
+   [iThinkDifferent](https://www.ithinkdiff.com/add-web-app-bookmark-iphone-home-screen-ios-26/)), not
+   checked on Alex's phone yet. A link opened inside another app (Instagram, Facebook, LinkedIn and
+   the like) opens in that app's own browser, which may not allow the camera or keep your results:
+   there the Check tab says **Open This in Safari**, with **Copy the Link**.
+3. Tap **Start a Check** (or **Check It Now** when a change you made is waiting to be checked). A new
+   check asks three questions, one a screen, as Apple's "Choose How to Measure" does: each screen
+   has one title (the question), one short line, the answers as cards, and **Next** at the bottom.
+   Back and close are the glass circles at the top.
+   - **How Will Your Bike Stay Up?** **On a trainer or rollers**, **Leaning on a wall** or **A friend
+     holds it**, each with one short line ("Pedal backwards, 20 seconds"). The phone remembers your
+     answer for next time, and the steps change to match (see
+     "Three ways to hold the bike" below). If you tap Next without answering, the question says so
+     in red, and the voice says "First, tell me how your bike will stay up."
+   - **Where Will the Screen Face?** **Away from me** (the back camera; the voice tells you
+     everything), first and chosen, or **Towards me** (the front camera, so you can see the screen
+     from the bike). The two drawings differ: the back of the phone with its lens and the voice's
+     sound waves, or a lit screen with a tick. Away from me
+     is marked Default and is chosen until you change it: the front camera is still being tested on
+     a real iPhone (Alex's ruling of 2026-10-10). The answer picks the camera (`facingMode` `user`
+     for Towards me, `environment` for Away from me), is remembered on this phone and is stored with
+     each session, together with the camera the browser really gave. **Which Should I Pick?** opens
+     the note: either way the phone stands sideways on the chair, about 3 m from the pedals, and
+     Towards me is still being tested on a real iPhone. What each answer shows is under "The camera
+     view" below.
+   - **Pain or Numbness That Keeps Coming Back When You Ride?** ("Your answer is never saved.")
+     Nothing is chosen at first, and **Next** waits for **No** or **Yes**: tapped before an answer,
+     it says "First, tap No or Yes." on the screen and aloud, so a rider with pain cannot skip the
+     question unseen. It is asked every time and the answer is never saved (Learn says so too). A
+     Yes adds a note first in the results (see "Pain or numbness" below); it does not change the
+     advice. A check started from the results (Check It Now, Check Again) keeps this visit's answer.
+4. **Getting Ready** shows the How to Set Up guide (`assets/setup-guide.mp4`, from the live app's
+   sound and guide fix: a narrated, captioned drawn guide of this check's own steps, 73 s; it plays
+   in place, muted, under **Play**) and four rows: a chair and a 20 cm box, your road bike, kit
+   and shoes, 3 m of space with light on you, the volume up and silent mode off. The steps for your
+   setup are folded into **Setup Steps**, one tap away, the first time too: the voice says each of
+   them during the check. The older Camera app clip (`assets/how-to.mp4`: a hidden helper, a 5 s
+   hold, sending the file) is never shown here; it belongs to Learn's "Another Way: Film a Clip".
+5. The first time in each visit, Getting Ready's button says **Next** and opens **Allow Camera and
+   Motion**: "Your iPhone will ask twice. Tap Allow both times.", then four short rows: the camera
+   is to see how you sit on the bike, motion is to beep when the phone is level, the iPhone may say
+   mishevelada.github.io (that is this app), and nothing leaves this phone. **Tap to Hear Me** plays
+   one recorded line in the coach's voice (see "The voice") and then shows "No sound? Turn the volume up and switch off silent
+   mode." (the only two settings the app mentions). Tap **Start**; after that, Getting Ready's
+   button is Start until the app is opened again.
 6. Follow the voice. It first says which setup you chose ("You chose: bike leaning on a wall. If
-   that is wrong, tap Stop now."), and the run screen shows it under the step names. On a trainer it
-   asks you to check the bike is level. It asks you to stand the phone sideways on something 60 to
-   80 cm high (a chair with a box on it works), about 3 m from the bike; the same three points stay
-   on the screen until the phone is level, and it beeps, once it has finished speaking, until the
-   phone is level. Then you get on the bike, and it checks the picture and tells you how to move the
-   phone if needed. You hold the camera-side pedal at its lowest point for 3 seconds, then pedal:
+   that is wrong, tap Stop now."), and the camera view shows it under the step (with the screen
+   away). On a trainer it asks you to check the bike is level. Then **Stand Your iPhone Sideways on
+   the Chair** ("On a box, 4 big steps from the pedals."), with a drawing of the spot, while the voice
+   says it in short sentences: "Stand the phone sideways and upright on a box on a chair. Turn the
+   chair back away from the bike. Keep the lens level with the top of the tyres. Put the phone about
+   3 metres away, opposite the pedals and facing them." With the screen towards you it ends "...,
+   with the screen facing the bike." The rest of the detail (the lens 60 to 80 cm up, the front edge
+   of the box) is in the drawing and in Learn's **Every Detail**. It beeps, once it has finished speaking, until the phone is level, and the
+   screen shows how many degrees it is off and a level bubble; no line ever says which way to tilt
+   (turning the phone round flips that). With the screen away, you are at the phone and can see
+   it, so before the beeps the voice says "Both wheels inside the frame, pedals in the middle." and
+   the camera view draws a big outline of the bike, with the pedals on a line down the middle, for
+   5 seconds (a design choice); the outline stays behind the level numbers. On the first check on
+   this phone (and once for a rider whose checks are older than this tip), once it is level: "Tape
+   the floor by the chair legs and the back wheel. Next time, line them up.", shown as a tip on the camera
+   view (screen away) until you are on the bike; the first "I cannot see you on the bike" waits 40
+   seconds instead of 20 (a design choice), for the tape. From the second check set up the same
+   way (trainer, wall or friend) on this phone, the run is shorter, under 60 spoken words before "Hold it": "You chose: ..." and "If that is wrong,
+   tap Stop now." stay, then "Set the phone up as last time, on your tape marks." (or "opposite the
+   pedals" before any tape, and the way the screen faces when it is not the same as last time),
+   "Level.", and one line to get on that keeps the safety part: "Get on as before, with the front
+   brake gently on." against a wall, "Get on as before. On rollers, hold on to the wall." on a
+   trainer, "Friend: hold the bike, standing up straight. Rider: get on." with a friend. Then you get on the bike, and it checks the picture and
+   tells you how to move the phone if needed. You hold the camera-side pedal at its lowest point for 3 seconds, then pedal:
    forwards for 30 seconds on a trainer or rollers, backwards for 20 seconds against a wall or with
-   a friend holding the bike. At the end it says the one change to make first, in a sentence or two.
-   **Say it again** gives the longer version, with the reasons and the other angles.
-7. Make that one change. The results show **How to raise the saddle** (or lower it) under the
-   saddle step, folded away. Then tell the app how far you moved it: tap **5 mm**, **10 mm**,
-   **15 mm**, or **Other** and type the number. Nothing is chosen for you and nothing is saved until
-   you tap one. For the handlebars it is one button, **I made this change**. **Later: I will ask when
-   you come back** leaves the question for the home screen, which asks it until you answer, and
-   asks once more before it films. The home screen then shows a **Film again** card with its own
-   Start: "You raised the saddle 10 mm after your check on Oct 3." Film again, and the results open
-   with a before and after line (see "Checking a change you made"). Film the check the same way as
-   before (trainer, wall or friend): a film set up another way is not compared, and the results say
-   so.
+   a friend holding the bike. At the end, when there is something to change, it says "Leave the
+   phone where it is." and then the one change to make first, in a sentence or two.
+   **Say It Again** gives the longer version, with the reasons and the other angles.
+7. The results open as a sheet over the tabs (the glass close button at the top right closes them;
+   with the screen towards you, the result shows first on the camera view and **See What to Do**
+   opens them),
+   in one order: the status of the area the headline is about, the headline (the one change, in
+   Title Case), one short line ("Your knee bends too much with the pedal at its lowest point."); then
+   **How to Do It**, one tap away, six short steps in the order your hands do them; then **I Made
+   This Change**: "How far did it move?", a millimetre stepper (type the number, or tap minus and
+   plus, from 1 to 50) that starts at the low end of the suggestion. The one primary button sits in
+   a bar at the bottom of the screen and says what it saves: **I Moved It 9 mm, Check Now**, its
+   number following the stepper as you change it (VoiceOver: "I moved the saddle 9 millimetres. Save
+   that and check now."; for the handlebars, **I Raised the Bars, Check Now**). It saves exactly
+   that and starts the next check straight away, with "The phone is already in place." under it
+   (see "Checking it straight away" below), and **Check Again** as a quiet text button; with no
+   change waiting, the bar holds **Check Again** alone. A bare "Check It Now" used to save the
+   stepper's number as a change made, one tap after the result, before the rider had moved anything.
+   Once you set the number, the voice says "Check it now. The phone is already in
+   place." **Save, Check Later** saves it without starting; **Not Yet** first asks **When Will You
+   Move It?** (**Tonight**, **Weekend**,
+   **Pick a Day**, or **Not Now**; see "Coming back" below), saves nothing and leaves the question for the Check tab, which asks it until you answer (**Your
+   Last Change**), and asks once more before it films. Nothing is saved until you tap one. For the
+   handlebars there is no number. Under the card, the area in focus has its reading on a range bar
+   (the target shaded, a dot at your reading), with its reason, its step and every reading behind
+   **Details**, and an area that waits for the saddle is one line, "Reach and Bars: checked after the
+   saddle", that opens. The sheet ends with "Not medical advice. For pain that keeps coming back, see
+   a bike fitter."; with a Yes to the pain question it starts with one line, "Pain that keeps coming
+   back: see a doctor or physio, and a bike fitter.", and **More** opens the full note. The Check tab
+   then shows **Check Your Change**: "You raised the saddle 10 mm after your Oct 3 check." Check again, and the results
+   open with a before and after line (see "Checking a change you made"); when the change moved your
+   knee the right way into range, the headline is **Your Saddle Change Worked**, with the before and
+   after drawn on the target band, a chime, and the voice: "That worked. Your saddle is done. Check
+   again whenever you change the saddle, stem, shoes or cleats." A first check with nothing to
+   change ends with that last sentence too. Neither is said while the held-still reading asks for
+   one more film ("Film once more to be sure."): then the phone stays where it is for that film. Check the same way as before (trainer, wall or friend): a check
+   set up another way is not compared, and the results say so.
+8. **Progress** shows Saddle Height (the pedalling knee) or Reach and Bars (back, elbow and shoulder)
+   for the last checks filmed the same way as the newest one, on the target band, with a marker for
+   each change you made, how the newest compares with the first one shown, and "Phone cameras are
+   only accurate to a few degrees, so small differences mean little." Under it, **Changes You
+   Made** (with what the next check filmed the same way showed, or "Not checked yet") and **All
+   Checks**.
 
 If a step does not work, the voice tells you what to try, and every step has a way out, which the
 voice names when a step is not working: Skip for the level check; Skip, and then carrying on without
@@ -54,7 +152,7 @@ line is a different one or the way out. The exception is getting back on after y
 or after a break while holding still (see "Two people in the picture"): those steps start again each
 time, so their lines do too ("I cannot see you on the bike yet", the turn-the-pedals question below,
 the picture check and holding still), at most twice each time. A limit for the whole session left
-the third time on the bike in silence. If you tap Stop, the home screen opens with "Stopped. Nothing
+the third time on the bike in silence. If you tap Stop, the Check tab opens with "Stopped. Nothing
 was saved.", and "Your last change is still waiting to be checked." when one is.
 
 ## Three ways to hold the bike
@@ -118,7 +216,7 @@ Why it is done this way:
 Every session stores how the bike was held. The history shows it (Trainer, Wall or Friend), the
 results say it ("Bike on a trainer or rollers, pedalling forwards."), and comparisons only use
 sessions held the same way: the "last time" next to each angle, the before and after a change, and
-the home screen's "Film again" card, which says how to set the bike up. Where the only earlier
+the Check tab's "Check Your Change" card, which says how to set the bike up. Where the only earlier
 reading was filmed another way, it says "Not compared with 9 Oct: the bike was leaning on a wall
 then." instead of a difference. Sessions saved before the question existed count as their own kind.
 
@@ -200,8 +298,10 @@ and the app picks the rider:
   your break used both questions while you were off the bike, and the session stopped with "Tap Stop
   on the screen", or measured the friend.
 - **The voice says so.** Once the rider is known and someone else is clearly in view for more than
-  about 2 seconds, it says "Friend: stand behind the rider, on the far side of the bike, out of the
-  camera's view as much as you can." With a wall or a trainer: "I can see another person. If they
+  about 2 seconds, it says "Friend: stay on the far side, next to the saddle, standing up
+  straight.", the same place Getting Ready and the getting-on line name; seen again later (after the
+  phone is levelled again, say), "Friend, thanks, stay there." rather than the same line. It used to
+  send the friend "behind the rider ... out of the camera's view", against the other two. With a wall or a trainer: "I can see another person. If they
   are not holding the bike, ask them to step out of view.", so nobody lets go of a bike with a rider
   on it. While they still stop the measuring, the next line comes ("Friend: stand up straight, with
   your knees straight.", then "If I still cannot tell you apart, tap Stop."), at most every 15
@@ -256,8 +356,8 @@ that had a warning.
   reads them as one thing with one cause. When the saddle needs changing first, this area reads
   **After the saddle**, because moving the saddle changes your reach too. It is **Needs attention**
   only when it has a change of its own (raise the bars). Angles outside their targets without that
-  change read **Fair**, "That is fine to ride.", with the step "Nothing to do. I will compare it on
-  your next check.": a design choice, since a bars change needs two signs to agree. The home screen
+  change read **Fair**, "That is fine to ride.", with the step "Fine to ride. I will compare it on
+  your next check.": a design choice, since a bars change needs two signs to agree. The Check tab
   says "Nothing to change" when no area has a step.
 - **More numbers**, folded away: the hip angle, for reference only.
 
@@ -266,9 +366,11 @@ less than 3 degrees since last time reads as "About the same as last time". That
 design choice for comparing two films taken the same way, not the camera's error: AI Bike Fit's
 research notes put one phone reading at roughly 2 to 3 degrees either way, and against lab markers
 the study under "How exact it is" found errors of 3 to 9 degrees. Nothing has measured yet how much
-two films of the same position differ. Unlike Apple's floor setup, the phone stands at hip height, because a
-camera looking up from the floor skews every angle on a bike. No video is kept unless you switch it
-on.
+two films of the same position differ. Unlike Apple's floor setup, the phone stands on a chair, its
+lens about level with the top of the tyres: from the floor the knee reading would survive (under 1
+degree off), but the back and arm angles would read 2 to 3 degrees wrong (three separate calculations
+by the camera panel, 2026-10-10, on a made-up rider, not measured on a real one). No video is kept
+unless you switch it on.
 
 Readings within 2.5 degrees of a target count as in range, and the app says so in those words
 rather than calling them "inside the target". Saddle advice uses a rough rule of thumb from AI Bike
@@ -335,7 +437,7 @@ says what the change should have done and what it did:
   before, 37° now. It moved the right way and is in range now, so leave the saddle where it is.",
   and "That is more than a 15 mm raise usually does. What counts is where it is now." when the size
   did not fit. If it moved the other way, it adds "Check the saddle is where you left it." Nothing
-  is held back, and the Film again card goes. Spoken without numbers: "Your knee moved the right
+  is held back, and the Check Your Change card goes. Spoken without numbers: "Your knee moved the right
   way, and it is in range now. Leave the saddle where it is."
 - **That fits**, out of range: the knee moved at least 3 degrees the right way, and no more than the
   change should do plus 3. The next step follows as usual.
@@ -363,6 +465,39 @@ either, and Apple has not published a retest interval that we could find. After 
 handlebars the next film shows the back, shoulder and elbow angles before and now, but does not
 judge them: we found no source for how much one spacer should change them.
 
+### Checking it straight away
+
+Checking a change used to repeat the whole setup, about 280 spoken words (the customer research's
+count). Now, when there is something to change, the result starts with "Leave the phone where it
+is.", and **I Moved It <n> mm, Check Now** (or **Check Again**) starts again at getting on, with no placement and no
+levelling, when the phone is where it was levelled: "The phone is already in place. Get on as
+before, ...". That takes about 30 words before "Hold it" in the simulation. Getting Ready's Start
+does the same for a new check from the Check tab in the same visit. It is decided like this:
+
+- From the moment the phone is level, the motion sensor watches it. It counts as moved once it tips
+  more than 2 degrees from where it was levelled for longer than half a second (both design
+  choices, not measured on a phone): a tap that rocks it and lets it settle back is not a move.
+  Moved: the check sets the phone up again, in the short words above.
+- With no motion reading for more than a second (the screen locked, the app in the background,
+  motion not allowed) or a level check that was skipped or done by eye, it cannot tell, so it asks
+  **Is the Phone Where It Was?** (said and shown): **Yes, Start** starts at getting on, **No, It
+  Moved** sets it up again.
+- The sensor cannot see a phone slid along the box or turned without tipping it. The picture check
+  after getting on still catches a phone that points wrong.
+- While a change waits on the results, the screen stays awake for up to 10 minutes (a design
+  choice), because a locked screen stops the motion sensor; it is let go when the results close.
+
+### Coming back
+
+After **Not Yet**, **When Will You Move It?** offers **Tonight** (8 pm, or an hour from now on the half
+hour once it is 7 pm), **Weekend** (Saturday at 10 am, or Sunday once that has passed) and **Pick a
+Day** (a day and time, tomorrow at 10 am to start from); the times are design choices. Each makes a
+calendar file (`.ics`) on the phone, with no server and no notifications from the web: one event,
+"Bike fit: raise the saddle about 15 mm", an alert when it starts, and the app's address, so the
+event opens the app. Nothing about it is stored in the app. What Safari does with the file, from
+Safari and from a Home Screen app, is not checked on an iPhone yet (the customer research marks it a
+hypothesis).
+
 **How to raise or lower the saddle**, under the saddle step, follows Park Tool's
 [How to Adjust a Bike Saddle and Seatpost](https://www.parktool.com/en-us/blog/repair-help/how-to-adjust-a-bike-saddle-seatpost):
 open the quick-release lever or the clamp bolt (usually a hex key), move the post, look down the
@@ -379,6 +514,92 @@ within 2.5 degrees the results call a reading in range: a back at 38 and a shoul
 give "Raise the handlebars" next to two rows saying "No change needed." Locked elbows, under 8, are
 already more than 2.5 below the elbow target. Two of the three must agree before it suggests raising
 the bars.
+
+## The camera view
+
+The same spot on the chair, used two ways, chosen by "Where will the screen face?" (Alex, 2026-10-10:
+"Chair, screen facing me"; the back camera stays the default until his phone test). The camera view
+is dark in both, and the voice says everything either way.
+
+**Towards me: the 3 m layer.** From 3 m a phone screen shows only big things (the design review's
+arithmetic: a 120 pt word has capitals about three times the size a sharp eye needs at that distance,
+a 17 pt caption is unreadable). So:
+
+- A 14 pt border round the whole screen, with one meaning per colour: solid blue while it is working,
+  dashed yellow when it needs you, solid green when you are in place or a step is done.
+- One word in heavy rounded capitals, 120 to 128 pt, with a few words under it: GET ON (and a tick
+  once someone is in the picture), TURN for the turn-the-pedals question, WAIT "Stay on the bike"
+  while it checks the picture, MOVE with an arrow and the way to move the phone in bike words
+  ("Phone towards the front wheel", never left or right), STAY "You are in place". MOVE stays while
+  you get off and level the phone again; once it is level, the correction has been carried out, and
+  the walk back to the bike shows GET ON, not MOVE (a phone slid along without tilting it is not
+  noticed by the motion sensor, so there MOVE stays until you are back on).
+- Your figure beside the word: the camera picture, shown like a mirror (so an arrow towards the front
+  wheel points at the real front wheel as you see it from the bike), blurred and dimmed; on it a
+  dotted outline of a rider on a road bike where you should be, facing the way you face; and you,
+  drawn from the pose model's points as thick rounded limbs (torso 30, thigh 22, shin 20, arm 15 pt),
+  with no numbers on it. White while it checks, yellow when you are not in place, green when you are
+  in place, side-on and fully in the picture. Only the picture is mirrored, on the screen; the points
+  the angles are measured from never are.
+- Levelling: the degrees off level at 140 pt and a level bubble, on a dashed yellow border, then the
+  whole screen green with LEVEL, "Leave the phone there", for 2 seconds (a design choice).
+- Holding still and pedalling, the screen goes still: no picture, no figure, no caption, only a 250 pt
+  ring (24 pt line, filling clockwise; one step a second with Reduce Motion) with HOLD, or the seconds
+  left in 128 pt digits, and PEDAL. The voice says "Eyes ahead" for both: turning the trunk 10 degrees
+  towards the phone would read the back about 3 degrees high (the camera panel's calculation, about a
+  behaviour nobody has observed yet). One green flash, 0.6 seconds (a design choice), when the
+  held-still reading is taken.
+- At the end, DONE, then the result as a full green or yellow screen: GOOD, AGAIN, BARS, or the
+  millimetres to change with an arrow up or down, the headline under it, and **See What to Do**,
+  which opens the results. When there is nothing to change but the held-still reading asks for one
+  more film, it is AGAIN, "Film once more to be sure", as the voice says, not GOOD.
+- With this screen the picture check says "Checking the picture. Stay on. I will tell you if the
+  phone needs to move.", "That is it. You are in place." when it is right, and, while nobody is on
+  the bike, "Stand beside the bike and look at the phone. A tick means you are in the picture."
+
+**Away from me: arm's length.** For you walking back to the phone, or a helper standing behind it:
+the picture as the camera sees it (not mirrored), the same figure and outline on it, the last
+correction on a frosted card at 24 pt with its arrow (it stays until you are back on the bike, or
+until the phone is level again after it), a 44
+pt glass Stop, and the ring kept small in the corner during the hold and the pedalling, for a helper.
+The results open straight away at the end, as before.
+
+In both, captions (15 pt, growing with the text size) show only in the setup steps, for reading up
+close. Design choices, not published numbers: the outline sits in the middle of the picture with the
+wheels 80% of the way down and the head about 15% from the top (where a lens at the top of the tyres
+3 m away puts them), and beside the word the picture shows at least the middle 62% of its width.
+
+Once after the camera's first frame the app notes what the browser really gave (which camera, the
+size and frame rate, from `track.getSettings()`) in `window.__bfc.camera`, and Copy Results adds one
+line, "Camera: front, 1280 by 720, 30 frames a second.", so a phone test can report it.
+
+## The phone's roll, taken out of the picture
+
+The level check lets the phone roll up to 2.5 degrees about its lens, and a rolled picture turns every
+angle measured from horizontal or vertical by the same amount: the back angle, and where the ankle is
+lowest. So every pose is turned back by the roll the motion sensor measures, about the centre of the
+picture, before any angle is measured or the lowest point of the pedal is found (`fit.imageRoll`,
+`fit.derotate`). That is exact and needs no focal length. On the camera panel's error grid it took the
+share of setups with all four angles within 2.5 degrees from 51% to 73%, and the worst knee error
+from 1.47 to 0.80 degrees (camera panel, 2026-10-10, made-up riders with perfect landmarks).
+
+Which way to turn depends on the camera and on which way up the phone stands sideways, and is worked
+out from the sensor's axes in `fit.js`: gravity in the picture is `atan2(y * sign(x), |x|)` for the back
+camera and `atan2(-y * sign(x), |x|)` for the front one. `sign(x)` carries the flip between the two
+sideways positions, and also makes it the same whichever sign the browser reports gravity with (Safari
+on iPhone was reported in 2014 to use the opposite sign to the specification). The tests build the
+rolled phone separately from its own axes (`test/synth.js`) and check both cameras, both sideways
+positions and both signs. A roll over 10 degrees is not corrected (a design choice: the phone is
+falling over or in someone's hand).
+
+Not checked on a real iPhone: that Safari gives the page the front camera's picture as the camera sees
+it, not mirrored. If it is mirrored, the front camera's sign is the back camera's
+(`FRONT_FRAMES_MIRRORED` in `fit.js`), and the same flag stops the screen mirroring the picture a
+second time, so the arrows along the bike still point at the real wheel (`mirrorShown` in `app.js`).
+The phone test: with the screen towards you, put a coin under
+one end of the phone so it stands rolled but still passes the level check, run a check, then take
+the coin away and run another without moving anything else. The back angle should be about the same
+both times; about 4 degrees apart means the sign is the wrong way round.
 
 ## Pain or numbness
 
@@ -439,6 +660,68 @@ third-party site, and your results stay in the browser's own storage. Your answe
 numbness question is never stored: not in the browser, not in your past sessions and not in Copy
 results.
 
+## The voice
+
+Every line the app can say is recorded in the coach's voice, Heart (Kokoro-82M's `af_heart`,
+American English, normal speed; DECISIONS.md, "First female American is great" and "Needs to be
+build in"), and ships with the app in `assets/voice/` as `.m4a` clips (AAC, 48 kb/s, mono, 24 kHz),
+listed by their exact words in `assets/voice/manifest.json` (words, file, length). Nothing to
+download or switch on.
+
+- **How it plays.** All clips go through one shared `<audio id="voice">` element. iOS lets a page
+  make sound only after a tap, so every tap that leads to the voice first sets the audio session to
+  playback (where Safari has it), wakes the beeps, and plays a moment of silence on that element;
+  after that the element may play on its own. A media element follows the phone's media volume, so
+  the voice is likely heard with the phone on silent, where the beeps (Web Audio) may not be: likely,
+  not yet confirmed on an iPhone. Lines never overlap: one finishes before the next starts, and the
+  app's timing waits for the clip to end. The caption shows the line's own words.
+- **Which clip.** A line with a clip of its own plays as one clip. A line built from parts at the
+  end of a check (the spoken result, "Saved 20 mm.") plays sentence by sentence; every such
+  sentence carries at most one number, and each value has its own whole sentence (one clip for "Your
+  knee bends 47 degrees with the pedal at its lowest point.", another for 48), so no number is ever
+  stitched into a sentence. Knee readings are recorded from 0 to 90 degrees and millimetres from 1
+  to 50 (design choices: a knee bent more than 90 degrees with the pedal at its lowest point is not a
+  riding position, and 50 mm is the change card's own limit).
+- **The fallback.** Only when a clip fails to load or play, or a line has none, that part is said
+  in the phone's own voice. `test/voice.test.mjs` fails when a line the app can say has no clip. A
+  browser that cannot play AAC goes straight to that fallback; the headless test browser (an
+  open-source Chromium) is one, so there the app behaves as before the clips. Safari, Chrome and
+  Firefox play them.
+- **Offline.** The service worker keeps the clips in a cache of their own (`bfc-voice-v1`). It
+  stores every instruction and every sentence without a number when it installs (`pre` in the
+  manifest), so a first check works offline; the sentences with a number are stored the first time
+  they play. Clips the manifest no longer lists are deleted when a new version takes over.
+- **What was changed in the words to make this possible.** In the spoken retest only (the screen
+  is unchanged): "Knee bend 50 degrees before. 46 degrees now." (two sentences, was one), the
+  "smallest change" and "hardly changed" tails as their own sentences, the handlebar retest says
+  which way each angle went ("Your back angle went up.") with the numbers left on the screen, and a
+  change filmed with the bike held another way is spoken without naming both setups. "Say It Again"
+  says the knee reading as its own sentence, then the target.
+
+**Rebuilding the voice after changing any spoken words: one command.**
+
+```
+node tools/voice/build-voice.mjs
+```
+
+It works out every line from the code (`tools/voice/catalog.mjs` reads each `Voice.say` in
+`app.js`, and runs `fit.js` over a grid of readings for the spoken result), records only the lines
+it has no clip for (a clip's file name is a hash of its words), and removes clips no line uses any
+more. `--check` only reports what is missing. It needs Python with `kokoro-onnx` (on the build
+machine, `/home/user/tts/.venv`; `--python` for another), the Kokoro v1.0 model files
+(`KOKORO_MODELS`, default `/home/user/tts/models`) and `ffmpeg`. Options: `--jobs` (worker
+processes), `--threads`, `--limit`. The live app's Test the Sound files (`sound-check.m4a`,
+`.mp3`) in the same folder are never touched; when that fix is merged, its service worker line for
+sound files goes after the voice-clip line in `sw.js`, which must stay first.
+
+Measured on 2026-10-11: 687 clips (150 whole instructions from `app.js` and 537 sentences of
+results), 38 minutes of speech, 15.1 MB in all, 21.9 kB a clip on average; 262 of them (7.3 MB) are
+precached. After the simplicity pass the same day (shorter instructions, one idea a sentence; the
+pedalling line said as three short lines): 680 clips (143 whole instructions), 35 minutes, 13.8 MB;
+255 precached (6.1 MB). The longest instruction went from 22 s to 15 s. Recording 648 of them in one run took 56 minutes with six workers on the 4-core build
+machine while other jobs were using it (5.1 s a clip); one worker took 3 to 6 s for a short line,
+about 2.2 s for each second of speech. With nothing to record, a run takes a few seconds.
+
 ## Development
 
 - `npm test` runs the measuring maths tests, the offline-cache checks, checks on what the app
@@ -446,9 +729,27 @@ results.
   starts `test/flow-runner.mjs` once per session; Node 20 or newer). The runner can be used on its
   own: `node test/flow-runner.mjs "setup=friend&slide=70"` prints the session as JSON. `pain` in its
   query taps Yes to the pain question first (the page itself never takes that answer from the
-  address), and `fps=3` sets the made-up camera's frames a second (30 by default).
+  address), and `fps=3` sets the made-up camera's frames a second (30 by default). A second check in
+  the same page view, for the runner only: `then=now` taps the bar's **I Moved It <n> mm, Check
+  Now** and prints what it said (`nowLabel`, `nowAria`) and what that tap stored (`madeByNow`)
+  (with `nudge`, it first taps plus and minus on the stepper and waits, so the voice points at it),
+  `then=again` taps Check Again (and answers "No" when it asks whether the change was made),
+  `then=home` closes the results and starts a new check from the Check tab, through the three
+  question screens, as a returning rider would (`painwait` taps Next on the pain question before
+  answering it, to see it wait), and `then=later` taps Not Yet, with `when=tonight`, `when=weekend` or `when=pick` answering
+  "When will you move it?". `where=yes` or `where=no` answers "Is the phone where it was?", and
+  `mm=15` types 15 into the change card's stepper first. The second check is printed as `next`.
+  Each check also prints `views`: what the camera view showed (`ui.liveView`: the step, the layer,
+  the word, the line under it, the field's word, the frosted card), each time it changed.
 - Add `?sim` to the address to walk the whole flow with a made-up rider and no camera.
-  `?sim&low` makes the saddle too low. `&setup=trainer`, `&setup=wall` or `&setup=friend` answers
+  `?sim&low` makes the saddle too low (35 mm; `&low=20` for 20 mm), and a saddle change marked in
+  that page view moves the made-up saddle by as much, so Check It Now shows what a change did.
+  `&moved` picks the made-up phone up after each check (Check It Now sets it up again), `&replaced`
+  picks it up and puts it back square on the tape marks (a rider coming back another day), `&nomotion`
+  leaves no motion reading after a check (so Check It Now asks "Is the phone where it was?"), and
+  `&inapp` acts as if the page were opened inside another app's browser. `&voice=off` plays no
+  recorded clips and times every line by its word estimate, for quick headless runs (with clips, a
+  simulated check takes as long as the speech). `&setup=trainer`, `&setup=wall` or `&setup=friend` answers
   "How will your bike stay up?" (also without `?sim`; a choice made on the page replaces it in the
   address). In the simulation: `&helper=visible` adds a made-up friend standing in view at the back
   of the bike, `&helper=lean` one leaning in at the rider's hip almost in riding posture, and
@@ -469,26 +770,64 @@ results.
   never said leaves it sitting still), and after a picture correction it gets off, moves the phone
   (which then has to be levelled again, unless `&slide`) and gets back on. On a trainer it pedals
   forwards.
+- The screens: `&screen=towards` or `&screen=away` (also `front` or `rear`) answers "Where will the
+  screen face?" (also without `?sim`); in the simulation it also picks the made-up camera, so the
+  front camera's mirrored camera view can be seen headless. The phone's roll: `&roll=2` stands the
+  made-up phone rolled 2 degrees about its lens (the picture and the motion sensor both say so),
+  `&land=left` or `&land=right` which way up it stands sideways, `&conv=ios` (the default) or
+  `&conv=spec` the sign it reports gravity with, and `&noderoll` leaves the roll in, to see what it
+  costs. `&tab=progress` or `&tab=learn` opens on that tab. `&installed` acts as if the app
+  were opened from the Home Screen, so the Add to Home Screen card stays away (the simulation
+  otherwise shows it, as a first visit in Safari does). With `?sim`, `&seed=asked` (one check that
+  suggested raising the saddle, not answered yet), `&seed=trend` (three checks against a wall, the
+  saddle raised 5 mm and then 10 mm, the last not checked yet: Check Your Change and the Progress
+  chart; a simulated check after it shows Your Saddle Change Worked) or `&seed=good` (nothing to
+  change) fills a made-up history kept in memory only: it never touches the history stored on the
+  phone. A check starts from the Check tab (`#newCheck`, or `#retestStart` when a change waits),
+  then `#flowNext` (the bike), `#screenNext` (the screen), `#painNo` or `#painYes` and `#painNext`
+  (the pain question, which waits for an answer), then `#start` on Getting Ready, which says Next before the
+  first check in a page view and opens the permission screen, where `#allowStart` starts. Check It
+  Now and Check Again on the results start straight away, or ask `#flowWhere` first.
 - `window.__bfc` in the browser has the counts the tests read: `wrongPicks` (frames where someone
   other than the made-up rider was measured, also when the rider was not in the picture; must be 0), `ambiguous` and `ambiguousBy` (frames nobody was measured
   in, by step), `asks` and `identified` (the turn-the-pedals question), `said` (every line queued)
-  and `started` (every line as it began playing, with the caption shown then).
-- The voice: lines are queued and spoken one at a time, and the caption on the run screen changes
-  when a line starts playing. Without a speech engine (as in the headless test browser) it goes by
-  an estimate of the speaking time. Lines are the phone's own speech voice for now; the recorded
-  Heart voice and its line catalog (design-spec) do not exist in the code yet.
+  and `started` (every line as it began playing, with the caption shown then); `setup()` and
+  `screen()` the two answers, and `session()` the session in progress (`session().screen` is which
+  way the screen faces, `session().camera` the camera that films); `view()` what the camera view
+  shows now (`ui.liveView`), `camera` what the browser gave, and `roll` the roll taken out of the
+  last frame; `ics` the last calendar file made. With the screen towards the rider, the flow runner taps See What to Do once the
+  result shows on the camera view, and prints `runField` (the big word shown there), `camera`,
+  `roll` and the readings saved (`values`).
+- The voice: lines are queued and said one at a time, and the caption on the run screen changes
+  when a line starts playing; see "The voice" below. With no sound at all (the Node flow runner) it
+  goes by an estimate of the speaking time; with clips, by their real lengths.
+  `window.__bfc.voice` lists the clips played, any part said in the phone's voice instead
+  (`fallback`: the clip failed; `missing`: no clip), and how many clips the manifest has.
 - To run it locally: `python3 -m http.server`, then open `http://localhost:8000/?sim`. The camera
   only works over HTTPS or on localhost.
 - When anything in `vendor/` or `models/` changes, change the cache name in `sw.js` (the test says
-  what it must contain), or phones keep the old engine.
+  what it must contain), or phones keep the old engine. A new file the page needs goes into `CORE`
+  in `sw.js` (`screens.test.mjs` checks the list). The clips (the setup guide, the Camera app clip)
+  are left to the network, so they play only online; their posters are cached.
+- Large text: sizes are in rem on `font: -apple-system-body`, so they follow the iPhone's text size;
+  buttons are sized by padding and wrap, and the tab labels stay 11 px, as Apple's do.
+- Not checked on a real iPhone yet, from the camera view: whether Safari gives the front camera's
+  picture mirrored (the sign of the roll correction, above), its size and frame rate, whether the
+  blurred picture behind the figure costs frames, and how the 3 m layer reads from the bike.
+- Not checked on a real iPhone yet: the light and dark status bar (`apple-mobile-web-app-status-bar-style`
+  is now `default`, because white status bar text on the light tabs would not show), the glass
+  blur, and how the results sheet and the check flow scroll in Safari.
 
 | File | What it is |
 |---|---|
-| `index.html` | The three screens: home, the camera view, results |
-| `app.js` | Camera, voice, tilt sensor and the step-by-step flow |
+| `index.html` | The three tabs (Check, Progress, Learn) with the glass tab bar, the check flow (Setup, Getting Ready), the camera view and the results sheet, in the iOS 26 colours, light and dark |
+| `app.js` | Camera, voice, tilt sensor, the step-by-step flow, and drawing the screens |
+| `ui.js` | The words and shapes of the screens: Title Case, range bars, the Progress chart, the Check tab's summary, the list of changes. No browser code and no maths of its own: every number comes from `fit.js` or a stored session |
 | `fit.js` | The measuring maths and the words of the results, with no browser code, so it can be tested |
-| `sw.js` | Offline support from the first visit: the engine and the model are cached when it installs (that first visit may download them twice) |
-| `test/` | Tests, and the made-up rider and helper they use (`setups.test.mjs`: the three setups, picking the rider, and checks on what app.js says; `flow.test.mjs`: whole simulated sessions, run by `flow-runner.mjs`) |
+| `sw.js` | Offline support from the first visit: the engine and the model are cached when it installs (that first visit may download them twice), and the voice clips in their own cache |
+| `assets/voice/` | The coach's recorded voice: one `.m4a` clip per line or sentence, and `manifest.json` (see "The voice") |
+| `tools/voice/` | The voice build: `build-voice.mjs` (the one command), `catalog.mjs` (every line the app can say, from the code), `jsread.mjs` (reads app.js for it, no library needed), `render.py` (Kokoro) |
+| `test/` | Tests, and the made-up rider and helper they use (`setups.test.mjs`: the three setups, picking the rider, and checks on what app.js says; `flow.test.mjs`: whole simulated sessions, run by `flow-runner.mjs`; `ui.test.mjs`: the screens' words and shapes; `screens.test.mjs`: what the tabs, the check flow and the results sheet are built from; `roll.test.mjs`: the phone's roll taken out, for both cameras and both sideways positions; `live.test.mjs`: the camera view's states, the camera choice and the placement step; `cx.test.mjs`: the customer research's changes, the calendar file and its times, the win's words, the bike guide and the tape tip, the permission screen and the new spoken lines; `voice.test.mjs`: every line has a recorded clip, every clip is real audio, the one shared audio element, the service worker's voice cache; `simple.test.mjs`: the simplicity pass, no long line on a main-path screen, one primary button per step, details one tap away, short spoken sentences and clips) |
 
 ## Credits
 

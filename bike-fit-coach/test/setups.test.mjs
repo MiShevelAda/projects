@@ -402,7 +402,7 @@ test('a change made after a film on the wall is only checked by another film on 
   assert.equal(fit.judgeChange(bars, { knee: 37, src: 'pedalling', setup: 'wall', values: { torso: 39, elbow: 12, shoulder: 98 } }).verdict, 'other-setup');
   assert.equal(fit.judgeChange(bars, { knee: 37, src: 'pedalling', setup: 'friend', values: { torso: 39, elbow: 12, shoulder: 98 } }).verdict, 'shown');
   // The home card says how to film it.
-  assert.equal(fit.retestPrompt(made.made, '9 Oct', 'wall'), 'You raised the saddle 12 mm after your check on 9 Oct. Film again with the bike leaning on a wall, as before, to see what it did. A few minutes.');
+  assert.equal(fit.retestPrompt(made.made, '9 Oct', 'wall'), 'You raised the saddle 12 mm after your 9 Oct check. Film again the same way: bike leaning on a wall. A few minutes.');
   for (const t of [j.text, j.spoken, fit.retestPrompt(made.made, '9 Oct', 'trainer')]) assert.ok(!/\u2014/.test(t));
 });
 
@@ -418,7 +418,7 @@ test('the app asks for two poses, stores the setup with each session and compare
   // Never a frame from someone who might not be the rider: only the pick is measured.
   assert.ok(!/res\.landmarks\?\.\[0\]/.test(src));
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
-  assert.match(html, /How will your bike stay up\?/);
+  assert.match(html, /How Will Your Bike Stay Up\?/);
   for (const k of ['trainer', 'wall', 'friend']) assert.match(html, new RegExp(`data-setup="${k}"`));
 });
 
@@ -601,10 +601,8 @@ const pageText = (html) => html.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?
 test('nobody is asked to step out of view without "if they are not holding the bike"', async () => {
   const lines = literals(await read('app.js')).filter(s => /step out of view|out of view/i.test(s));
   assert.ok(lines.length >= 1);
-  for (const s of lines) {
-    if (/out of the camera's view as much as you can/.test(s) && /^Friend:/.test(s)) continue; // the friend, told to stay behind the rider
-    assert.match(s, /If they are not holding the bike/, s);
-  }
+  // Round 3 fix: the friend is no longer told to get out of view, so no line is let off this rule.
+  for (const s of lines) assert.match(s, /If they are not holding the bike/, s);
 });
 
 test('on a trainer, the wrong-way line never says a bare "pedal forwards"', async () => {
@@ -683,15 +681,18 @@ test('the home screen: road bikes only, the pain question asked fresh and unansw
   const text = pageText(html);
   assert.match(text, /road bike/);
   assert.match(text, /aero bars/);
-  assert.match(text, /Do you get pain or numbness that keeps coming back when you ride\?/);
-  assert.match(text, /I ask every time\. Your answer is not saved\./);
-  assert.match(html, /id="painNo"[^>]*aria-pressed="false"/);
-  assert.match(html, /id="painYes"[^>]*aria-pressed="false"/);
+  assert.match(text, /Pain or Numbness That Keeps Coming Back When You Ride\?/);
+  // Asked every time and never stored: said under the question (round 3 fix: the question has its own
+  // screen) and in Learn, Private by Design.
+  assert.match(text, /Pain or Numbness That Keeps Coming Back When You Ride\?\s+Your answer is never saved\./);
+  assert.match(text, /Your pain answer is never saved\./);
+  assert.match(html, /id="painNo"[^>]*aria-checked="false"/);
+  assert.match(html, /id="painYes"[^>]*aria-checked="false"/);
   assert.match(text, /Not medical advice\./);
   assert.ok(!/or a big change/.test(text));
   // The order: the setup question, the pain question, Start, then everything else.
   const at = (id) => html.indexOf(`id="${id}"`);
-  assert.ok(at('setupCard') < at('pain-q') && at('pain-q') < at('start') && at('start') < at('retestCard') && at('start') < at('hMade') && at('start') < at('histCard'));
+  assert.ok(at('setupCard') < at('painQ') && at('painQ') < at('start') && at('start') < at('retestCard') && at('start') < at('hMade') && at('start') < at('histCard'));
   for (const id of ['retestStart', 'hMadeStart', 'stopped', 'setupErr', 'stepsFold']) assert.ok(at(id) > 0, id);
   assert.ok(!/\u2014/.test(text));
 });

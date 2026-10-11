@@ -456,7 +456,8 @@ test('judging a saddle change against the reading before it', () => {
   const fits = fit.judgeChange({ made: { kind: 'saddle', dir: 1, mm: 15 }, knee: 50, src: 'pedalling' }, { knee: 46, src: 'pedalling' });
   assert.equal(fits.verdict, 'consistent');
   assert.match(fits.text, /^Knee bend 50° before, 46° now\. A 15 mm raise should change it by about 4 to 5°\. That fits\. The next step is below\.$/);
-  assert.match(fits.spoken, /^Knee bend 50 degrees before, 46 degrees now\. A 15 millimetre raise.*That fits\. Here is the next step\.$/);
+  // Spoken, one number to a sentence, so each sentence is one recorded clip.
+  assert.match(fits.spoken, /^Knee bend 50 degrees before\. 46 degrees now\. A 15 millimetre raise.*That fits\. Here is the next step\.$/);
   // A lowered saddle should add knee bend.
   const drop = { made: { kind: 'saddle', dir: -1, mm: 12 }, knee: 22, src: 'pedalling' };
   assert.equal(fit.judgeChange(drop, { knee: 26, src: 'pedalling' }).verdict, 'consistent');
@@ -540,7 +541,7 @@ test('a retest that does not fit holds the next change back', () => {
   assert.equal(fit.headline(other).why, 'Your last change did not do what it should have, so I will not suggest another one until one more film shows what it did.');
   assert.equal(fit.saddleWhy(other), 'Your knee bends 47° with the pedal at its lowest point, outside the 30 to 40 target.');
   const said = fit.spokenSummary(other);
-  assert.ok(said.startsWith('Knee bend 43 degrees before, 47 degrees now.'), said);
+  assert.ok(said.startsWith('Knee bend 43 degrees before. 47 degrees now.'), said);
   assert.ok(!/°/.test(said), said);
   const fits = fit.withRetest(r, fit.judgeChange({ made: { kind: 'saddle', dir: 1, mm: 15 }, knee: 51, src: 'pedalling' }, { knee: r.knee, src: r.kneeSource }));
   assert.equal(fits.retest.verdict, 'consistent');
@@ -723,9 +724,9 @@ test('what "I made this change" stores: the number he gave, never the suggestion
   assert.equal(fit.madeNote(fit.madeChange(raise, 10, 'T')), 'Saved. Next time you film, I will check what it did.');
   assert.deepEqual(fit.MADE_CHOICES, [5, 10, 15]);
   // The home card, dated by the check, not by the tap.
-  assert.equal(fit.retestPrompt({ kind: 'saddle', dir: 1, mm: 10 }, 'Oct 3'), 'You raised the saddle 10 mm after your check on Oct 3. Film again to see what it did. A few minutes.');
-  assert.equal(fit.retestPrompt({ kind: 'saddle', dir: -1, mm: 8 }, 'Oct 3'), 'You lowered the saddle 8 mm after your check on Oct 3. Film again to see what it did. A few minutes.');
-  assert.equal(fit.retestPrompt({ kind: 'bars' }, 'Oct 3'), 'You raised the handlebars after your check on Oct 3. Film again to see what it did. A few minutes.');
+  assert.equal(fit.retestPrompt({ kind: 'saddle', dir: 1, mm: 10 }, 'Oct 3'), 'You raised the saddle 10 mm after your Oct 3 check. Film again to see what it did. A few minutes.');
+  assert.equal(fit.retestPrompt({ kind: 'saddle', dir: -1, mm: 8 }, 'Oct 3'), 'You lowered the saddle 8 mm after your Oct 3 check. Film again to see what it did. A few minutes.');
+  assert.equal(fit.retestPrompt({ kind: 'bars' }, 'Oct 3'), 'You raised the handlebars after your Oct 3 check. Film again to see what it did. A few minutes.');
 });
 
 test('the history row: the change logged, or else the one suggested, and the pedalling knee', () => {
@@ -799,7 +800,7 @@ test('areas: a long, low front end with the saddle right', () => {
 test('areas: one angle out on its own is Fair, fine to ride, with nothing to do', () => {
   const a = areasOf(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 60 });
   assert.equal(a.reach.status, 'Fair');
-  assert.equal(a.reach.step, 'Nothing to do. I will compare it on your next check.');
+  assert.equal(a.reach.step, 'Fine to ride. I will compare it on your next check.');
   assert.equal(a.reach.why, 'Your shoulder angle is outside its target. That is fine to ride.');
   // Only the shoulder a little low, no change: no "Compare it next time", no "weight on your hands".
   const little = fit.advise(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 76 });
@@ -896,7 +897,7 @@ test('a retest on two readings that disagree keeps the disagree wording', () => 
   assert.equal(re.retest.verdict, 'other-way');
   assert.equal(fit.headline(re).what, 'Film again');
   assert.equal((fit.headline(re).why.match(/will not suggest/g) || []).length, 1);
-  assert.match(fit.spokenSummary(re), /^Knee bend 41 degrees before, 46 degrees now\..*point different ways/);
+  assert.match(fit.spokenSummary(re), /^Knee bend 41 degrees before\. 46 degrees now\..*point different ways/);
 });
 
 // ── "Did you make this change?" after the results screen has gone ─────────────────────────────
@@ -924,17 +925,21 @@ test('the words of the change card: how far, never a number preselected, and Lat
   assert.equal(fit.suggestionText(sug), 'raise the saddle about 15 mm');
   assert.equal(fit.suggestionText({ kind: 'saddle', raise: false, mm: [9, 12] }), 'lower the saddle about 9 to 12 mm');
   assert.equal(fit.suggestionText({ kind: 'bars' }), 'raise the handlebars by one spacer');
-  // Results, a saddle change: the millimetre buttons, and Later.
-  assert.deepEqual(fit.madeQuestion('results', 'ask', sug), { q: 'When you have moved the saddle, tell me how far.', mm: true, yes: null, no: 'Later: I will ask when you come back.' });
+  // Results, a saddle change: the millimetre buttons, and Not Yet (round 3, builder E: a quiet text
+  // button of two words; "When will you move it?" follows it).
+  assert.equal(fit.LATER, 'Not Yet');
+  assert.deepEqual(fit.madeQuestion('results', 'ask', sug), { q: 'When you have moved the saddle, tell me how far.', mm: true, yes: null, no: 'Not Yet' });
   const later = fit.madeQuestion('results', 'later', sug);
   assert.equal(later.mm, true);
   assert.equal(later.no, null);
   assert.deepEqual(fit.madeQuestion('results', 'before', sug), { q: 'Before you film again: how far did you move the saddle?', mm: true, yes: null, no: 'No, film anyway' });
   // A handlebar change keeps its single button.
-  assert.deepEqual(fit.madeQuestion('results', 'ask', { kind: 'bars' }), { q: 'Did you make this change?', mm: false, yes: 'I made this change', no: 'Later: I will ask when you come back.' });
+  assert.deepEqual(fit.madeQuestion('results', 'ask', { kind: 'bars' }), { q: 'Did you make this change?', mm: false, yes: 'I made this change', no: 'Not Yet' });
   assert.deepEqual(fit.madeQuestion('results', 'before', { kind: 'bars' }), { q: 'Before you film again: did you make this change?', mm: false, yes: 'Yes, I made it', no: 'No, film anyway' });
-  // Home: says what was suggested, and after which check.
-  assert.equal(fit.madeQuestion('home', 'ask', sug, 'Oct 10').q, 'After your check on Oct 10 I suggested you raise the saddle about 15 mm. When you have moved the saddle, tell me how far.');
+  // Home: says what was suggested, in one short line (the check it came from is dated under Latest Check).
+  assert.equal(fit.madeQuestion('home', 'ask', sug, 'Oct 10').q, 'Did you raise the saddle about 15 mm? Tell me how far.');
+  assert.equal(fit.madeQuestion('home', 'later', sug, 'Oct 10').q, 'Raise the saddle about 15 mm, then tell me how far.');
+  assert.equal(fit.madeQuestion('home', 'ask', { kind: 'bars' }, 'Oct 10').q, 'Did you raise the handlebars by one spacer?');
   assert.equal(fit.madeQuestion('home', 'ask', sug, 'Oct 10').mm, true);
   assert.equal(fit.madeQuestion('home', 'later', sug, 'Oct 10').no, null);
   assert.equal(fit.madeQuestion('home', 'before', sug, 'Oct 10').no, 'No, start anyway');
@@ -947,6 +952,7 @@ test('the words of the change card: how far, never a number preselected, and Lat
   for (const w of ['results', 'home']) for (const m of ['ask', 'later', 'before']) for (const sg of [sug, { kind: 'bars' }]) {
     const x = fit.madeQuestion(w, m, sg, 'Oct 10');
     assert.ok(!/\u2014/.test(x.q + (x.yes || '') + (x.no || '')));
+    assert.ok(x.q.split(' ').length <= 12, `one short line: ${x.q}`);
   }
 });
 
@@ -1105,7 +1111,10 @@ test('after raising the handlebars, the next film shows what the angles did', ()
   const j = fit.judgeChange(fit.pendingChange([prev]), now);
   assert.equal(j.verdict, 'shown');
   assert.equal(j.text, 'After raising the handlebars: back angle 34° before, 39° now; shoulder angle 100° before, 98° now, about the same; elbow bend 5° before, 12° now.');
-  assert.ok(!/°/.test(j.spoken) && /34 degrees before/.test(j.spoken));
+  // Spoken, the way each angle went, the same "about the same" as on the screen, and no numbers: they
+  // stay on the screen, and six of them would need a recorded clip for every combination.
+  assert.equal(j.spoken, 'After raising the handlebars, here is what changed. Your back angle went up. Your shoulder angle stayed about the same. Your elbow bend went up.');
+  assert.ok(!/\d/.test(j.spoken));
   const r = fit.advise(null, { strokes: 12, kneeFlex: 37, torso: 39, elbow: 12, shoulder: 98 });
   const w = fit.withRetest(r, j);
   assert.equal(w.retest, j);

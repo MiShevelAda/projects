@@ -113,8 +113,73 @@ export function frameAngles(lm, side, W, H) {
   };
 }
 
+// ── the phone's roll, taken out of the picture ───────────────────────────────────────────────
+// The level check lets the phone roll up to 2.5 degrees about its lens, and a picture rolled that
+// much turns every angle measured from horizontal or vertical (the back angle, the thigh's lean, the
+// lowest point of the ankle) by the same amount. Rotating the landmarks back by the measured roll,
+// about the centre of the picture, removes it exactly and needs no focal length (camera panel,
+// 2026-10-10). Angles between two body segments (knee, elbow, shoulder, hip) do not change.
+//
+// How the roll is read, from DeviceMotionEvent.accelerationIncludingGravity (device axes: x to the
+// right of the screen held upright, y to its top, z out of the screen). Sideways, x is close to
+// vertical and y runs along the picture's horizontal. With the picture upright on the screen:
+//   back camera, top of the phone to the left as you face the screen (x up):
+//     picture right = -y, picture down = -x
+//   back camera, top of the phone to the right (x down):  picture right = +y, picture down = +x
+//   front camera (looking out of the screen), top to the left:  picture right = +y, down = -x
+//   front camera, top to the right:  picture right = -y, down = +x
+// Gravity in the picture is (g . right, g . down). In all four cases that comes to
+//   back:  atan2( y * sign(x), |x| )      front:  atan2( -y * sign(x), |x| )
+// so the sign of the correction flips between the two cameras, and sign(x) carries the flip between
+// the two sideways positions. Multiplying by sign(x) also makes it the same whichever sign the
+// browser reports gravity with: Safari on iPhone was reported in 2014 to give the opposite sign to
+// the specification (W3C public-geolocation list), and nothing here depends on which is current.
+//
+// One assumption is not checked on a real iPhone yet: that Safari hands the page the front
+// camera's picture the way the camera sees it, not mirrored (the page mirrors it on the screen
+// itself). If the frames turn out to be mirrored, FRONT_FRAMES_MIRRORED becomes true and the front
+// camera takes the back camera's sign. The phone test in the README says how to tell.
+export const FRONT_FRAMES_MIRRORED = false;
+// Design choice: a roll larger than this is not corrected. The level check already holds the phone
+// within 2.5 degrees; more than 10 means the phone is falling over or in someone's hand.
+export const ROLL_MAX = 10;
+// The roll of the picture, in degrees: positive when straight down in the room points down and to
+// the right in the picture. g: [x, y, z] from accelerationIncludingGravity. camera: 'front' or 'rear'.
+// 0 without a usable reading.
+export function imageRoll(g, camera = 'rear') {
+  if (!g || ![g[0], g[1]].every(Number.isFinite) || !(Math.abs(g[0]) > 0)) return 0;
+  const sx = g[0] >= 0 ? 1 : -1;
+  const flip = camera === 'front' && !FRONT_FRAMES_MIRRORED ? -1 : 1;
+  const deg = (Math.atan2(flip * g[1] * sx, Math.abs(g[0])) * 180) / Math.PI;
+  return Math.abs(deg) <= ROLL_MAX ? deg : 0;
+}
+// The landmarks with the roll taken out: each point turned by rollDeg about the centre of the
+// picture, in pixels (a landscape picture is wider than tall), so that straight down in the room is
+// straight down in the picture. Everything else on a point (z, visibility) is kept.
+export function derotate(lm, rollDeg, W, H) {
+  if (!lm || !rollDeg) return lm;
+  const a = (rollDeg * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a), cx = W / 2, cy = H / 2;
+  return lm.map(p => {
+    const x = p.x * W - cx, y = p.y * H - cy;
+    return { ...p, x: (cx + x * c - y * s) / W, y: (cy + x * s + y * c) / H };
+  });
+}
+
+// The angle in degrees between two readings of gravity ([x, y, z] from accelerationIncludingGravity),
+// whatever their length: how far the phone has tipped, any way, from the first reading to the second.
+// null without two usable readings. It cannot see a phone slid along or turned about the vertical,
+// which leaves gravity where it was.
+export function gravityAngle(a, b) {
+  if (!a || !b || ![...a, ...b].every(Number.isFinite)) return null;
+  const na = Math.hypot(...a), nb = Math.hypot(...b);
+  if (!(na > 0) || !(nb > 0)) return null;
+  const cos = (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) / (na * nb);
+  return (Math.acos(Math.max(-1, Math.min(1, cos))) * 180) / Math.PI;
+}
+
 // ── setup checks ────────────────────────────────────────────────────────────────────────────
-// Each returns null when fine, or {key, say} with the correction to speak.
+// Each returns null when fine, or {key, say} with the correction to speak. A correction that moves
+// the phone along the bike also says which way, in bike words: toward 'front' or 'back' (wheel).
 
 export function checkFraming(lm, side, W, H) {
   const pts = [LM.nose, ...JOINTS.map(j => LM[j][side])].map(i => lm[i]);
@@ -136,9 +201,19 @@ export function checkFraming(lm, side, W, H) {
     // Image-left is the rear of the bike when the rider faces image-right.
     const towardImageLeft = cx < 0.5;
     const rear = (facing(lm) > 0) === towardImageLeft;
-    return { key: 'centre', say: `You are near the edge of the picture. Move the phone a little towards the ${rear ? 'back' : 'front'} wheel.` };
+    return { key: 'centre', toward: rear ? 'back' : 'front', say: `You are near the edge of the picture. Move the phone a little towards the ${rear ? 'back' : 'front'} wheel.` };
   }
   return null;
+}
+
+// Someone is in the picture, not cut off at its edges (feet, head or a side), whether or not they
+// sit like a rider: the tick on the screen for "a tick means you are in the picture". Judged on the
+// side the pose model sees better in this one frame; the side measured is locked elsewhere.
+export function inPicture(lm) {
+  if (!lm || lm.length < 33) return false;
+  const seen = (k) => JOINTS.reduce((a, j) => a + (lm[LM[j][k]].visibility ?? 0), 0);
+  const p = checkFraming(lm, seen('L') >= seen('R') ? 'L' : 'R', 1, 1);
+  return !p || !['feet', 'head', 'edge'].includes(p.key);
 }
 
 // Side-on: seen square from the side, the left and right shoulders and hips overlap.
@@ -160,7 +235,8 @@ export function checkSideOn(lm, side, W, H, limit = 0.22) {
   // Far side showing behind the near side: the camera sits towards the rear, and the reverse.
   return {
     key: 'angle',
-    say: `The phone is at an angle to the bike. Move it a little towards the ${farBehind ? 'front' : 'back'} wheel, pointing straight at the pedals.`,
+    toward: farBehind ? 'front' : 'back',
+    say: `The phone is at an angle. Move it a little towards the ${farBehind ? 'front' : 'back'} wheel, facing the pedals.`,
   };
 }
 
@@ -884,20 +960,32 @@ export function saddleStep(r) {
   return 'Leave the saddle height as it is.';
 }
 
+// Spoken, the reading is a sentence of its own and what it means is the next one, so the reading is
+// one recorded clip for each value, the same clip whatever follows it (tools/voice/catalog.mjs).
+const spokenKnee = (v) => `Your knee bends ${degrees(v)} ${LOWEST}.`;
+// "47 degrees", and "1 degree".
+function degrees(v) { const n = round(v); return `${n} ${n === 1 ? 'degree' : 'degrees'}`; }
 function spokenSaddleReason(r) {
   const [lo, hi] = TARGETS.kneeDynamic, c = r.change;
   const how = r.kneeGrade === 'red' ? 'too' : 'a little';
-  return `Your knee bends ${round(r.knee)} degrees ${LOWEST}, and the target is ${lo} to ${hi}, so the saddle is ${how} ${c.raise ? 'low' : 'high'}.`;
+  return `${spokenKnee(r.knee)} The target is ${lo} to ${hi}, so the saddle is ${how} ${c.raise ? 'low' : 'high'}.`;
 }
 
 // The headline and the reason under it, for the screen (unit '°') or for speech (' degrees'). The
-// reason is the decision in words; the numbers are in the areas below it.
+// reason is the decision in words; the numbers are in the areas below it. short: the reason as one
+// short line for the results screen, about 12 words at most (DECISIONS.md, 2026-10-10: one title, at
+// most one short line under it); why, the full reason, is said by Say It Again and goes in the
+// report (Copy Results).
+const shortCause = (r) => (r.tooFast ? 'You pedalled too fast for this phone to measure.'
+  : r.strokesSeen >= 1 && r.strokesSeen < 5 ? 'I saw too few pedal strokes to measure.' : 'I could not see the pedals turning.');
 export function headline(r, unit = '°') {
   if (r.heldBars) {
-    return { what: 'Film once more before you change the handlebars', why: 'Your saddle height looks right now. Your last saddle change did not move your knee as much as expected, so one more film first, to be sure, before you change anything else.' };
+    return { what: 'Film once more before you change the handlebars', short: 'Your last saddle change moved your knee less than expected.',
+      why: 'Your saddle height looks right now. Your last saddle change did not move your knee as much as expected, so one more film first, to be sure, before you change anything else.' };
   }
   if (heldSaddle(r)) {
-    return { what: 'Film once more', why: 'Your last change did not do what it should have, so I will not suggest another one until one more film shows what it did.' };
+    return { what: 'Film once more', short: 'Your last change did not do what it should have.',
+      why: 'Your last change did not do what it should have, so I will not suggest another one until one more film shows what it did.' };
   }
   const c = r.change;
   if (c?.kind === 'saddle') {
@@ -905,27 +993,31 @@ export function headline(r, unit = '°') {
     const gist = c.raise
       ? `Your knee bends ${red ? 'too much' : 'a little too much'} ${LOWEST}, so the saddle is ${red ? 'too low' : 'a little low'}.`
       : `Your knee does not bend ${red ? 'enough' : 'quite enough'} ${LOWEST}, so the saddle is ${red ? 'too high' : 'a little high'}.`;
-    return { what: c.headline, why: `${gist} Change only this for now: moving the saddle changes your reach too.` };
+    const short = c.raise ? `Your knee bends ${red ? 'too much' : 'a little too much'} ${LOWEST}.`
+      : `Your knee does not bend ${red ? 'enough' : 'quite enough'} ${LOWEST}.`;
+    return { what: c.headline, short, why: `${gist} Change only this for now: moving the saddle changes your reach too.` };
   }
-  if (c?.kind === 'bars') return { what: c.headline, why: `${c.reasonSpoken} If one spacer is not enough, a shorter stem is the next step.` };
-  if (r.verdict === 'disagree') return { what: 'Film again', why: 'Your two knee readings point different ways, so I will not suggest a change yet.' };
+  if (c?.kind === 'bars') return { what: c.headline, short: 'The front of your bike is long and low.', why: `${c.reasonSpoken} If one spacer is not enough, a shorter stem is the next step.` };
+  if (r.verdict === 'disagree') return { what: 'Film again', short: 'Your two knee readings point different ways.', why: 'Your two knee readings point different ways, so I will not suggest a change yet.' };
   if (r.verdict === 'stillOnly') {
     const lead = r.tooFast ? 'You pedalled faster than this phone can measure each stroke.' : 'I could not measure you pedalling.';
+    const short = r.tooFast ? 'You pedalled too fast for this phone to measure.' : 'I could not measure you pedalling.';
     const slow = r.tooFast ? ' more slowly' : '';
     const dir = setupOf(r.setup).dir;
     return r.kneeGrade !== 'green'
-      ? { what: 'Film again before you move the saddle', why: `${lead} Held still, your knee is outside its range, but that reading alone cannot say how far to move the saddle. Film again and pedal ${dir}${slow}.` }
-      : { what: 'Saddle height looks right, held still', why: `${lead} Held still, your knee is in range, but that reading is only a cross-check. Film again and pedal ${dir}${slow} to be sure.` };
+      ? { what: 'Film again before you move the saddle', short, why: `${lead} Held still, your knee is outside its range, but that reading alone cannot say how far to move the saddle. Film again and pedal ${dir}${slow}.` }
+      : { what: 'Saddle height looks right, held still', short, why: `${lead} Held still, your knee is in range, but that reading is only a cross-check. Film again and pedal ${dir}${slow} to be sure.` };
   }
   if (r.verdict === 'ok') {
     const off = offAngles(r);
     const allIn = ['torso', 'elbow', 'shoulder'].every(k => r[k + 'Grade'] === 'green');
     return { what: 'Nothing to change today',
+      short: off.length ? 'Your saddle height looks right. Fine to ride.' : 'Your saddle height looks right.',
       why: 'Your saddle height looks right.'
         + (off.length ? ` Your ${list(off)} ${off.length > 1 ? 'are' : 'is'} ${offWords(r)} the target. That is fine to ride.`
           : allIn ? ' Your back, elbow and shoulder angles are in range too.' : '') };
   }
-  return { what: 'Not enough to measure', why: noneCause(r) };
+  return { what: 'Not enough to measure', short: shortCause(r), why: noneCause(r) };
 }
 
 // Nothing to do after this session: no change, nothing held back, and the saddle height looks right.
@@ -938,11 +1030,18 @@ export const nothingToDo = (r) => r?.verdict === 'ok' && !r.change && !r.held;
 // persistent pain or numbness); it is said first. Then the retest, then the action in one or two
 // sentences, then it stops: every number spoken is a millimetre or a knee angle, which keeps the
 // recorded voice lines few (design-spec.md). opts.long: the longer version that "Say it again"
-// speaks, with the reason and the other angles too.
-export function spokenSummary(r, { pain = false, long = false } = {}) {
+// speaks, with the reason and the other angles too. opts.win: this retest's saddle change worked
+// (ui.retestWin: the knee moved the right way into range, with nothing new to change). Then the short
+// version is only the win and when to check again, the customer research's lines; the long one says
+// the before and after as well.
+export const WIN_LINE = 'That worked. Your saddle is done.';
+export const COME_BACK = 'Check again whenever you change the saddle, stem, shoes or cleats.';
+export function spokenSummary(r, { pain = false, long = false, win = false } = {}) {
   const out = [];
   const c = r.change;
   if (pain) out.push(painNote(r));
+  if (win && !long) return [...out, WIN_LINE, COME_BACK].join(' ');
+  if (win) out.push(WIN_LINE);
   if (r.retest) out.push(r.retest.spoken);
   if (r.heldBars) {
     out.push('Film once more before you change the handlebars.');
@@ -964,8 +1063,11 @@ export function spokenSummary(r, { pain = false, long = false } = {}) {
   } else if (r.verdict === 'ok') {
     // "looks right", as on the screen: a phone camera is off by a few degrees, so not "is right".
     out.push('Nothing to change today. Your saddle height looks right.');
+    // The held-still reading asks for one more film: said short too, since the result starts with
+    // "Leave the phone where it is." for that film (round 3, the customer research's item 1).
+    if (!long && r.stillOut && !r.stillOutAgain) out.push('Film once more to be sure.');
     if (long) {
-      out.push(`Your knee bends ${round(r.knee)} degrees ${LOWEST}, ${inTarget(r.knee, TARGETS.kneeDynamic, ' degrees')}.`);
+      out.push(`${spokenKnee(r.knee)} That is ${inTarget(r.knee, TARGETS.kneeDynamic, ' degrees')}.`);
       if (r.stillOut && !r.stillOutAgain) out.push('Your held-still reading was outside its range. Film once more to be sure.');
       const ok = ['torso', 'elbow', 'shoulder'].filter(k => r[k + 'Grade'] === 'green').map(k => NAMES[k]);
       const off = offAngles(r);
@@ -1152,10 +1254,17 @@ export function judgeChange(prev, now) {
     : moved < lo - SAME_TOL ? 'too-little' : moved > hi + SAME_TOL ? 'too-much' : 'consistent';
   const recheck = !!prev.recheck;
   const inRange = grade(now.src === 'pedalling' ? 'kneeDynamic' : 'kneeStatic', now.knee) === 'green';
-  const by = (unit) => (round(hi) < 1 ? `less than 1${unit}` : round(lo) === round(hi) ? `about ${round(lo)}${unit}` : `about ${round(lo)} to ${round(hi)}${unit}`);
+  // Spoken "1 degree", not "1 degrees".
+  const one = (unit) => (unit === ' degrees' ? ' degree' : unit);
+  const by = (unit) => (round(hi) < 1 ? `less than 1${one(unit)}` : round(lo) === round(hi) ? `about ${round(lo)}${round(lo) === 1 ? one(unit) : unit}` : `about ${round(lo)} to ${round(hi)}${unit}`);
   const verb = m.dir > 0 ? 'raise' : 'drop';
   const nums = (u) => `Knee bend ${round(prev.knee)}${u} before, ${round(now.knee)}${u} now.`;
   const should = (u, mmWord) => `A ${m.mm} ${mmWord} ${verb} should change it by ${by(u)}`;
+  // Spoken, each sentence carries one number at most, so every sentence can be one recorded clip in
+  // the coach's voice for each value (tools/voice/catalog.mjs): two readings in one sentence would
+  // need a clip for every pair.
+  const saidNums = `Knee bend ${degrees(prev.knee)} before. ${degrees(now.knee)} now.`;
+  const saidShould = should(' degrees', 'millimetre');
   let text, spoken;
   if (inRange) {
     // In range now: leave the saddle, never hold it back (one change at a time, saddle first, and
@@ -1175,11 +1284,11 @@ export function judgeChange(prev, now) {
     }
   } else if (verdict === 'consistent') {
     text = `${nums('°')} ${should('°', 'mm')}. That fits. The next step is below.`;
-    spoken = `${nums(' degrees')} ${should(' degrees', 'millimetre')}. That fits. Here is the next step.`;
+    spoken = `${saidNums} ${saidShould}. That fits. Here is the next step.`;
   } else if (recheck) {
     // The second film that does not fit: going by this reading is the only way forward.
     text = `${nums('°')} ${should('°', 'mm')}. That still does not fit the change, so I go by this reading. The next step is below.`;
-    spoken = `${nums(' degrees')} ${should(' degrees', 'millimetre')}. That still does not fit the change, so I go by this reading. Here is the next step.`;
+    spoken = `${saidNums} ${saidShould}. That still does not fit the change, so I go by this reading. Here is the next step.`;
   } else if (verdict === 'unseen') {
     // Design choice: up to an expected 6 degrees (twice SAME_TOL, a change of up to 18 mm) the change
     // is near the smallest one the camera can see; beyond that, no change at all means it hardly moved.
@@ -1187,7 +1296,11 @@ export function judgeChange(prev, now) {
     const tail = small ? ', about the smallest change this camera can see, so I cannot tell yet whether the saddle moved.'
       : ', but it hardly changed.';
     text = `${nums('°')} ${should('°', 'mm')}${tail} Check the tape mark, then film once more.`;
-    spoken = `${nums(' degrees')} ${should(' degrees', 'millimetre')}${tail} Check the tape mark, then film once more.`;
+    // Spoken, the tail is a sentence of its own, so the sentence with the millimetres is the same clip
+    // whatever follows it.
+    const saidTail = small ? 'That is about the smallest change this camera can see, so I cannot tell yet whether the saddle moved.'
+      : 'But it hardly changed.';
+    spoken = `${saidNums} ${saidShould}. ${saidTail} Check the tape mark, then film once more.`;
   } else {
     const end = {
       'other-way': ' It moved the other way. Check the saddle really moved, then film once more before you change anything else.',
@@ -1195,7 +1308,7 @@ export function judgeChange(prev, now) {
       'too-much': ' That is more than the change should do. Film once more to check.',
     }[verdict];
     text = `${nums('°')} ${should('°', 'mm')}.${end}`;
-    spoken = `${nums(' degrees')} ${should(' degrees', 'millimetre')}.${end}`;
+    spoken = `${saidNums} ${saidShould}.${end}`;
   }
   return { verdict, before: prev.knee, now: now.knee, mm: m.mm, dir: m.dir, inRange, recheck, text, spoken };
 }
@@ -1208,12 +1321,23 @@ function otherSetup(prev, now) {
   const again = was ? ` To see what the change did, film again with the bike ${was}.` : '';
   const what = prev.made.kind === 'bars' ? 'raising the handlebars' : `${prev.made.dir > 0 ? 'raising' : 'lowering'} the saddle`;
   const text = `Not compared with the film before ${what}: ${then}, and ${nowSaid}.${again}`;
-  return { verdict: 'other-setup', kind: prev.made.kind, text, spoken: text };
+  // Spoken, without the two setups (the screen names them): a recorded clip for every pair of setups
+  // would be many long clips for one rare line.
+  const spoken = `Not compared with the film before ${what}: ${was ? 'the bike was held another way then' : 'you filmed before the app asked how the bike stays up'}.${again}`;
+  return { verdict: 'other-setup', kind: prev.made.kind, text, spoken };
 }
 
 // After raising the handlebars: the back, shoulder and elbow angles before and now. Only the numbers:
 // we found no source for how much one spacer should change them, so there is no "that fits" and the
 // next change is never held back. now.values: this session's upper-body angles.
+// Spoken, the way each angle went and no numbers (they stay on the screen): six numbers in one line
+// would need a recorded clip for every combination, and the screen already shows them. The same
+// SAME_TOL as on the screen decides "about the same".
+const SAID_BARS = 'After raising the handlebars, here is what changed.';
+const saidWay = (was, now) => {
+  const d = round(now) - round(was);
+  return Math.abs(d) < SAME_TOL ? 'stayed about the same' : d > 0 ? 'went up' : 'went down';
+};
 function barsBeforeAfter(prev, now) {
   if (prev.src !== 'pedalling' || now?.src !== 'pedalling') return null;
   const pv = prev.values || {}, nv = now.values || {};
@@ -1226,7 +1350,7 @@ function barsBeforeAfter(prev, now) {
   return {
     verdict: 'shown', kind: 'bars',
     text: `After raising the handlebars: ${say('°')}.`,
-    spoken: `After raising the handlebars: ${say(' degrees')}.`,
+    spoken: [SAID_BARS, ...ks.map(k => `Your ${NAMES[k]} ${saidWay(pv[k], nv[k])}.`)].join(' '),
   };
 }
 
@@ -1276,7 +1400,7 @@ export function suggestionText(sug) {
 // The millimetre buttons on the change card. 15 is rule 2's most for one change (fit-rules.md); 5
 // and 10 are a design choice, so smaller steps are one tap too. "Other" opens a number field.
 export const MADE_CHOICES = [5, 10, 15];
-export const LATER = 'Later: I will ask when you come back.';
+export const LATER = 'Not Yet';
 
 // The words of the change card. where: 'results' or 'home'. mode: 'ask' (first time), 'later' (he
 // tapped Later: the way to answer stays, so he can still say so when he has made it), or 'before'
@@ -1290,22 +1414,23 @@ export function madeQuestion(where, mode, sug, label) {
   if (where === 'results') {
     if (saddle) {
       if (mode === 'before') return { q: 'Before you film again: how far did you move the saddle?', mm: true, yes: null, no: 'No, film anyway' };
-      if (mode === 'later') return { q: 'I will ask when you come back. If you move it now, tell me how far.', mm: true, yes: null, no: null };
+      if (mode === 'later') return { q: 'I will ask next time. Moved it now? Tell me how far.', mm: true, yes: null, no: null };
       return { q: 'When you have moved the saddle, tell me how far.', mm: true, yes: null, no: LATER };
     }
     if (mode === 'before') return { q: 'Before you film again: did you make this change?', mm: false, yes: 'Yes, I made it', no: 'No, film anyway' };
     if (mode === 'later') return { q: 'When you have made it, tap I made this change.', mm: false, yes: 'I made this change', no: null };
     return { q: 'Did you make this change?', mm: false, yes: 'I made this change', no: LATER };
   }
-  const was = `After your check on ${label} I suggested you ${what}.`;
+  // Home: one short line, what was suggested; the check it came from is dated under Latest Check.
+  const What = what.charAt(0).toUpperCase() + what.slice(1);
   if (saddle) {
-    if (mode === 'before') return { q: `Before you start: did you ${what}? If you did, tell me how far.`, mm: true, yes: null, no: 'No, start anyway' };
-    if (mode === 'later') return { q: `${was} When you have moved it, tell me how far.`, mm: true, yes: null, no: null };
-    return { q: `${was} When you have moved the saddle, tell me how far.`, mm: true, yes: null, no: LATER };
+    if (mode === 'before') return { q: `Before you start: did you ${what}?`, mm: true, yes: null, no: 'No, start anyway' };
+    if (mode === 'later') return { q: `${What}, then tell me how far.`, mm: true, yes: null, no: null };
+    return { q: `Did you ${what}? Tell me how far.`, mm: true, yes: null, no: LATER };
   }
   if (mode === 'before') return { q: `Before you start: did you ${what}?`, mm: false, yes: 'Yes, I made it', no: 'No, start anyway' };
-  if (mode === 'later') return { q: `${was} When you have made the change, tap Yes, I made it.`, mm: false, yes: 'Yes, I made it', no: null };
-  return { q: `${was} Did you make this change?`, mm: false, yes: 'Yes, I made it', no: LATER };
+  if (mode === 'later') return { q: `${What}, then tap Yes, I made it.`, mm: false, yes: 'Yes, I made it', no: null };
+  return { q: `Did you ${what}?`, mm: false, yes: 'Yes, I made it', no: LATER };
 }
 
 // What the card says once a change is saved. More than MADE_STEP_MAX is saved as it is, and said so.
@@ -1324,26 +1449,27 @@ export function madeNote(made) {
 // maker's torque, often printed on the clamp. Using tape to see how far it moved is the app's own
 // tip. The bike shop line is a design choice.
 export function saddleHowTo(raise) {
+  // Short steps, one action each (DECISIONS.md, 2026-10-10: far less text).
   const steps = raise ? [
-    'Put a piece of tape round the seat post, right where it goes into the frame.',
-    'Open the seat clamp: flip the quick-release lever, or loosen the bolt, usually with a hex key.',
-    'Pull the post up. The gap between the tape and the frame is how far it moved.',
-    'Look down the bike from behind and turn the saddle so it points straight ahead.',
-    'Never pull the post above the minimum insertion mark printed on it.',
-    'Tighten the clamp to the torque printed on it, or in the maker\'s instructions.',
+    'Put tape round the seat post where it meets the frame.',
+    'Open the seat clamp: flip the lever, or undo the bolt.',
+    'Pull the post up. The gap at the tape is how far it moved.',
+    'From behind, point the saddle straight ahead.',
+    'Never go above the minimum insertion mark on the post.',
+    'Tighten the clamp to the torque printed on it.',
   ] : [
-    'Measure up the seat post from the frame by how far you want to lower it, and put a piece of tape round the post there.',
-    'Open the seat clamp: flip the quick-release lever, or loosen the bolt, usually with a hex key.',
+    'Measure up the post by how far to lower it. Put tape there.',
+    'Open the seat clamp: flip the lever, or undo the bolt.',
     'Push the post down until the tape meets the frame.',
-    'Look down the bike from behind and turn the saddle so it points straight ahead.',
-    'Tighten the clamp to the torque printed on it, or in the maker\'s instructions.',
+    'From behind, point the saddle straight ahead.',
+    'Tighten the clamp to the torque printed on it.',
   ];
   return {
     title: raise ? 'How to raise the saddle' : 'How to lower the saddle',
     steps,
     notes: [
       'No torque wrench, a carbon post, or not sure: ask a bike shop.',
-      'You can move it in smaller steps. Tell me how far you moved it, and I will check what it did.',
+      'You can go in smaller steps. Tell me how far it moved.',
     ],
   };
 }
@@ -1353,10 +1479,10 @@ export function saddleHowTo(raise) {
 // which the retest has to match. The card has its own Start button.
 export function retestPrompt(made, label, setup = null) {
   const bike = setupOf(setup).bike;
-  const tail = bike ? `Film again with the bike ${bike}, as before, to see what it did. A few minutes.`
+  const tail = bike ? `Film again the same way: bike ${bike}. A few minutes.`
     : 'Film again to see what it did. A few minutes.';
-  if (made?.kind === 'saddle') return `You ${made.dir > 0 ? 'raised' : 'lowered'} the saddle ${made.mm} mm after your check on ${label}. ${tail}`;
-  if (made?.kind === 'bars') return `You raised the handlebars after your check on ${label}. ${tail}`;
+  if (made?.kind === 'saddle') return `You ${made.dir > 0 ? 'raised' : 'lowered'} the saddle ${made.mm} mm after your ${label} check. ${tail}`;
+  if (made?.kind === 'bars') return `You raised the handlebars after your ${label} check. ${tail}`;
   return '';
 }
 
@@ -1402,6 +1528,9 @@ export function painNote(r) {
   return `You said pain or numbness keeps coming back. ${first}If it is no better within a few weeks, or it gets worse, see a doctor or physio, and a professional bike fitter. `
     + 'Get medical help now if your knee is badly swollen, has changed shape, or cannot take your weight. This is not medical advice. ' + PAIN_LIMITS;
 }
+// The same advice as one short line for the results screen, where the full note is one tap away. The
+// voice says the full note first, and the sheet ends with Not medical advice.
+export const PAIN_SHORT = 'Pain that keeps coming back: see a doctor or physio, and a bike fitter.';
 
 // ── the result list, one row per measurement ─────────────────────────────────────────────────
 // Statuses in the style of Apple's movement evaluations, with one difference on purpose: there is
@@ -1554,7 +1683,7 @@ export function areas(r, rows) {
       : ' That is fine to ride.';
     reach = area('reach', 'Reach and bar height', 'amber',
       `Your ${list(off)} ${off.length > 1 ? `are ${offWords(r)} their targets` : `is ${offWords(r)} its target`}.${tail}`,
-      'Nothing to do. I will compare it on your next check.', urows);
+      'Fine to ride. I will compare it on your next check.', urows);
   }
 
   const more = area('more', 'More numbers', 'info', 'Extra angles for reference. They do not change the advice.',
