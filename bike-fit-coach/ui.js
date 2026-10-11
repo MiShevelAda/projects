@@ -571,3 +571,19 @@ export function voiceParts(text, has) {
   }
   return out;
 }
+
+// ── the sound log, for Copy Results ──────────────────────────────────────────────────────────
+// Alex, 2026-10-11: "Sound is getting cut off sometimes mid sentence". How many recorded clips played,
+// and each line cut short (the last 8): how far in, and what cut it (app.js, Voice.logCut), so one
+// pasted result shows the cause.
+const CUT_WHY = { paused: 'the iPhone paused it', newer: 'a newer line', stop: 'the check stopped or moved on',
+  timer: 'it was moved past after its length', overdue: 'it ran too long and was moved past' };
+const shortLine = (t) => { const w = String(t).split(/\s+/); return w.length > 7 ? `${w.slice(0, 7).join(' ')}…` : String(t); };
+export function soundLog({ ok, played = 0, fallback = 0, cuts = [] } = {}) {
+  if (!ok) return ["Sound: the recorded voice could not play here, so the phone's own voice spoke."];
+  const lines = [`Sound: ${played} clips played, ${cuts.length ? `${cuts.length} cut short` : 'none cut short'}, ${fallback} in the phone's own voice.`];
+  for (const c of cuts.slice(-8)) {
+    lines.push(`  Cut short: "${shortLine(c.text)}" at ${(+c.at || 0).toFixed(1)} of ${(+c.of || 0).toFixed(1)} s: ${CUT_WHY[c.how] || c.how}.`);
+  }
+  return lines;
+}

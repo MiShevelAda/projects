@@ -92,7 +92,7 @@ function silence() {
 // URL: a plain file address would make the element ask for byte ranges, which a cached copy cannot
 // answer on Safari.
 const Clips = {
-  ok: false, el: null, map: null, loading: null, urls: new Map(), ready: new Map(), primed: false, quiet: null,
+  ok: false, el: null, map: null, loading: null, urls: new Map(), ready: new Map(), primed: false, quiet: null, selfAt: -1, part: null,
   init() {
     this.el = document.getElementById('voice');
     if (SIM && params.get('voice') === 'off') return;
@@ -102,6 +102,16 @@ const Clips = {
     // Chromium build, say) goes straight to the phone's voice instead of failing clip by clip.
     if (!this.el.canPlayType?.('audio/mp4; codecs="mp4a.40.2"')) { this.ok = false; debug.voice.errors.push('this browser does not play AAC'); return; }
     this.el.preload = 'auto';
+    // The sound log (ui.soundLog, Copy Results): a pause the app did not cause, before the clip's
+    // end, is the phone's (another app's sound, a call, Siri, the audio route changing). The pause
+    // that comes with a clip's natural end, and any within half a second of the app pausing the
+    // element or changing its clip itself (selfAt), are not cuts.
+    this.el.addEventListener('pause', () => {
+      const a = this.el, c = Voice.cur;
+      if (now() - this.selfAt < 0.5 || !c || c.done || a.ended) return;
+      if (!(a.duration > 0) || a.currentTime >= a.duration - 0.15) return;
+      Voice.logCut('paused', this.part || c.text, a);
+    });
     this.loading = fetch(VOICE_DIR + 'manifest.json')
       .then(r => (r.ok ? r.json() : Promise.reject(new Error(`manifest ${r.status}`))))
       .then(m => { this.map = new Map((m.clips || []).map(c => [c.text, c])); debug.voice.clips = this.map.size; })
@@ -132,6 +142,7 @@ const Clips = {
     this.primed = true;
     try {
       this.quiet ??= silence();
+      this.selfAt = now();
       this.el.src = this.quiet;
       this.el.play()?.catch?.(() => {});
     } catch { this.primed = false; }
@@ -184,6 +195,13 @@ const Voice = {
     return text.split(/\s+/).length / RATE + PAD;
   },
   busy() { return !!this.cur || this.q.length > 0; },
+  // A clip that stopped before its end, for the sound log (ui.soundLog): how, which words, how far in.
+  logCut(how, text, a = Clips.el) {
+    const at = Number.isFinite(a?.currentTime) ? a.currentTime : 0, of = Number.isFinite(a?.duration) ? a.duration : 0;
+    debug.voice.cuts.push({ t: now(), how, text, at, of, phase });
+  },
+  // Whether a clip is sounding right now (not paused, not at its end).
+  sounding() { return Clips.ok && !!Clips.el && !Clips.el.paused && !Clips.el.ended; },
   // When everything queued should be over, by the estimate (for the step clocks).
   recalc() {
     const t = now();
@@ -204,7 +222,7 @@ const Voice = {
     this.count.set(text, (this.count.get(text) || 0) + 1);
     log('say', text);
     debug.speech.push({ t, text, interrupt });
-    if (interrupt) this.cancel();
+    if (interrupt) this.cancel('newer', text);
     Clips.prefetch(text);
     const prev = this.q.length ? this.q[this.q.length - 1] : this.cur;
     const before = prev ? speaker(prev.text) : this.lastSpeaker;
@@ -273,8 +291,10 @@ const Voice = {
         a.onended = done;
         a.onerror = () => fail(a.error ? new Error(`media error ${a.error.code}`) : new Error('media error'));
         // Design choice: a clip still not over 2 s after its length is moved past.
-        watch = setTimeout(done, (dur + 2) * 1000);
+        watch = setTimeout(() => { if (this.sounding() && a.currentTime < dur - 0.2) this.logCut('timer', text, a); done(); }, (dur + 2) * 1000);
         try {
+          Clips.part = text;
+          Clips.selfAt = now();
           a.src = u;
           const p = a.play();
           p?.catch?.((e) => { if (e?.name !== 'AbortError') fail(e); });
@@ -306,23 +326,27 @@ const Voice = {
     const overdue = () => {
       if (!live()) return;
       if (this.engine) { try { speechSynthesis.cancel(); } catch { /* nothing to stop */ } }
-      if (Clips.ok) { try { Clips.el.pause(); } catch { /* nothing playing */ } }
+      if (this.sounding()) this.logCut('overdue', Clips.part || item.text);
+      if (Clips.ok) { try { Clips.selfAt = now(); Clips.el.pause(); } catch { /* nothing playing */ } }
       end();
     };
     item.show = setTimeout(start, 1500 + (item.gap || 0) * 1000);
     item.watch = setTimeout(overdue, (2 * this.est(item.text) + 2 + (item.gap || 0)) * 1000);
     if (item.gap) setTimeout(begin, item.gap * 1000); else begin();
   },
-  cancel() {
+  // why: 'newer' when a newer, urgent line cuts in (by: its words), else 'stop'; either is logged only
+  // when a clip was still sounding.
+  cancel(why = 'stop') {
+    if (this.cur && this.sounding()) this.logCut(why, Clips.part || this.cur.text);
     this.gen++;
     if (this.cur) { clearTimeout(this.cur.show); clearTimeout(this.cur.watch); }
     this.q = [];
     this.cur = null;
     this.lastEnd = this.doneAt = now();
     if (this.engine) speechSynthesis.cancel();
-    if (Clips.ok) { try { Clips.el.pause(); Clips.el.onended = Clips.el.onerror = Clips.el.onplaying = null; } catch { /* nothing playing */ } }
+    if (Clips.ok) { try { Clips.selfAt = now(); Clips.el.pause(); Clips.el.onended = Clips.el.onerror = Clips.el.onplaying = null; } catch { /* nothing playing */ } }
   },
-  stop() { this.cancel(); },
+  stop() { this.cancel('stop'); },
 };
 
 // ── beeps, for the spirit level ───────────────────────────────────────────────────────────────
@@ -458,7 +482,7 @@ const debug = { phase: () => phase, setup: () => setup, screen: () => screen, se
   // The recorded voice: how many clips the manifest lists, each clip as it starts playing, any part
   // said in the phone's voice because its clip failed (fallback) or has none (missing), and manifest
   // errors.
-  voice: { clips: 0, played: [], fallback: [], missing: [], errors: [] },
+  voice: { clips: 0, played: [], fallback: [], missing: [], errors: [], cuts: [] },
   // The drawn demos (Demo): each one shown, its clips, the step and the line it began in, and when, in
   // which step and why it ended (ended, skipped, left with its step, failed, stalled).
   demos: [] };
@@ -2884,6 +2908,7 @@ function resultText(r) {
     `Pedal strokes measured: ${session.pedal?.strokes ?? 0}.`,
     cameraLine(),
     w, // the same words as on the screen
+    ...ui.soundLog({ ok: Clips.ok, played: debug.voice.played.length, fallback: debug.voice.fallback.length, cuts: debug.voice.cuts }),
     'Not medical advice.',
   ].filter(Boolean).join('\n');
 }

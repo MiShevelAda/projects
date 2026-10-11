@@ -213,3 +213,26 @@ test('round 3 fix: the button that saves a change and checks it now says what it
   // Title Case, as a button.
   for (const l of [ui.checkNowLabel(raise, 9), ui.checkNowLabel(raise, ''), ui.checkNowLabel({ kind: 'bars' })]) assert.equal(ui.titleCase(l.text), l.text);
 });
+
+// Alex, 2026-10-11: "Sound is getting cut off sometimes mid sentence". The sound log in Copy Results
+// says which line was cut, how far in, and what cut it, so one pasted result shows the cause.
+test('the sound log: clips played, each line cut short with how far in and why', () => {
+  assert.deepEqual(ui.soundLog({ ok: false }), ["Sound: the recorded voice could not play here, so the phone's own voice spoke."]);
+  assert.deepEqual(ui.soundLog({ ok: true, played: 24, fallback: 0, cuts: [] }), ['Sound: 24 clips played, none cut short, 0 in the phone\'s own voice.']);
+  const cuts = [
+    { how: 'paused', text: 'Put the pedal nearest the phone at its lowest point. Keep your foot as it sits when you ride.', at: 3.14, of: 6.2 },
+    { how: 'newer', text: 'Ten seconds left.', at: 0.4, of: 1.1 },
+    { how: 'timer', text: 'Level. Leave the phone there.', at: 1, of: 2 },
+  ];
+  const log = ui.soundLog({ ok: true, played: 30, fallback: 1, cuts });
+  assert.equal(log[0], 'Sound: 30 clips played, 3 cut short, 1 in the phone\'s own voice.');
+  assert.equal(log[1], '  Cut short: "Put the pedal nearest the phone at…" at 3.1 of 6.2 s: the iPhone paused it.');
+  assert.equal(log[2], '  Cut short: "Ten seconds left." at 0.4 of 1.1 s: a newer line.');
+  assert.equal(log[3], '  Cut short: "Level. Leave the phone there." at 1.0 of 2.0 s: it was moved past after its length.');
+  // At most the last 8, so a long session stays readable.
+  const many = Array.from({ length: 12 }, (_, i) => ({ how: 'stop', text: `Line ${i}.`, at: 0, of: 1 }));
+  const long = ui.soundLog({ ok: true, played: 40, cuts: many });
+  assert.equal(long.length, 9);
+  assert.match(long.at(-1), /"Line 11\."/);
+  assert.ok(!long.join('\n').includes('—'));
+});

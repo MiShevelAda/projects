@@ -240,7 +240,7 @@ test('one shared audio element plays the clips, unlocked inside a tap, with spee
   assert.match(voice, /debug\.voice\.fallback\.push/);
   // The step clocks wait for the line to finish: a clip's end (or its length plus 2 s) ends the line.
   assert.match(voice, /a\.onended = done;/);
-  assert.match(voice, /watch = setTimeout\(done, \(dur \+ 2\) \* 1000\);/);
+  assert.match(voice, /watch = setTimeout\(\(\) => \{[^\n]*done\(\); \}, \(dur \+ 2\) \* 1000\);/);
   // Captions stay the line's own words, shown when it starts playing.
   assert.match(voice, /el\.say\.textContent = item\.text;/);
 });
@@ -305,4 +305,21 @@ test('the code reader: regular expressions, nested templates, scopes and paramet
   assert.deepEqual(p.resolve('line', calls[0].arg.at), { param: true });
   assert.equal(p.resolve('A', calls[1].arg.at).init.v, 'one');
   assert.equal(p.returns(p.resolve('f', 0).fn.block).length, 1);
+});
+
+// Alex, 2026-10-11: "Sound is getting cut off sometimes mid sentence". Every way a clip can stop before
+// its end is logged with what cut it (ui.soundLog, in Copy Results): a pause the app did not ask for
+// (the phone's), a newer line, Stop, the per-clip timer and the line's overdue timer.
+test('the sound log: every way a clip can stop early is recorded, and Copy Results carries it', () => {
+  const app = read('app.js');
+  assert.match(app, /voice: \{[^}]*cuts: \[\]/);
+  const init = app.slice(app.indexOf('const Clips = {'), app.indexOf('const Voice = {'));
+  assert.match(init, /addEventListener\('pause'/);
+  assert.match(init, /a\.ended/); // the pause that comes with the natural end is not a cut
+  assert.match(init, /selfAt/); // nor one the app caused itself
+  const voice = app.slice(app.indexOf('const Voice = {'), app.indexOf('const Beep = {'));
+  for (const how of ['timer', 'overdue', 'newer', 'stop']) assert.match(voice, new RegExp(`logCut\\('${how}'|'${how}'`), how);
+  assert.match(voice, /this\.cancel\('newer', text\)/);
+  const copy = app.slice(app.indexOf('function resultText('), app.indexOf("'Not medical advice.'"));
+  assert.match(copy, /ui\.soundLog\(/);
 });

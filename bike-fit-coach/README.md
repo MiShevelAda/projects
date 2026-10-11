@@ -775,6 +775,11 @@ download or switch on.
   phone on silent, where the beeps (Web Audio) may not be: likely, not yet confirmed with silent mode
   on. Lines never overlap: one finishes before the next starts, and the
   app's timing waits for the clip to end. The caption shows the line's own words.
+- **The sound log.** Copy Results ends with one Sound line: how many clips played, how many were
+  cut short and how many fell back to the phone's own voice, then each cut line (the last 8) with
+  how far in it stopped and what stopped it: the iPhone pausing it, a newer line, Stop, or a timer
+  (`ui.soundLog`, `Voice.logCut`). Added after Alex heard the voice cut off mid-sentence
+  (2026-10-11), so one pasted result shows the cause.
 - **Which clip.** A line with a clip of its own plays as one clip. A line built from parts at the
   end of a check (the spoken result, "Saved 20 mm.") plays sentence by sentence; every such
   sentence carries at most one number, and each value has its own whole sentence (one clip for "Your
