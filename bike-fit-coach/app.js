@@ -133,6 +133,17 @@ const Clips = {
     } catch { this.primed = false; }
   },
 };
+// The voice to speak with: a Premium, then an Enhanced American or British English voice when one is
+// installed on the phone (they sound less robotic), otherwise as before: British English on the
+// phone, then other English on the phone, then any English.
+function bestVoice(vs) {
+  const local = (v, re) => re.test(v.lang) && v.localService;
+  const tier = (word) => vs.find(v => local(v, /^en[-_](US|GB)/i) && new RegExp(word, 'i').test(`${v.name} ${v.voiceURI}`));
+  return tier('premium') || tier('enhanced')
+    || vs.find(v => local(v, /^en[-_]GB/i))
+    || vs.find(v => local(v, /^en[-_](US|AU|IE|GB)/i))
+    || vs.find(v => /^en/i.test(v.lang)) || null;
+}
 const Voice = {
   last: new Map(), count: new Map(), voice: null, engine: false,
   q: [], cur: null, gen: 0, lastEnd: 0, lastSpeaker: null, doneAt: 0,
@@ -142,22 +153,23 @@ const Voice = {
     if (!this.engine && !Clips.ok) return;
     el.say.removeAttribute('aria-live'); // it is spoken already; VoiceOver would say it twice
     if (!this.engine) return;
-    // The fallback voice: the phone's best English one, as before.
-    const pick = () => {
-      const vs = speechSynthesis.getVoices();
-      this.voice = vs.find(v => /^en[-_]GB/i.test(v.lang) && v.localService)
-        || vs.find(v => /^en[-_](US|AU|IE|GB)/i.test(v.lang) && v.localService)
-        || vs.find(v => /^en/i.test(v.lang)) || null;
-    };
+    // The fallback voice: the phone's best English one (bestVoice).
+    const pick = () => { this.voice = bestVoice(speechSynthesis.getVoices()); };
     pick();
     speechSynthesis.addEventListener?.('voiceschanged', pick);
   },
   // iOS only lets a page make sound after a tap, so every tap that leads to the voice calls this
-  // (through unlockSound): the speech fallback says something silent, then the clip element plays a
-  // moment of silence.
+  // (through unlockSound): the speech fallback says one short word, almost silently (not empty and
+  // not at volume 0: iOS may not count either as speaking), then the clip element plays a moment of
+  // silence.
   unlock() {
     if (this.engine) {
-      try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch { /* the clips do not need it */ }
+      try {
+        const u = new SpeechSynthesisUtterance('Hi');
+        u.volume = 0.01;
+        if (this.voice) { u.voice = this.voice; u.lang = this.voice.lang; }
+        speechSynthesis.speak(u);
+      } catch { /* the clips do not need it */ }
     }
     Clips.unlock();
   },
@@ -312,8 +324,15 @@ const Voice = {
 // ── beeps, for the spirit level ───────────────────────────────────────────────────────────────
 const Beep = {
   ctx: null,
+  // From a tap: start (or wake) the audio and play one silent sample, which is what iOS waits for.
   init() {
-    try { this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)(); this.ctx.resume?.(); } catch { this.ctx = null; }
+    try { this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)(); this.ctx.resume?.(); } catch { this.ctx = null; return; }
+    try {
+      const s = this.ctx.createBufferSource();
+      s.buffer = this.ctx.createBuffer(1, 1, this.ctx.sampleRate);
+      s.connect(this.ctx.destination);
+      s.start(0);
+    } catch { /* the beeps may stay quiet; the voice does not depend on them */ }
   },
   tone(freq = 660, dur = 0.07, vol = 0.22) {
     const c = this.ctx;
@@ -331,10 +350,10 @@ const Beep = {
   chime() { this.tone(660, 0.12); setTimeout(() => this.tone(990, 0.2), 140); },
 };
 
-// A tap that leads to sound calls this first, inside the tap, because iOS allows sound only from a
-// tap: the audio session first (so the silent switch does not mute the page, where the browser
-// supports it), then the beeps, then the voice (speech: false for a tap that plays a recording).
-// The same order as the live app's sound fix, so the two can be merged as one.
+// Every tap that leads to sound calls this first, before anything waits, because iOS allows sound
+// only from inside a tap: the audio session first (so the silent switch does not mute the page,
+// where the browser supports it), then the beeps, then the voice (speech: false for a tap that
+// plays a recording, so the unlock word does not speak over it).
 function unlockSound(speech = true) {
   try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* not supported */ }
   Beep.init();
@@ -2986,7 +3005,8 @@ el.showShare.addEventListener('click', () => { el.shareHint.hidden = false; el.s
 el.shareHintClose.addEventListener('click', () => { el.shareHint.hidden = true; el.showShare.focus?.(); });
 
 // Getting Ready's clip: the How to Set Up guide, a narrated drawn guide of this check's own steps,
-// played in place, muted (the captions are drawn into it).
+// played in place. The Play tap is a tap, so it plays with its narration (Heart's voice), as the live
+// hotfix did; the captions are drawn into it too, for anyone who cannot listen.
 function pauseHowTo() {
   if (!el.howVideo || el.howVideo.hidden) return;
   try { el.howVideo.pause(); } catch { /* not playing */ }
@@ -3002,7 +3022,8 @@ el.howPlay.addEventListener('click', () => {
   if (!v.hidden && !v.paused) { pauseHowTo(); return; }
   v.hidden = false;
   el.howPoster.hidden = true;
-  v.muted = true;
+  unlockSound(false);
+  v.muted = false;
   playLabel(true);
   const p = v.play?.();
   // Offline the clip is not there (the service worker leaves video to the network): the picture

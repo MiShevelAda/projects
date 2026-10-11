@@ -12,6 +12,12 @@ const CACHE = 'bfc-v2-mp0.10.35-4eaa5eb7';
 const CORE = ['./', './index.html', './app.js', './fit.js', './ui.js', './manifest.webmanifest', './icons/icon-192.png', './assets/setup-guide-poster.jpg', './assets/how-to-poster.jpg',
   './vendor/mediapipe/vision_bundle.mjs', './assets/voice/manifest.json'];
 
+// Video and sound other than the voice clips below, among them the setup guide
+// (./assets/setup-guide.mp4), are never cached: the browser asks for them in byte ranges, Safari
+// expects a ranged answer (206) back, and this worker does not cut ranges out of cached files, so they
+// always come from the network.
+const MEDIA = /\.(mp4|m4a|mp3)$/;
+
 // The coach's recorded voice (assets/voice/, tools/voice/build-voice.mjs) has a cache of its own, so
 // a new engine does not drop the clips and new clips do not touch the engine. Each clip's name is a
 // hash of its words, so a cached clip never goes out of date: the clips are served from this cache
@@ -99,7 +105,7 @@ self.addEventListener('fetch', (e) => {
     }))));
     return;
   }
-  if (/\.(mp4|m4a|mp3)$/.test(url.pathname)) return; // video and sound use range requests; leave them to the network
+  if (MEDIA.test(url.pathname)) return; // range requests: leave them to the network (MEDIA, above)
   // Engine and model files (the .js glue, the .wasm, the bundle and the model) always come from the
   // same cache generation, so a phone never mixes new glue code with an old engine.
   if (url.pathname.includes('/vendor/') || url.pathname.includes('/models/') || /\.png$/.test(url.pathname)) {

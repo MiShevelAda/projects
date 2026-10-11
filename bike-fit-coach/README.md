@@ -7,6 +7,11 @@ triathlon position on aero bars.
 
 **Open it on your phone:** https://mishevelada.github.io/projects/bike-fit-coach/
 
+**First time?** Tap **Start a Check**. After three short questions, **Getting Ready** has **How to
+Set Up**, a short drawn guide, spoken and captioned: how the bike stays up, where the phone goes, and
+what happens after Start. The next screen has **Tap to Hear Me**, one recorded line in the coach's
+voice. If you hear nothing, turn the volume up and switch off silent mode.
+
 ## Using it
 
 The app has three tabs, like Apple's Health app: **Check** (start a check; your latest result),
@@ -61,8 +66,8 @@ sentences. The full reason and the numbers for a fitter are in **Say It Again** 
      Yes adds a note first in the results (see "Pain or numbness" below); it does not change the
      advice. A check started from the results (Check It Now, Check Again) keeps this visit's answer.
 4. **Getting Ready** shows the How to Set Up guide (`assets/setup-guide.mp4`, from the live app's
-   sound and guide fix: a narrated, captioned drawn guide of this check's own steps, 73 s; it plays
-   in place, muted, under **Play**) and four rows: a chair and a 20 cm box, your road bike, kit
+   sound and guide fix: a narrated, captioned drawn guide of this check's own steps, 73 s; tap
+   **Play** and it plays in place with its narration) and four rows: a chair and a 20 cm box, your road bike, kit
    and shoes, 3 m of space with light on you, the volume up and silent mode off. The steps for your
    setup are folded into **Setup Steps**, one tap away, the first time too: the voice says each of
    them during the check. The older Camera app clip (`assets/how-to.mp4`: a hidden helper, a 5 s
@@ -710,9 +715,8 @@ it has no clip for (a clip's file name is a hash of its words), and removes clip
 more. `--check` only reports what is missing. It needs Python with `kokoro-onnx` (on the build
 machine, `/home/user/tts/.venv`; `--python` for another), the Kokoro v1.0 model files
 (`KOKORO_MODELS`, default `/home/user/tts/models`) and `ffmpeg`. Options: `--jobs` (worker
-processes), `--threads`, `--limit`. The live app's Test the Sound files (`sound-check.m4a`,
-`.mp3`) in the same folder are never touched; when that fix is merged, its service worker line for
-sound files goes after the voice-clip line in `sw.js`, which must stay first.
+processes), `--threads`, `--limit`. In `sw.js` the voice-clip rule stays before the rule that
+leaves other sound and video to the network (`MEDIA`).
 
 Measured on 2026-10-11: 687 clips (150 whole instructions from `app.js` and 537 sentences of
 results), 38 minutes of speech, 15.1 MB in all, 21.9 kB a clip on average; 262 of them (7.3 MB) are
@@ -817,6 +821,12 @@ about 2.2 s for each second of speech. With nothing to record, a run takes a few
 - Not checked on a real iPhone yet: the light and dark status bar (`apple-mobile-web-app-status-bar-style`
   is now `default`, because white status bar text on the light tabs would not show), the glass
   blur, and how the results sheet and the check flow scroll in Safari.
+- Sound on an iPhone: every tap that leads to sound calls `unlockSound()` first, inside the tap
+  (the audio session, then a silent sample for the beeps, then one almost silent word for the speech
+  fallback and a moment of silence on the clip element). The fallback voice is a Premium or Enhanced
+  American or British voice when one is installed on the phone (`bestVoice`, from the live hotfix).
+- `assets/setup-guide.mp4` is built from the phone placement drawing, one render of the bike and
+  title cards, narrated by Heart (Kokoro `af_heart`).
 
 | File | What it is |
 |---|---|
@@ -827,7 +837,7 @@ about 2.2 s for each second of speech. With nothing to record, a run takes a few
 | `sw.js` | Offline support from the first visit: the engine and the model are cached when it installs (that first visit may download them twice), and the voice clips in their own cache |
 | `assets/voice/` | The coach's recorded voice: one `.m4a` clip per line or sentence, and `manifest.json` (see "The voice") |
 | `tools/voice/` | The voice build: `build-voice.mjs` (the one command), `catalog.mjs` (every line the app can say, from the code), `jsread.mjs` (reads app.js for it, no library needed), `render.py` (Kokoro) |
-| `test/` | Tests, and the made-up rider and helper they use (`setups.test.mjs`: the three setups, picking the rider, and checks on what app.js says; `flow.test.mjs`: whole simulated sessions, run by `flow-runner.mjs`; `ui.test.mjs`: the screens' words and shapes; `screens.test.mjs`: what the tabs, the check flow and the results sheet are built from; `roll.test.mjs`: the phone's roll taken out, for both cameras and both sideways positions; `live.test.mjs`: the camera view's states, the camera choice and the placement step; `cx.test.mjs`: the customer research's changes, the calendar file and its times, the win's words, the bike guide and the tape tip, the permission screen and the new spoken lines; `voice.test.mjs`: every line has a recorded clip, every clip is real audio, the one shared audio element, the service worker's voice cache; `simple.test.mjs`: the simplicity pass, no long line on a main-path screen, one primary button per step, details one tap away, short spoken sentences and clips) |
+| `test/` | Tests, and the made-up rider and helper they use (`setups.test.mjs`: the three setups, picking the rider, and checks on what app.js says; `flow.test.mjs`: whole simulated sessions, run by `flow-runner.mjs`; `ui.test.mjs`: the screens' words and shapes; `screens.test.mjs`: what the tabs, the check flow and the results sheet are built from; `roll.test.mjs`: the phone's roll taken out, for both cameras and both sideways positions; `live.test.mjs`: the camera view's states, the camera choice and the placement step; `cx.test.mjs`: the customer research's changes, the calendar file and its times, the win's words, the bike guide and the tape tip, the permission screen and the new spoken lines; `voice.test.mjs`: every line has a recorded clip, every clip is real audio, the one shared audio element, the service worker's voice cache; `simple.test.mjs`: the simplicity pass, no long line on a main-path screen, one primary button per step, details one tap away, short spoken sentences and clips; `sound.test.mjs`: the sound on an iPhone, Tap to Hear Me and the setup guide) |
 
 ## Credits
 

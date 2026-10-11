@@ -8,6 +8,35 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-10-10
 
+### All of Matt Pocock's skills, usable in the running session; Code Review off
+
+> **"Add all Matt Pocock's skills"**
+> **"First yes"**
+> **"Also do everything needed so the skills are accessible as of now without opening new window"**
+
+His answer to the two recommendations above ("Turn off Code Review?" and "Add prototype?"). It
+overrules the session's advice to leave out Matt Pocock's `tdd` and `diagnosing-bugs`. **What it
+changed.** The session put Matt Pocock's own plugin from Anthropic's directory, "Skills For Real
+Engineers", on an install card for him to tap: every skill in one bundle, each name prefixed with the
+plugin's, so none collides with the four copies vendored in the brand repo or with Claude's built-in
+`/code-review`. A plugin enabled on his account reaches a running session without a new window. "First
+yes" is his yes to switching Code Review off, a switch only he can flip in his Claude app. The
+`prototype` copy vendored above stays (it is a newer version than the plugin's). `git-guardrails-claude-code`
+is never to be run here: it blocks `git push`, and a push to `main` is how this repo publishes.
+
+### The plugins: keep Superpowers, Design and Frontend Design, turn off Code Review, add "prototype"
+
+> **"Ok So how can we make apply them as of now"**
+
+His answer to the session's two recommendations after the skills research (about 140 skills,
+plugins and lists checked). **What it changed.** Matt Pocock's `prototype` skill is copied into
+`.claude/skills/` (verbatim, MIT), with a note that variants reach him on a private page, never on
+`main`. Anthropic's Code Review plugin is to be switched off in his Claude app, because it works only
+through the `gh` tool, which these cloud sessions do not have; Claude's built-in reviewer does the
+job. Superpowers, Design and Frontend Design stay on. Left out on purpose, for simplicity: extra
+reviewer agents, a TypeScript language server that would need installing every session, and Matt
+Pocock's `tdd` and `diagnosing-bugs`, which Superpowers already covers. ECC was not installed.
+
 ### Before executing a task, check which skill could help
 
 > **"Please before executing a task check which skill could help"**
@@ -64,6 +93,18 @@ something is needed, the app carries it. So the Heart voice ships inside the app
 every line it can say, with a test that fails if any line has none, and plays through the phone's
 media audio so it is heard even when the phone is on silent (to be confirmed on his iPhone). The only
 settings the app may still mention are the volume and, until that is confirmed, silent mode.
+
+### Sound you can test, and a setup video at the top of the home screen
+
+> **"Don't hear sounds and not explanation video on how to set up everything"**
+
+While testing the live app on his iPhone (the cause of the silence was most likely silent mode; he
+heard it after switching it off). **What it changed**, as a hotfix to the live app: every tap that
+leads to speech wakes the sound first, inside the tap; a **Test the Sound** button plays a recorded
+clip in Heart's voice, with the note that silent mode must stay off during the check; and a narrated,
+captioned drawn guide, **How to Set Up**, sits at the top of the home screen, marked "Drawn guide. A
+video with real people is coming." The voice during the check stays the iPhone's own until the
+recorded Heart lines ship in round 3 (the built-in entry above).
 
 ### The screen question, no Excellent for now, and no voice commands for now
 

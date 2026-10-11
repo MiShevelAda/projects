@@ -89,7 +89,7 @@ test('a new check asks one question a screen, in order, with Away from me the de
   assert.match(app, /el\.painNext\.setAttribute\('aria-disabled', String\(!painSet\)\);/);
 });
 
-test('Getting Ready: the How to Set Up guide, a glass Play pill, inline and muted, four short rows, the steps one tap away', async () => {
+test('Getting Ready: the How to Set Up guide, a glass Play pill, inline (muted until Play is tapped), four short rows, the steps one tap away', async () => {
   const html = await read('index.html'), text = pageText(html);
   // Round 3 fix: the setup guide (the live hotfix), never the older Camera app clip, which shows a
   // different product (a hidden helper, a 5 s hold, "upload to Google Drive"). That clip stays only in

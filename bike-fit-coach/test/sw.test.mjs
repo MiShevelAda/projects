@@ -62,3 +62,23 @@ test('the engine and the model are cached when the worker installs, not only on 
   const boot = app.slice(app.indexOf('async function boot()'));
   assert.ok(boot.indexOf('landmarker = await loadPose()') < boot.lastIndexOf('registerWorker();'));
 });
+
+test('the setup guide: the poster is cached, the video is left to the network', async () => {
+  const { access } = await import('node:fs/promises');
+  const sw = await read('sw.js');
+  const core = sw.slice(sw.indexOf('const CORE = ['), sw.indexOf('];', sw.indexOf('const CORE = [')));
+  assert.match(core, /'\.\/assets\/setup-guide-poster\.jpg'/);
+  // Media is asked for in byte ranges, which a cached copy is not cut to, so it is never cached.
+  const media = new RegExp(sw.match(/const MEDIA = \/(.+)\/;/)[1]);
+  const f = 'assets/setup-guide.mp4';
+  assert.ok(sw.includes(`./${f}`), `sw.js does not name ${f}`);
+  assert.ok(media.test(`/projects/bike-fit-coach/${f}`), `${f} is not left to the network`);
+  assert.ok(!core.includes(f), `${f} is in CORE`);
+  // Only the voice clips, fetched whole by the page, come from a cache before that rule.
+  const fetchHandler = sw.slice(sw.indexOf("addEventListener('fetch'"));
+  const mediaAt = fetchHandler.indexOf('if (MEDIA.test(url.pathname)) return;');
+  assert.ok(mediaAt > 0);
+  assert.ok(fetchHandler.indexOf("if (isClip(url) && !req.headers.has('range'))") < mediaAt);
+  assert.equal((fetchHandler.slice(0, mediaAt).match(/respondWith/g) || []).length, 1);
+  for (const x of [f, 'assets/setup-guide-poster.jpg']) await access(new URL(`../${x}`, import.meta.url));
+});

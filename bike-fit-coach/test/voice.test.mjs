@@ -137,7 +137,7 @@ test('the manifest lists only lines the app says, each in its own file, and ever
     const kbps = (info.audioBytes * 8) / info.seconds / 1000;
     assert.ok(kbps > 30 && kbps < 70, `${c.file}: ${kbps.toFixed(0)} kb/s`);
   }
-  // No clip file of ours that the manifest does not list (the live app's sound-check files are not ours).
+  // No clip file that the manifest does not list.
   for (const f of readdirSync(at('assets/voice/'))) if (CLIP_NAME.test(f)) assert.ok(files.has(f), `an unlisted clip: ${f}`);
   // Precached: every instruction and number-free sentence; the numbered ones load on use.
   const pre = manifest.clips.filter(c => c.pre);
@@ -230,7 +230,11 @@ test('one shared audio element plays the clips, unlocked inside a tap, with spee
   const speakAt = voice.indexOf('const speak = (text)');
   assert.ok(speakAt > 0);
   const uses = [...voice.matchAll(/speechSynthesis\.speak\(/g)].map(m => m.index);
-  assert.ok(uses.every(i => i > speakAt || voice.slice(i - 200, i).includes("new SpeechSynthesisUtterance(' ')")), 'speech: the silent unlock and the fallback only');
+  // The unlock word is the live hotfix's: one short word, almost silent (iOS may not count an empty
+  // or volume 0 line as speaking).
+  const unlockAt = voice.indexOf('  unlock() {'), unlockEnd = voice.indexOf('Clips.unlock();', unlockAt);
+  assert.ok(uses.every(i => i > speakAt || (i > unlockAt && i < unlockEnd)), 'speech: the silent unlock and the fallback only');
+  assert.match(voice.slice(unlockAt, unlockEnd), /new SpeechSynthesisUtterance\('Hi'\);\s*u\.volume = 0\.01;/);
   assert.match(voice, /debug\.voice\.fallback\.push/);
   // The step clocks wait for the line to finish: a clip's end (or its length plus 2 s) ends the line.
   assert.match(voice, /a\.onended = done;/);
@@ -262,7 +266,7 @@ test('the service worker keeps the voice offline in its own cache and never dele
   const name = sw.match(/const isClip = \(url\) => [^;]+;/)[0];
   assert.ok(name.includes('[0-9a-f]{16}\\.m4a'), name);
   // The voice rule comes before the rule that leaves sound and video to the network.
-  assert.ok(sw.indexOf('isClip(url) && !req') < sw.indexOf('mp4|m4a|mp3'));
+  assert.ok(sw.indexOf('isClip(url) && !req') < sw.indexOf('if (MEDIA.test(url.pathname)) return;'));
   // Old clips are dropped only from the voice cache.
   assert.match(sw, /async function pruneVoice\(\) \{[\s\S]*caches\.open\(VOICE_CACHE\)/);
 });
