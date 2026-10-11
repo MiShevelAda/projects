@@ -92,13 +92,26 @@ export function rangeLabel(name, value, [lo, hi], status) {
 // One short line under the title (DECISIONS.md, 2026-10-10: one title, at most one short line), from
 // the newest session that measured something (its stored grades and suggestion): the one thing to do
 // if there is one, else how the saddle and reach look. The cards under it carry the rest.
+// A change held by fit.withFeel says why instead: ride the last one first, a fitter's bike, or a change
+// put back after it felt worse twice.
+const WAIT_SUMMARY = { ride: 'Ride your last change, then check again.', worse: 'It felt worse. Ride it once more, then tell me how it felt.', fitter: 'A fitter set up your bike, so I only report.',
+  undone: 'Your last change felt worse twice. A fitter can look at why.' };
 export function homeSummary(latest) {
   if (!latest?.areas) return '';
+  if (WAIT_SUMMARY[latest.wait]) return WAIT_SUMMARY[latest.wait];
   const g = latest.areas, sug = latest.suggested;
-  if (sug?.kind === 'saddle') return `Your saddle is probably ${g.saddle === 'red' ? 'too' : 'a little'} ${sug.raise ? 'low' : 'high'}.`;
+  // "a little" or "too", as the results said it (fit.suggestedChange keeps it; with pain the step is
+  // capped, the words are not). Saved before that: from the step, "a little" for 3 and 5 mm, "too" for
+  // 10; a suggestion saved before round 4 holds a range, and its grade says it, as then.
+  if (sug?.kind === 'saddle') {
+    const how = sug.how || (g.saddle === 'red' && !(Array.isArray(sug.mm) && sug.mm[1] < 10) ? 'too' : 'a little');
+    return `Your saddle is probably ${how} ${sug.raise ? 'low' : 'high'}.`;
+  }
   if (sug?.kind === 'bars') return 'The front of your bike is probably long and low.';
-  if (g.saddle === 'amber') return 'Your saddle height needs one more check.';
-  if (g.saddle !== 'green') return 'Your last check could not measure your saddle height.';
+  // Fair with nothing to do (in range, near the edge) is in range, not "one more check".
+  const saddleOk = g.saddle === 'green' || (g.saddle === 'amber' && latest.nothing);
+  if (g.saddle === 'amber' && !saddleOk) return 'Your saddle height needs one more check.';
+  if (!saddleOk) return 'Your last check could not measure your saddle height.';
   if (g.reach === 'green') return 'Your saddle height and reach look right.';
   if (g.reach === 'amber') return 'Your saddle height looks right. Your reach is fine to ride.';
   return 'Your saddle height looks right.';
@@ -112,19 +125,22 @@ export function latestCards(entry) {
   const v = entry.values || {}, g = entry.areas, sug = entry.suggested;
   const kneeKey = fin(v.kneePedal) ? 'kneePedal' : fin(v.kneeStill) ? 'kneeStill' : 'kneePedal';
   const [lo, hi] = fit.TARGETS[METRIC[kneeKey].target];
+  const held = (kind) => entry.wait && entry.would?.kind === kind;
   const step = sug?.kind === 'saddle' ? `${cap(fit.suggestionText(sug))}.`
+    : held('saddle') ? fit.waitStep(entry)
     : g.saddle === 'green' ? 'Leave the saddle height as it is.' : '';
   const saddle = { key: 'saddle', title: AREA_TITLE.saddle, grade: g.saddle, status: fit.STATUS[g.saddle] || fit.STATUS.na,
     value: v[kneeKey], metric: METRIC[kneeKey].name, lo, hi, step };
   saddle.label = rangeLabel('Saddle height', saddle.value, [lo, hi], saddle.status) + (step ? `. ${step}` : '');
-  const rows = ['torso', 'elbow', 'shoulder'].filter(k => fin(v[k])).map(k => {
+  // The shoulder is for reference only (fit.REFERENCE): no target band is drawn for it.
+  const rows = ['torso', 'elbow', 'shoulder'].filter(k => fin(v[k]) && !fit.REFERENCE.includes(k)).map(k => {
     const [a, b] = fit.TARGETS[k];
     return { key: k, name: METRIC[k].short, value: v[k], lo: a, hi: b };
   });
   const reach = { key: 'reach', title: AREA_TITLE.reach, grade: g.reach, status: fit.STATUS[g.reach] || fit.STATUS.na, rows,
     collapsed: g.reach === 'after' || !rows.length,
     line: g.reach === 'after' ? 'Checked after the saddle' : !rows.length ? 'Not measured' : '',
-    step: sug?.kind === 'bars' ? `${cap(fit.suggestionText(sug))}.` : '' };
+    step: sug?.kind === 'bars' ? `${cap(fit.suggestionText(sug))}.` : held('bars') ? fit.waitStep(entry) : '' };
   reach.label = reach.collapsed ? `${AREA_TITLE.reach}: ${reach.line}`
     : [`${AREA_TITLE.reach}, ${reach.status}`, ...rows.map(r => rangeLabel(r.name, r.value, [r.lo, r.hi], ''))].join('. ') + (reach.step ? `. ${reach.step}` : '');
   return [saddle, reach];
@@ -229,12 +245,18 @@ export function changesList(history) {
     const m = s.made;
     const title = m.kind === 'saddle' ? `${m.dir > 0 ? 'Raised' : 'Lowered'} the Saddle ${m.mm}\u00a0mm` : 'Raised the Handlebars';
     let then = '';
-    if (pending?.at === s.at) then = 'Not checked yet';
+    // How it felt (fit.recordFeel): put back after two "worse" answers, or the latest answer.
+    const felt = m.feel?.length ? `Felt ${{ better: 'better', same: 'the same', worse: 'worse' }[m.feel[m.feel.length - 1].said]}` : '';
+    if (m.undone) then = 'Felt worse twice. Put back.';
+    else if (pending?.at === s.at) then = 'Not checked yet';
+    // A 3 or 5 mm change is too small for this camera to measure (fit.tooSmallToSee): no before and
+    // after, as if it had been checked (SPEC 7.1, item 11).
+    else if (m.kind === 'saddle' && fit.tooSmallToSee(m.mm)) then = 'Too small for me to measure';
     else if (m.kind === 'saddle' && fin(s.values?.kneePedal)) {
       const next = h.slice(0, i).reverse().find(x => fit.sameSetup(x?.setup, s.setup) && fin(x?.values?.kneePedal));
       if (next) then = `Then: knee bend ${s.values.kneePedal}° before, ${next.values.kneePedal}° after`;
     }
-    return { at: s.at, title, pending: pending?.at === s.at, then };
+    return { at: s.at, title, pending: pending?.at === s.at, then, felt: m.undone ? '' : felt };
   });
 }
 
@@ -243,7 +265,7 @@ export function changesList(history) {
 // handlebar change (or one held back), otherwise the saddle. Never a summary of both: one disagreed
 // with the areas under it in round 1.
 export function focusArea(r, areas) {
-  const key = r?.change?.kind === 'bars' || r?.heldBars ? 'reach' : 'saddle';
+  const key = r?.change?.kind === 'bars' || r?.heldBars || r?.would?.kind === 'bars' ? 'reach' : 'saddle';
   return (areas || []).find(a => a.key === key) || null;
 }
 
@@ -259,7 +281,8 @@ export function retestWin(r) {
 }
 // The check is done: the change worked, or nothing to change and nothing to film again. Then the
 // phone need not stay where it is, and the voice says when to check again (fit.COME_BACK).
-export const checkDone = (r) => retestWin(r) || (fit.nothingToDo(r) && !onceMore(r));
+// A change held by fit.withFeel (ride it first, a fitter's bike, a change put back) is done for today too.
+export const checkDone = (r) => !!r?.wait || retestWin(r) || (fit.nothingToDo(r) && !onceMore(r));
 // The win's one short line under its headline: the before and after (fit.judgeChange's readings),
 // and which way it moved. The full reason is in Say It Again and Copy Results.
 export function winLine(r) {
@@ -389,7 +412,8 @@ export function liveView(s) {
     v.ring = { frac: h.capturing ? ringFrac(h.elapsed, h.total, s.reduce) : 0, digits: '', hold: true };
   } else if (s.phase === 'pedal') {
     const p = s.pedal || {};
-    const dirWords = p.dir === 'forwards' ? 'Forwards, easy effort' : 'Backwards, steady';
+    // On a trainer, the effort of a long ride (SPEC 5.0, round 4); backwards on the floor has no load.
+    const dirWords = p.dir === 'forwards' ? 'Forwards, long-ride effort' : 'Backwards, steady';
     Object.assign(v, { layer: s.front ? 'ring' : 'avatar', border: 'blue', word: 'Pedal', figure: !s.front, ghost: false,
       sub: p.more ? 'A few more turns' : p.paused ? 'Paused' : dirWords });
     v.ring = { frac: p.more ? 1 : p.started ? ringFrac(p.elapsed, p.total, s.reduce) : 0,
@@ -424,12 +448,16 @@ export function avatarLabel(v) {
 export function resultField(r, { win = false, grade = 'na', nothing = false, what = '', once = false } = {}) {
   const c = r?.change;
   if (win) return { tone: 'green', icon: 'check', word: 'Good', sub: 'Your saddle change worked' };
+  // A change held by fit.withFeel: RIDE (it first), FITTER (ask them), KEEP (it where it is).
+  if (r?.wait) return { tone: 'yellow', icon: null, word: { ride: 'Ride', worse: 'Ride', fitter: 'Fitter', undone: 'Keep' }[r.wait], sub: what };
   if (c?.kind === 'saddle') {
     return { tone: 'yellow', icon: c.raise ? 'up' : 'down', mm: true, word: c.mm[0] === c.mm[1] ? `${c.mm[0]} mm` : `${c.mm[0]} to ${c.mm[1]} mm`, sub: c.headline };
   }
   if (c?.kind === 'bars') return { tone: 'yellow', icon: 'up', word: 'Bars', sub: c.headline };
   if (once) return { tone: 'yellow', icon: null, word: 'Again', sub: 'Film once more to be sure' };
   if (nothing && grade === 'green') return { tone: 'green', icon: 'check', word: 'Good', sub: what };
+  // Fair with nothing to change: in range, near the edge (fit.zone). Never AGAIN over "Nothing to change".
+  if (nothing && grade === 'amber') return { tone: 'yellow', icon: 'check', word: 'Fair', sub: what };
   return { tone: 'yellow', icon: null, word: 'Again', sub: what };
 }
 

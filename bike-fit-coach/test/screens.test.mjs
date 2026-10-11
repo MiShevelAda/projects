@@ -53,15 +53,20 @@ test('a new check asks one question a screen, in order, with Away from me the de
   const html = await read('index.html'), text = pageText(html);
   const at = (s) => html.indexOf(s);
   // Round 3 fix: one title, one short line and one Next each, as Apple's "Choose How to Measure".
+  // Round 4: the fitter question (first visit only) after the screen, and after the pain question the
+  // feel question and the revert screen (only when due), in the same style.
   const order = ['id="flowSetup"', 'How Will Your Bike Stay Up?', 'id="flowNext"', 'id="flowScreen"', 'Where Will the Screen Face?', 'id="screenNext"',
-    'id="flowPain"', 'Pain or Numbness That Keeps Coming Back When You Ride?', 'id="painNext"', 'id="flowReady"', 'id="start"'];
+    'id="flowFitter"', 'Has a Bike Fitter Set This Bike Up for You?', 'id="fitterNext"',
+    'id="flowPain"', 'Pain or Numbness That Keeps Coming Back When You Ride?', 'id="painNext"',
+    'id="flowFeel"', 'Better, the Same, or Worse?', 'id="feelNext"', 'id="flowRevert"', 'id="revertNext"', 'id="flowReady"', 'id="start"'];
   for (let i = 1; i < order.length; i++) assert.ok(at(order[i - 1]) >= 0 && at(order[i - 1]) < at(order[i]), `${order[i - 1]} before ${order[i]}`);
   const section = (id) => html.slice(at(`<section id="${id}"`), html.indexOf('\n  </section>', at(`<section id="${id}"`)));
-  for (const [id, h1] of [['flowSetup', 'setupQ'], ['flowScreen', 'screenQ'], ['flowPain', 'painQ']]) {
+  for (const [id, h1] of [['flowSetup', 'setupQ'], ['flowScreen', 'screenQ'], ['flowFitter', 'fitterQ'], ['flowPain', 'painQ'], ['flowFeel', 'feelQ']]) {
     const s = section(id);
     assert.equal((s.match(/<h1 /g) || []).length, 1, `${id}: one title`);
     assert.match(s, new RegExp(`<h1 id="${h1}" class="q" tabindex="-1">`), id);
-    assert.equal((s.match(/<div class="fhead">\s*<h1[^>]*>[^<]+<\/h1>\s*<p>[^<]+<\/p>\s*<\/div>/g) || []).length, 1, `${id}: one short line under it`);
+    // The feel question's line names the change (app.js fills it in).
+    assert.equal((s.match(/<div class="fhead">\s*<h1[^>]*>[^<]+<\/h1>\s*<p( id="feelSub")?>[^<]*<\/p>\s*<\/div>/g) || []).length, 1, `${id}: one short line under it`);
     assert.equal((s.match(/role="radiogroup"/g) || []).length, 1, `${id}: one question`);
     assert.equal((s.match(/class="fprimary"/g) || []).length, 1, `${id}: one Next`);
   }
@@ -72,24 +77,25 @@ test('a new check asks one question a screen, in order, with Away from me the de
   assert.match(tag(html, 'screenTowards'), /aria-checked="false"/);
   assert.match(text, /Away from me Default/);
   // The pain question: nothing chosen, and its Next waits for an answer.
-  for (const id of ['painNo', 'painYes']) assert.match(tag(html, id), /role="radio" aria-checked="false"/, id);
-  assert.match(tag(html, 'painNext'), /aria-disabled="true"/);
+  for (const id of ['painNo', 'painYes', 'fitterNo', 'fitterYes', 'feelBetter', 'feelSame', 'feelWorse']) assert.match(tag(html, id), /role="radio" aria-checked="false"/, id);
+  for (const id of ['painNext', 'fitterNext', 'feelNext']) assert.match(tag(html, id), /aria-disabled="true"/, id);
   // The note sits one tap away, under Which Should I Pick?
   assert.match(html, /<details class="finfo"><summary>Which Should I Pick\?<\/summary><p>[^<]*Towards me is still being tested on a real iPhone\.<\/p><\/details>/);
   for (const id of ['setupTrainer', 'setupWall', 'setupFriend', 'screenTowards', 'screenAway']) assert.match(tag(html, id), /role="radio"/, id);
-  for (const id of ['screenBack', 'painBack']) assert.match(tag(html, id), /class="glass back"[^>]*aria-label="Back"/, id);
-  for (const id of ['flowClose', 'screenClose', 'painClose']) assert.match(tag(html, id), /class="glass close"[^>]*aria-label="Close"/, id);
+  for (const id of ['screenBack', 'fitterBack', 'painBack', 'feelBack']) assert.match(tag(html, id), /class="glass back"[^>]*aria-label="Back"/, id);
+  for (const id of ['flowClose', 'screenClose', 'fitterClose', 'painClose', 'feelClose', 'revertClose']) assert.match(tag(html, id), /class="glass close"[^>]*aria-label="Close"/, id);
   const app = await read('app.js');
   assert.match(app, /let screen = 'away';/);
-  assert.match(app, /session = \{ at: new Date\(\), tries: \{\}, setup, screen, camera \}/);
+  assert.match(app, /session = \{ at: new Date\(\), tries: \{\}, setup, screen, camera, kit: kitChoice \}/);
   assert.match(app, /h\.unshift\(\{[^}]*screen: session\?\.screen/);
   assert.match(app, /el\.flowNext\.addEventListener\('click', \(\) => \{ if \(!askSetup\(\)\) showFlow\('screen'\); \}\);/);
-  assert.match(app, /el\.screenNext\.addEventListener\('click', \(\) => showFlow\('pain'\)\);/);
+  assert.match(app, /el\.screenNext\.addEventListener\('click', afterScreen\);/);
+  assert.match(app, /function afterScreen\(\) \{\n  if \(fitter != null\) \{ showFlow\('pain'\); return; \}/);
   assert.match(app, /el\.readyBack\.addEventListener\('click', \(\) => showFlow\('pain'\)\);/);
   assert.match(app, /el\.painNext\.setAttribute\('aria-disabled', String\(!painSet\)\);/);
 });
 
-test('Getting Ready: the How to Set Up guide, a glass Play pill, inline (muted until Play is tapped), four short rows, the steps one tap away', async () => {
+test('Getting Ready: the How to Set Up guide, a glass Play pill, inline (muted until Play is tapped), five short rows, the steps one tap away', async () => {
   const html = await read('index.html'), text = pageText(html);
   // Round 3 fix: the setup guide (the live hotfix), never the older Camera app clip, which shows a
   // different product (a hidden helper, a 5 s hold, "upload to Google Drive"). That clip stays only in
@@ -113,8 +119,11 @@ test('Getting Ready: the How to Set Up guide, a glass Play pill, inline (muted u
   assert.match(sw.match(/const CORE = \[([^\]]+)\]/)[1], /'\.\/assets\/setup-guide-poster\.jpg'/, 'the poster offline');
   const { stat } = await import('node:fs/promises');
   assert.ok((await stat(new URL('../assets/setup-guide.mp4', import.meta.url))).size > 1e6, 'the guide is in this tree');
-  const rows = [...ready.match(/<ul class="ilist">([\s\S]*?)<\/ul>/)[1].matchAll(/<span>([^<]+)<\/span>/g)].map(m => m[1]);
-  assert.deepEqual(rows, ['A chair and a 20 cm box', 'Your road bike, kit and shoes', '3 m of space, with light on you', 'Volume up, silent mode off']);
+  // Round 4 (SPEC 5.0): the kit row names cycling shoes and padded shorts, and a warm-up row (app.js
+  // sets both for the setup and for a retest).
+  const rows = [...ready.match(/<ul class="ilist">([\s\S]*?)<\/ul>/)[1].matchAll(/<span(?: id="\w+")?>([^<]+)<\/span>/g)].map(m => m[1]);
+  assert.deepEqual(rows, ['A chair and a 20 cm box', 'Your road bike, cycling shoes and padded shorts', 'Ride easily for 5 minutes first', '3 m of space, with light on you', 'Volume up, silent mode off']);
+  for (const r of ['Same shoes and shorts as last time', 'A 10-minute ride first, if you can']) assert.ok(r.split(' ').length <= 8 && app.includes(`'${r}'`), r);
   for (const r of rows) assert.ok(r.split(' ').length <= 8, `a handful of words: ${r}`);
   // The setup steps fold away, closed, the first time too; no rotation lock (DECISIONS.md: only the
   // volume and silent mode may be mentioned).
@@ -211,7 +220,7 @@ test('the service worker caches the new files under its own prefix', async () =>
 
 test('VoiceOver: check chips read "Level, done", area readings read as one short sentence', async () => {
   const app = await read('app.js');
-  assert.match(app, /c\.setAttribute\('aria-label', `\$\{k\}, \$\{ok == null \? 'not known yet' : ok \? 'done' : 'not yet'\}`\)/);
+  assert.match(app, /c\.setAttribute\('aria-label', `\$\{k\}, \$\{ok == null \? 'not known yet' : ok \? 'checked' : 'not yet'\}`\)/);
   assert.match(app, /box\.setAttribute\('aria-label', ui\.rangeLabel\(/);
   assert.match(app, /el\.rStatus\.setAttribute\('aria-label'/);
 });
@@ -239,4 +248,22 @@ test('round 3 fix: white on the blue primary buttons passes WCAG AA, as large te
       assert.ok(r >= (large ? 3 : 4.5), `.${cls}: white on ${bg} is ${r.toFixed(2)}:1 with ${weight} weight, ${size ? size[0] : 'no size floor'}`);
     }
   }
+});
+
+// Round 4, the fixer (QA2, blocking 8, there since round 3): at 28 px text "It may say
+// mishevelada.github.io." ran off the right edge of the Allow screen. The icon rows break a long word.
+test('the icon rows break a word too long for the line, such as the web address on the Allow screen', async () => {
+  const html = await read('index.html');
+  assert.match(html, /\.ilist li span \{[^}]*overflow-wrap: anywhere;/);
+  assert.match(html, /<span>It may say mishevelada\.github\.io\. That is this app\.<\/span>/);
+});
+
+// Round 4, the fixer (QA1 minor items): the Progress tab has no shoulder chart, so its empty state
+// does not promise a shoulder reading; and the Put the Saddle Back picture points the way the saddle
+// goes back (up, after lowering it).
+test('Progress promises only what it charts, and the put-it-back picture points the way back', async () => {
+  const app = await read('app.js'), html = await read('index.html');
+  assert.ok(!/shoulder reading yet/.test(app));
+  assert.match(app, /'No back or elbow reading yet\. Your checks show here\.'/);
+  assert.match(html, /<path id="revertArrow" d="M244 84v34M232 106l12 13 12-13"/);
 });

@@ -87,7 +87,8 @@
      (3.52:1 light, 3.23:1 dark) is WCAG large text, which needs 3:1. */
   .primary { appearance: none; border: 0; border-radius: 999px; background: var(--blue); color: #fff; font-size: max(18.7px, 1.1rem); font-weight: 700; min-height: 50px; padding: 12px 20px; width: 100%; line-height: 1.2; }
   .primary:disabled { opacity: 0.55; cursor: progress; }
-  .tinted { appearance: none; border: 0; border-radius: 999px; background: var(--fill); color: var(--blue-text); font-size: 1rem; font-weight: 600; min-height: 50px; padding: 12px 20px; width: 100%; line-height: 1.2; }
+  /* Bold and at least 18.7 px, like .primary: large text, so 3:1 is enough (#0066D6 on #E5E5EA is 4.32:1). */
+  .tinted { appearance: none; border: 0; border-radius: 999px; background: var(--fill); color: var(--blue-text); font-size: max(18.7px, 1.1rem); font-weight: 700; min-height: 50px; padding: 12px 20px; width: 100%; line-height: 1.2; }
   .soft { appearance: none; border: 0; border-radius: 999px; background: var(--blue-bg); color: var(--blue-text); font-size: 0.882rem; font-weight: 600; min-height: 44px; padding: 8px 16px; line-height: 1.2; }
   .plain { appearance: none; border: 0; background: none; color: var(--blue-text); font-size: 1rem; min-height: 44px; padding: 8px 4px; text-align: left; line-height: 1.25; }
   .link { appearance: none; border: 0; background: none; color: var(--blue-text); font-size: 1rem; min-height: 44px; padding: 0 2px; }
@@ -218,6 +219,12 @@
   .learnrow svg { width: 2.1rem; height: auto; color: var(--blue); }
   .learnrow b { display: block; font-size: 1rem; font-weight: 600; }
   .learnrow span { font-size: 0.882rem; line-height: 1.33; color: var(--sec); }
+  /* Learn's setup rows play their drawn demo: a row is a button, with a play circle at its end. */
+  button.learnrow { appearance: none; width: 100%; margin: 0; border: 0; border-top: 1px solid var(--sep); background: none; color: inherit; font: inherit; text-align: left; grid-template-columns: 2.1rem minmax(0, 1fr) 1.65rem; align-items: center; }
+  button.learnrow:first-child { border-top: 0; }
+  .learnrow svg.play { width: 1.65rem; height: 1.65rem; }
+  .learnDemo { appearance: none; display: block; width: 100%; margin: 0; padding: 0 16px 16px; border: 0; background: none; }
+  .learnDemo video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; background: #131A24; object-fit: contain; }
   /* Details one tap away on the tabs: a row that opens. */
   .learnmore > summary { list-style: none; cursor: pointer; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 1rem; font-weight: 600; }
   .learnmore > summary::-webkit-details-marker { display: none; }
@@ -265,6 +272,10 @@
   .fhero { position: relative; height: calc(env(safe-area-inset-top, 0px) + 196px); background: var(--f-hero); overflow: hidden; }
   .fhero > svg { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); }
   .fhero .rider { --ink: #FFFFFF; --far: #2F6DB5; --acc: var(--f-accent); }
+  /* Large text on a short screen (app.js, answersInView): the picture gives way, so the first answer
+     shows above the Next bar; the glass back and close buttons keep their place. */
+  .fscreen.compact .fhero { height: calc(env(safe-area-inset-top, 0px) + 68px); }
+  .fscreen.compact .fhero > svg { display: none; }
   .fhead { padding: 18px 24px 4px; display: flex; flex-direction: column; gap: 4px; max-width: 600px; margin: 0 auto; }
   .fhead h1, .readybody h1 { font-size: 1.647rem; line-height: 1.21; font-weight: 700; text-wrap: balance; }
   /* A question screen: the answers start a little under the title's line. */
@@ -309,6 +320,10 @@
   #flowAllow .readybody { padding-top: 0; }
   .fhead.flush { padding: 18px 0 0; margin: 0; }
   #flowWhere .fbar { gap: 10px; }
+  /* A quiet text button in the dark flow's bottom bar: a way to answer no, or to go on without one. */
+  .fplain { appearance: none; border: 0; background: none; color: var(--f-accent); font-size: 1rem; font-weight: 600; min-height: 44px; padding: 8px 12px; line-height: 1.25; text-align: center; }
+  .fplain[hidden] { display: none; }
+  #flowFeel { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 184px); }
   .status.err { color: #FF6961; }
   /* Getting Ready: the hero video slot with a glass Play pill, then the checklist. */
   #flowReady { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 190px); }
@@ -322,6 +337,7 @@
   .ilist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
   .ilist li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 16px; align-items: start; font-size: 1.118rem; line-height: 1.26; color: var(--f-sec); }
   .ilist svg { width: 34px; height: 34px; color: var(--f-accent); }
+  .ilist li span { overflow-wrap: anywhere; }
   .fold { border-radius: 20px; background: var(--f-card); padding: 0 18px; }
   .fold > summary { cursor: pointer; list-style: none; min-height: 52px; display: flex; align-items: center; font-weight: 600; }
   .fold > summary::-webkit-details-marker { display: none; }
@@ -368,6 +384,9 @@
   /* The results' bottom bar: sticks to the bottom of the screen while the sheet scrolls. */
   .sbar { position: sticky; bottom: 0; z-index: 5; max-width: 600px; margin: 0 auto; padding: 22px max(16px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom, 0px) + 14px) max(16px, env(safe-area-inset-left)); background: linear-gradient(var(--bg-clear), var(--bg) 22px); display: flex; flex-direction: column; gap: 6px; }
   .sbar .plain { align-self: center; text-align: center; }
+  /* Taller than a fifth of the screen (large text, a small phone; app.js, fitBar): it stops sticking
+     and sits under the change card, scrolling with the page. */
+  .sbar.flowing { position: static; width: 100%; margin: 0; padding: 0; background: none; }
   .painbox > summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; font-weight: 600; min-height: 24px; }
   .painbox > summary::-webkit-details-marker { display: none; }
   .painbox > summary::after { content: "More"; flex: none; color: var(--blue-text); font-weight: 600; }
@@ -446,6 +465,16 @@
   .keyframe .kt.lens { font-size: 11px; font-weight: 700; fill: #5CB8FF; }
   .keyframe .kt.box { font-size: 9px; font-weight: 700; fill: #3B2C1C; }
   .keyframe .kt.b { font-size: 11px; font-weight: 700; fill: #FFFFFF; }
+  /* Day one: the drawn placement clip loops in the drawing's box, which takes the clip's shape. */
+  .keyframe video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #131A24; }
+  .keyframe.playing { aspect-ratio: 16 / 9; }
+  .keyframe.playing svg { display: none; }
+  /* Day one: the drawn demo of the moves, over the camera view, under the caption and the top bar. */
+  .demo { appearance: none; position: absolute; inset: 0; z-index: 7; margin: 0; border: 0; border-radius: 0; color: #fff; background: var(--f-bg);
+    display: flex; align-items: center; justify-content: center; padding: var(--top) var(--padR) calc(var(--capH) + 12px) var(--padL); }
+  .demo video { display: block; height: 100%; max-width: 100%; aspect-ratio: 16 / 9; object-fit: contain; border-radius: 22px; background: #131A24; }
+  .demoTap { position: absolute; right: calc(var(--padR) + 12px); bottom: calc(var(--capH) + 24px); min-height: 36px; padding: 0 16px; border-radius: 18px; display: inline-flex; align-items: center;
+    background: rgba(28,28,30,0.78); border: 1px solid rgba(255,255,255,0.16); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); font-size: 15px; font-weight: 600; }
   .kfnote { position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 13px; background: rgba(0,0,0,0.5); font-size: 12px; font-weight: 600; }
   .placeText { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
   .placeText h1 { font-size: clamp(28px, 4.8vw, 40px); line-height: 1.15; font-weight: 700; }
@@ -543,8 +572,9 @@
 <div id="flow" class="flow" hidden>
   <div class="ftopfade" aria-hidden="true"></div>
   <!-- A new check asks one question a screen, as Apple's "Choose How to Measure" does: how the bike
-       stays up, which way the screen faces, then the pain question. Each has one title, one short
-       line and one Next at the bottom. -->
+       stays up, which way the screen faces, the first time on this phone whether a bike fitter set
+       the bike up, then the pain question, and after a change he has ridden, how it felt. Each has
+       one title, one short line and one Next at the bottom. -->
   <section id="flowSetup" class="fscreen" aria-labelledby="setupQ">
     <div class="fhero" aria-hidden="true">
       <svg width="390" height="196" viewBox="0 0 390 196">
@@ -601,6 +631,32 @@
     <div class="fbar"><button id="screenNext" class="fprimary" type="button">Next</button></div>
   </section>
 
+  <!-- Round 4 (SPEC 4.4 item 8): asked once on this phone. Yes: the app reports and moves nothing,
+       unless he says yes to the pain question; then at most 5 mm, and "tell your fitter". -->
+  <section id="flowFitter" class="fscreen" aria-labelledby="fitterQ" hidden>
+    <div class="fhero" aria-hidden="true">
+      <svg width="390" height="196" viewBox="0 0 390 196">
+        <circle cx="195" cy="112" r="150" fill="var(--f-ring1)"/><circle cx="195" cy="112" r="112" fill="var(--f-ring2)"/>
+        <circle cx="195" cy="112" r="76" fill="var(--f-ring3)"/><circle cx="195" cy="112" r="42" fill="var(--f-ring4)"/>
+        <svg class="rider" x="102" y="34" width="174" height="124" viewBox="0 0 280 200"><use href="#riderArt"/></svg>
+      </svg>
+    </div>
+    <button id="fitterBack" class="glass back" type="button" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button id="fitterClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+    <div class="fhead">
+      <h1 id="fitterQ" class="q" tabindex="-1">Has a Bike Fitter Set This Bike Up for You?</h1>
+      <p>Asked once. If yes, I only report what I see.</p>
+    </div>
+    <section id="fitterCard" class="fq" aria-labelledby="fitterQ">
+      <p id="fitterErr" class="needsLine" hidden>First, tap No or Yes.</p>
+      <div class="pains" role="radiogroup" aria-labelledby="fitterQ">
+        <button id="fitterNo" class="choice" type="button" role="radio" aria-checked="false"><span>No</span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+        <button id="fitterYes" class="choice" type="button" role="radio" aria-checked="false"><span>Yes</span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+      </div>
+    </section>
+    <div class="fbar"><button id="fitterNext" class="fprimary" type="button" aria-disabled="true">Next</button></div>
+  </section>
+
   <section id="flowPain" class="fscreen" aria-labelledby="painQ" hidden>
     <div class="fhero" aria-hidden="true">
       <svg width="390" height="196" viewBox="0 0 390 196">
@@ -625,6 +681,57 @@
     <div class="fbar"><button id="painNext" class="fprimary" type="button" aria-disabled="true">Next</button></div>
   </section>
 
+  <!-- Round 4 (SPEC 4.4 item 3): after a change he has ridden, before the next step. Next waits for
+       an answer; Not Ridden Yet goes on without one, and then no next step is given. -->
+  <section id="flowFeel" class="fscreen" aria-labelledby="feelQ" hidden>
+    <div class="fhero" aria-hidden="true">
+      <svg width="390" height="196" viewBox="0 0 390 196">
+        <circle cx="195" cy="112" r="150" fill="var(--f-ring1)"/><circle cx="195" cy="112" r="112" fill="var(--f-ring2)"/>
+        <circle cx="195" cy="112" r="76" fill="var(--f-ring3)"/><circle cx="195" cy="112" r="42" fill="var(--f-ring4)"/>
+        <svg class="rider" x="102" y="34" width="174" height="124" viewBox="0 0 280 200"><use href="#riderArt"/></svg>
+      </svg>
+    </div>
+    <button id="feelBack" class="glass back" type="button" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button id="feelClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+    <div class="fhead">
+      <h1 id="feelQ" class="q" tabindex="-1">Better, the Same, or Worse?</h1>
+      <p id="feelSub"></p>
+    </div>
+    <section id="feelCard" class="fq" aria-labelledby="feelQ">
+      <p id="feelErr" class="needsLine" hidden>First, tap how it felt.</p>
+      <div class="choices" role="radiogroup" aria-labelledby="feelQ">
+        <button id="feelBetter" class="choice" type="button" role="radio" aria-checked="false" data-feel="better"><span class="ct"><b>Better</b></span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+        <button id="feelSame" class="choice" type="button" role="radio" aria-checked="false" data-feel="same"><span class="ct"><b>The same</b></span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+        <button id="feelWorse" class="choice" type="button" role="radio" aria-checked="false" data-feel="worse"><span class="ct"><b>Worse</b></span><span class="tick" aria-hidden="true"><svg width="16" height="16"><use href="#checkmark"/></svg></span></button>
+      </div>
+    </section>
+    <div class="fbar">
+      <button id="feelNext" class="fprimary" type="button" aria-disabled="true">Next</button>
+      <button id="feelLater" class="fplain" type="button">Not Ridden Yet</button>
+    </div>
+  </section>
+
+  <!-- After the second "worse" on the same change: put it back. Recorded as undone. -->
+  <section id="flowRevert" class="fscreen" aria-labelledby="revertH" hidden>
+    <div class="fhero" aria-hidden="true">
+      <svg width="390" height="196" viewBox="0 0 390 196">
+        <circle cx="195" cy="112" r="150" fill="var(--f-ring1)"/><circle cx="195" cy="112" r="112" fill="var(--f-ring2)"/>
+        <circle cx="195" cy="112" r="76" fill="var(--f-ring3)"/>
+        <path d="M150 64c18-9 52-9 76-4l20 4c0 8-12 12-28 12h-44c-14 0-24-4-24-12z" fill="#FFFFFF"/>
+        <rect x="186" y="74" width="16" height="104" rx="4" fill="#C9CDD4"/>
+        <rect x="180" y="128" width="28" height="68" rx="6" fill="#343B47"/>
+        <rect x="184" y="118" width="20" height="9" rx="2" fill="var(--f-accent)"/>
+        <path id="revertArrow" d="M244 84v34M232 106l12 13 12-13" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <button id="revertClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
+    <div class="fhead">
+      <h1 id="revertH" tabindex="-1">Put the Saddle Back</h1>
+      <p id="revertSub">To your tape mark. It felt worse twice.</p>
+    </div>
+    <div class="fbar"><button id="revertNext" class="fprimary" type="button">Next</button></div>
+  </section>
+
   <section id="flowReady" class="fscreen" aria-labelledby="readyH" hidden>
     <!-- The clip slot: the How to Set Up guide (the live hotfix), a narrated drawn guide of this
          check's own steps. Its poster is in sw.js CORE; the video is left to the network (range
@@ -642,7 +749,8 @@
       <h1 id="readyH">Getting Ready</h1>
       <ul class="ilist">
         <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 31V19M25 31V19M7 19h20M9 19V5M13 15h12v4H13z"/></svg><span>A chair and a 20 cm box</span></li>
-        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 24a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M21 24a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M8 24l6-10h7l5 10M14 14l3 10H8M12 10h5M21 14l2-4h3"/></svg><span>Your road bike, kit and shoes</span></li>
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 24a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M21 24a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M8 24l6-10h7l5 10M14 14l3 10H8M12 10h5M21 14l2-4h3"/></svg><span id="kitRow">Your road bike, cycling shoes and padded shorts</span></li>
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 5a12 12 0 1 0 0 24a12 12 0 1 0 0-24M17 10v7l5 3M13 2h8"/></svg><span id="warmRow">Ride easily for 5 minutes first</span></li>
         <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10V5h5M25 5h5v5M30 24v5h-5M9 29H4v-5M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0M17 13v8M13 16h8M15 21l-1 5M19 21l1 5"/></svg><span>3 m of space, with light on you</span></li>
         <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 9 9 14H5v6h4l6 5zM20 13a5 5 0 0 1 0 8M24 9.5a10 10 0 0 1 0 15"/></svg><span>Volume up, silent mode off</span></li>
       </ul>
@@ -662,6 +770,9 @@
     <div class="fbar">
       <p id="status" class="status" role="status">Getting the pose model ready.</p>
       <button id="start" class="fprimary" type="button" disabled>Loading…</button>
+      <!-- On a retest only: "Same shoes and shorts as last time?" Start is yes; this is no, and the
+           film is kept but not compared with the one before the change. -->
+      <button id="kitDiff" class="fplain" type="button" hidden>Different Shoes or Shorts</button>
     </div>
   </section>
 
@@ -889,10 +1000,13 @@
     </div>
 
     <h2 class="h2">Three Ways to Hold the Bike</h2>
+    <!-- Each row plays its setup's drawn demo (getting on and holding still, then pedalling), muted,
+         for a rider who wants to see it again; a tap on it stops it. -->
     <div class="card flat">
-      <div class="learnrow"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 26a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M26 26a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M11 26l7-12h10l5 12M18 14l4 12h-11M28 26 33 38h-8l3-12M4 39h36"/></svg><div><b>On a trainer or rollers</b><span>Bike level. Pedal forwards, 30 seconds.</span></div></div>
-      <div class="learnrow"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M40 4v36M36 8l4 4M36 16l4 4M36 24l4 4M36 32l4 4M3 28a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M21 28a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M9 28l6-10h8l4 10M15 18l3 10H9M4 39h30"/></svg><div><b>Leaning on a wall</b><span>Wall on the far side, front brake on. Pedal backwards, 20 seconds.</span></div></div>
-      <div class="learnrow"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 30a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M23 30a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M9 30l6-10h8l4 10M15 20l3 10H9M32.5 8a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M36 12v12M36 16l-6 4M36 24l-3 8M36 24l3 8"/></svg><div><b>A friend holds it</b><span>Friend upright on the far side. Pedal backwards, 20 seconds.</span></div></div>
+      <button id="learnTrainer" class="learnrow" type="button" data-demo="trainer"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 26a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M26 26a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M11 26l7-12h10l5 12M18 14l4 12h-11M28 26 33 38h-8l3-12M4 39h36"/></svg><div><span class="vh">Watch the demo: </span><b>On a trainer or rollers</b><span>Bike level. Pedal forwards, 30 seconds.</span></div><svg class="play" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="var(--blue-bg)"/><path d="M11 8.5v11l9-5.5z" fill="var(--blue-text)"/></svg></button>
+      <button id="learnWall" class="learnrow" type="button" data-demo="wall"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M40 4v36M36 8l4 4M36 16l4 4M36 24l4 4M36 32l4 4M3 28a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M21 28a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M9 28l6-10h8l4 10M15 18l3 10H9M4 39h30"/></svg><div><span class="vh">Watch the demo: </span><b>Leaning on a wall</b><span>Wall on the far side, front brake on. Pedal backwards, 20 seconds.</span></div><svg class="play" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="var(--blue-bg)"/><path d="M11 8.5v11l9-5.5z" fill="var(--blue-text)"/></svg></button>
+      <button id="learnFriend" class="learnrow" type="button" data-demo="friend"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 30a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M23 30a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M9 30l6-10h8l4 10M15 20l3 10H9M32.5 8a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M36 12v12M36 16l-6 4M36 24l-3 8M36 24l3 8"/></svg><div><span class="vh">Watch the demo: </span><b>A friend holds it</b><span>Friend upright on the far side. Pedal backwards, 20 seconds.</span></div><svg class="play" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="var(--blue-bg)"/><path d="M11 8.5v11l9-5.5z" fill="var(--blue-text)"/></svg></button>
+      <button id="learnDemo" class="learnDemo" type="button" aria-label="Drawn demo. Tap to stop." hidden><video id="learnVideo" muted playsinline preload="none" aria-hidden="true"></video></button>
     </div>
 
     <h2 class="h2">Tips</h2>
@@ -970,7 +1084,9 @@
     <canvas id="overlay" role="img" aria-label=""></canvas>
   </div>
 
-  <!-- Step 1: where the phone goes, with the key frame of the placement clip drawn. -->
+  <!-- Step 1: where the phone goes, with the key frame of the placement clip drawn. On day one the
+       drawn placement clip loops in the same box, muted (the voice is saying where the phone goes);
+       a tap stops it and the drawing shows (app.js, Demo). -->
   <section id="placeView" class="placeView" aria-labelledby="placeH" hidden>
     <div class="keyframe">
       <svg viewBox="0 0 330 236" role="img" aria-label="Seen from the side: the chair with its back away from the bike, a box at the front edge of the seat, the phone standing sideways and edge-on at the front edge of the box with its lens level with the top of the tyres, and the bike about 3 metres away, 4 big steps from the pedals.">
@@ -994,6 +1110,7 @@
         <path d="M64 199v10M225 199v10" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
         <text x="145" y="226" text-anchor="middle" class="kt b">about 3 m, 4 big steps</text>
       </svg>
+      <video id="placeVideo" muted playsinline loop preload="none" aria-hidden="true" hidden></video>
     </div>
     <div class="placeText">
       <h1 id="placeH">Stand Your iPhone Sideways on the Chair</h1>
@@ -1049,6 +1166,14 @@
   </div>
 
   <svg id="border" class="border" aria-hidden="true"><rect id="borderRect" x="7" y="7" rx="40" fill="none" stroke-width="14" stroke-linecap="round"/></svg>
+
+  <!-- Day one: a drawn demo of the next moves (getting on and holding still, then pedalling), while
+       the get-on line is said and he is still at the phone. Muted: the voice speaks. A tap anywhere
+       skips it. Drawn placeholders until realistic clips replace them (README, "The drawn demos"). -->
+  <button id="demo" class="demo" type="button" aria-label="Drawn demo. Tap to skip." hidden>
+    <video id="demoVideo" muted playsinline preload="none" aria-hidden="true"></video>
+    <span class="demoTap" aria-hidden="true">Tap to Skip</span>
+  </button>
 
   <div class="hud-top">
     <span id="stepLabel" class="stepPill">Step 1 of 5</span>

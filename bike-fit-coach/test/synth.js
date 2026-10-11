@@ -24,10 +24,19 @@ export function legAt(theta, hip = HIP) {
 
 // Ground truth for the tests: knee flexion when the near crank points straight down.
 export function trueKneeFlexBDC(hip = HIP) {
-  const { ankle, knee } = legAt(-Math.PI / 2, hip);
+  return trueKneeFlexAt(-Math.PI / 2, hip);
+}
+// Knee flexion at any crank angle, and at its least over a whole turn (the knee at its straightest).
+export function trueKneeFlexAt(theta, hip = HIP) {
+  const { ankle, knee } = legAt(theta, hip);
   const a = [hip[0] - knee[0], hip[1] - knee[1]], b = [ankle[0] - knee[0], ankle[1] - knee[1]];
   const cos = (a[0] * b[0] + a[1] * b[1]) / (Math.hypot(...a) * Math.hypot(...b));
   return 180 - (Math.acos(cos) * 180) / Math.PI;
+}
+export function trueKneeMax(hip = HIP) {
+  let least = Infinity;
+  for (let i = 0; i < 3600; i++) least = Math.min(least, trueKneeFlexAt((2 * Math.PI * i) / 3600, hip));
+  return least;
 }
 
 /**

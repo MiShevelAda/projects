@@ -63,19 +63,21 @@ test('the reminder is a calendar file that opens the app: one event, an alert wh
   assert.ok(!DASH.test(ics));
 });
 
-test('the win, said as the win: "That worked. Your saddle is done." and when to check again', () => {
+// Round 4 (SPEC 4.4, item 7): never "done". The win line says when to check again itself, so the
+// come-back line no longer follows it.
+test('the win, said as the win: "That worked. Your knee is in range now." and when to check again', () => {
   const r = fit.withRetest(fit.advise({ kneeFlex: 30, torso: 45, elbow: 25, shoulder: 85 }, { strokes: 12, kneeFlex: 37, torso: 45, elbow: 25, shoulder: 85 }, 'wall'),
     fit.judgeChange({ made: { kind: 'saddle', dir: 1, mm: 12 }, knee: 44, src: 'pedalling', setup: 'wall' }, { knee: 37, src: 'pedalling', setup: 'wall' }));
   assert.ok(ui.retestWin(r), 'a win');
-  assert.equal(fit.spokenSummary(r, { win: true }), 'That worked. Your saddle is done. Check again whenever you change the saddle, stem, shoes or cleats.');
+  assert.equal(fit.spokenSummary(r, { win: true }), 'That worked. Your knee is in range now. Ride it, and check again after a few rides.');
   // With pain or numbness that keeps coming back, that is said first, as always.
-  assert.match(fit.spokenSummary(r, { win: true, pain: true }), /^You said pain or numbness keeps coming back\..*That worked\. Your saddle is done\. Check again whenever/);
+  assert.match(fit.spokenSummary(r, { win: true, pain: true }), /^You said pain or numbness keeps coming back\..*That worked\. Your knee is in range now\. Ride it, and check again after a few rides\.$/);
   // Say It Again: the win, then the before and after.
   const long = fit.spokenSummary(r, { win: true, long: true });
-  assert.match(long, /^That worked\. Your saddle is done\. Your knee moved the right way, and it is in range now\./);
+  assert.match(long, /^That worked\. Your knee is in range now\. Ride it, and check again after a few rides\. Your knee moved the right way, and it is in range now\./);
   // Without win, as before.
   assert.ok(!/That worked/.test(fit.spokenSummary(r)));
-  assert.equal(fit.WIN_LINE, 'That worked. Your saddle is done.');
+  assert.equal(fit.WIN_LINE, 'That worked. Your knee is in range now. Ride it, and check again after a few rides.');
   assert.equal(fit.COME_BACK, 'Check again whenever you change the saddle, stem, shoes or cleats.');
 });
 

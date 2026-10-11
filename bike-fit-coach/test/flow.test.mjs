@@ -52,7 +52,7 @@ test('each way of holding the bike reaches the results', async () => {
   for (const q of ['setup=trainer', 'setup=wall', 'setup=friend']) {
     const d = await session(q);
     ok(d);
-    assert.ok(d.started.some(x => /^Stop\. Well done, you can relax\.$/.test(x.text)), q);
+    assert.ok(d.started.some(x => /^Stop\. Nice work, you can relax\.$/.test(x.text)), q);
   }
 });
 
@@ -147,7 +147,7 @@ test('after a break while holding still, he is found again wherever he gets back
     assert.ok(heard.length >= 1, q);
     assert.ok(d.identified > d.phases[back].t, q);
     assert.ok(!d.said.some(s => /cannot tell who is on the bike|I still cannot see you/.test(s)), `${q}: ${d.said.join(' | ')}`);
-    assert.ok(d.started.some(x => /^Stop\. Well done, you can relax\.$/.test(x.text)), `${q}: a full pedalling reading`);
+    assert.ok(d.started.some(x => /^Stop\. Nice work, you can relax\.$/.test(x.text)), `${q}: a full pedalling reading`);
     // The one not taken while he was away from his old spot was him: nothing measured was lost to
     // anyone else, so the results do not say someone else in the picture made it less exact.
     assert.ok(!/someone else/.test(d.warn), `${q}: ${d.warn}`);
@@ -194,7 +194,7 @@ test('a helper who comes to the rider\'s hip on a frame the pose model misses hi
     const d = await session(q);
     ok(d);
     assert.equal(d.what, plain[q.split('&')[0]], q);
-    assert.ok(d.started.some(x => /^Stop\. Well done, you can relax\.$/.test(x.text)), `${q}: a full pedalling reading`);
+    assert.ok(d.started.some(x => /^Stop\. Nice work, you can relax\.$/.test(x.text)), `${q}: a full pedalling reading`);
     assert.ok(!d.said.some(s => /cannot see the pedals turning/.test(s)), `${q}: ${d.said.join(' | ')}`);
   }
 });
@@ -235,7 +235,7 @@ test('a friend who crouches at the bike only while the rider takes his break: he
     ok(d);
     assert.ok(!d.said.includes(WHO), `${q}: ${d.said.join(' | ')}`);
     assert.equal(d.what, plain[q.split('&')[0].slice(6)], q);
-    assert.ok(d.started.some(x => /^Stop\. Well done, you can relax\.$/.test(x.text)), `${q}: a full pedalling reading`);
+    assert.ok(d.started.some(x => /^Stop\. Nice work, you can relax\.$/.test(x.text)), `${q}: a full pedalling reading`);
   }
   // Back further along, he sat down after both questions, so he was asked again and found by the pedals.
   const moved = await session('setup=friend&helper=visible&away=40&restpose=braced&awayshift=150');
@@ -342,7 +342,7 @@ const TWICE = ['setup=wall&low&then=now&nudge', 'setup=trainer&low&screen=front&
   'setup=wall&low&then=now&nomotion&where=yes', 'setup=wall&low&then=now&nomotion&where=no', 'setup=wall&low&then=again',
   'setup=wall&low&then=home&replaced', 'setup=trainer&low&then=home&replaced', 'setup=friend&low&then=home&replaced',
   'setup=friend&low&screen=front&then=home&replaced', 'setup=wall&low&then=home',
-  'setup=wall&low=20&mm=25&then=now', 'setup=friend&low=20&mm=25&screen=front&then=now', 'setup=wall&low=20&then=now',
+  'setup=wall&low=30&mm=30&then=now', 'setup=friend&low=30&mm=30&screen=front&then=now', 'setup=wall&low=30&mm=25&then=now',
   'setup=wall&low&then=later&when=tonight', 'setup=wall&low&then=later&when=pick'];
 for (const q of TWICE) session(q, 300000);
 const twice = (q) => session(q, 300000);
@@ -350,7 +350,8 @@ const LEAVE = 'Leave the phone where it is.';
 const NUDGE = 'Check it now. The phone is already in place.';
 const TAPE = 'Tape the floor by the chair legs and the back wheel. Next time, line them up.';
 const FRAME = 'Both wheels inside the frame, pedals in the middle.';
-const WIN = 'That worked. Your saddle is done. Check again whenever you change the saddle, stem, shoes or cleats.';
+// Round 4 (SPEC 4.4, item 7): never "done"; the win line says when to check again itself.
+const WIN = 'That worked. Your knee is in range now. Ride it, and check again after a few rides.';
 const HOLD = /^(Eyes ahead\. )?Hold (it|still)/;
 // The words spoken before the first "Hold it" of a session (the customer research, item 7).
 const wordsBeforeHold = (d) => {
@@ -453,9 +454,10 @@ test('item 4: a returning rider hears under 60 words before "Hold it", with "You
 });
 
 test('item 5: a retest whose saddle change worked is the headline, and the voice says so', async () => {
-  // mm=25: he moves it 25 mm, which puts the made-up saddle 5 mm above where it started, with both knee
-  // readings well inside their ranges (the made-up noise is random, so not on the edge of one).
-  for (const q of ['setup=wall&low=20&mm=25&then=now', 'setup=friend&low=20&mm=25&screen=front&then=now']) {
+  // low=30&mm=30: the made-up saddle starts 30 mm low (a knee of about 47.6, past 43 + u, so a 3 mm
+  // step), and he moves it 30 mm, back where it started (about 37, inside the band by more than u;
+  // round 4: was low=20&mm=25, and 44 is now within u of the edge, which asks for one more film).
+  for (const q of ['setup=wall&low=30&mm=30&then=now', 'setup=friend&low=30&mm=30&screen=front&then=now']) {
     const d = await twice(q);
     ok(d);
     assert.match(d.what, /^Raise the Saddle About/, q);
@@ -468,8 +470,8 @@ test('item 5: a retest whose saddle change worked is the headline, and the voice
     assert.match(n.why, /moved the right way/, q);
   }
   // The pedalling knee in range but the held-still one not (made-up saddle still 5 mm low): the sheet
-  // asks to film once more, so it is not said as done, and the phone stays where it is.
-  const once = await twice('setup=wall&low=20&then=now');
+  // asks to film once more, so it is not said as a win, and the phone stays where it is.
+  const once = await twice('setup=wall&low=30&mm=25&then=now');
   ok(once.next);
   assert.ok(once.next.saved.stillOut);
   assert.notEqual(once.next.what, 'Your Saddle Change Worked');
@@ -504,7 +506,7 @@ test('item 6: "When will you move it?" after Later, and a calendar file made on 
 });
 
 test('item 7: one focus on the first result: the saddle card, and what waits for it as one closed line', async () => {
-  const d = await twice('setup=wall&low=20&mm=25&then=now');
+  const d = await twice('setup=wall&low=30&mm=30&then=now');
   // First result: the saddle in full; reach and bars, and the other numbers, one line each, closed.
   assert.deepEqual(d.areas.map(a => [a.tag, a.cls, a.open]),
     [['SECTION', 'card area saddle', false], ['DETAILS', 'card oneline area', false], ['DETAILS', 'card oneline area', false]]);
@@ -573,7 +575,7 @@ test('round 3 fix: the results\' primary button saves only the millimetres it na
   // stepper's value as a change made, though the rider had not touched it ("I haven't even got the
   // spanner out yet"). Now the button says what it saves, and the tap stores exactly that.
   const mmOf = (s) => Number((s || '').match(/(\d+) mm\b/)?.[1]);
-  for (const q of ['setup=wall&low&then=now', 'setup=wall&low=20&mm=25&then=now', 'setup=trainer&low&screen=front&then=now&mm=7']) {
+  for (const q of ['setup=wall&low&then=now', 'setup=wall&low=30&mm=30&then=now', 'setup=trainer&low&screen=front&then=now&mm=7']) {
     const d = await twice(q);
     ok(d);
     assert.match(d.nowLabel, /^I Moved It \d+ mm, Check Now$/, `${q}: the label names what it saves: ${d.nowLabel}`);
@@ -594,7 +596,9 @@ test('round 3 fix: a new check asks one question a screen, and the pain question
   ok(home);
   assert.ok(home.painWaited, 'Next did not move on without an answer');
   ok(home.next);
-  assert.equal(home.next.said.filter(l => l === 'First, tap No or Yes.').length, 1, home.next.said.slice(0, 3).join(' | '));
+  // Said on the question screen, before Getting Ready's Start (round 4: the runner keeps the lines
+  // said on the question screens apart, as homeFlow).
+  assert.equal(home.homeFlow.said.filter(l => l === 'First, tap No or Yes.').length, 1, home.homeFlow.said.slice(0, 3).join(' | '));
   assert.equal(home.next.phases[0].phase, 'mount', 'and then the check as before');
 });
 
@@ -617,12 +621,238 @@ test('round 3 fix: on the 3 m result, nothing to change but one more film asked 
   ok(d);
   assert.equal(d.what, 'Nothing to Change Today');
   // The made-up held-still knee at low=10 sits outside its range (the QA run's case); if its random
-  // noise ever puts it inside, the result is plain Good and the voice says when to check again.
+  // noise ever puts it inside, the result is Fair (round 4: a knee of about 41 is inside 33 to 43 but
+  // within u of its edge) and the voice says when to check again.
   if (d.saved.stillOut) {
     assert.equal(d.runField, 'Again', 'the big word');
     assert.match(d.said.at(-1), /Film once more to be sure\.$/);
   } else {
-    assert.equal(d.runField, 'Good');
+    assert.equal(d.runField, 'Fair');
     assert.ok(!d.said.some(l => /Film once more/.test(l)));
   }
+});
+
+// ── Round 4, builder B: the flow of Phase 0 (pro-standard SPEC 4.4 items 3 and 8, and 5.0) ──────────
+// flow: the first check goes through the question screens from the Check tab; seed=: a made-up
+// history (app.js seedHistory). fitter=, feel=, kit=: the answers tapped (flow-runner.mjs).
+const B = ['setup=trainer&flow&then=home', 'setup=wall&flow&then=home', 'setup=friend&flow&then=home',
+  'setup=wall&low&flow&seed=rode', 'setup=wall&low&flow&seed=rode&feel=worse', 'setup=wall&low&flow&seed=rode&feel=later', 'setup=wall&low&flow&seed=rode&feel=same',
+  'setup=wall&low&flow&seed=worse&feel=worse', 'pain&setup=wall&low&flow&seed=worse&feel=worse', 'setup=wall&low&flow&seed=worse&feel=better',
+  'setup=wall&low&flow&fitter=yes&then=home', 'pain&setup=wall&low&flow&fitter=yes', 'setup=wall&low&flow&seed=trend&kit=no', 'setup=wall&low&flow&seed=trend',
+  'setup=trainer&low&then=now', 'setup=wall&low=30&mm=30&then=now'];
+for (const q of B) session(q, 300000);
+const b = (q) => session(q, 300000);
+const WARM = { trainer: 'Before I film, ride easily for five minutes. I will wait.', wall: 'If you can, go for a ten-minute ride first.', friend: 'If you can, go for a ten-minute ride first.' };
+const KIT = 'Are your cycling shoes and padded shorts on? They change how high you sit.';
+const EFFORT = 'Now pedal at the effort of a long ride, where you could still talk.';
+const FITTER_Q = 'Has a bike fitter set this bike up for you?';
+const FEEL_Q = 'You rode it. Better, the same, or worse?';
+const RIDE = 'One change per ride. Ride it first. Next time, tell me how it felt.';
+const WORSE = 'It felt worse. Ride it once more, then tell me how it felt. If it is still worse, I will tell you to put it back.';
+
+test('round 4: the warm-up and the kit on Getting Ready, said before filming for each setup; the effort line on a trainer only', async () => {
+  for (const setup of ['trainer', 'wall', 'friend']) {
+    const d = await b(`setup=${setup}&flow&then=home`);
+    ok(d);
+    // The first visit: the fitter question once, then the pain question and Getting Ready.
+    assert.deepEqual(d.flow.screens, ['setup', 'screen', 'fitter', 'pain', 'ready'], setup);
+    assert.ok(d.flow.said.includes(FITTER_Q), `${setup}: ${d.flow.said.join(' | ')}`);
+    // Getting Ready says the warm-up for this setup and, the first time, the kit; its rows show both.
+    assert.deepEqual(d.flow.said.slice(-2), [WARM[setup], KIT], setup);
+    assert.equal(d.flow.warmRow, setup === 'trainer' ? 'Ride easily for 5 minutes first' : 'A 10-minute ride first, if you can', setup);
+    assert.equal(d.flow.kitRow, 'Your road bike, cycling shoes and padded shorts', setup);
+    assert.equal(d.flow.kitDiff, false, `${setup}: no kit question on a first check`);
+    // While filming: the effort of a long ride on a trainer; backwards without load needs none.
+    assert.equal(d.said.includes(EFFORT), setup === 'trainer', `${setup}: ${d.said.filter(l => /pedal/i.test(l)).join(' | ')}`);
+    if (setup === 'trainer') assert.ok(!d.said.some(l => /easy, normal speed/.test(l)), 'no longer an easy speed');
+    // The next visit: the fitter question is remembered, the warm-up said again, the kit not.
+    assert.equal(d.homeFlow.fitterStored, 'no', setup);
+    assert.deepEqual(d.homeFlow.screens, ['setup', 'screen', 'pain', 'ready'], setup);
+    assert.deepEqual(d.homeFlow.said, [WARM[setup]], setup);
+    ok(d.next);
+    assert.match(d.next.said[0], /^(You chose: bike |The phone is already in place\.)/, `${setup}: the check's own lines start at Start`);
+  }
+});
+
+test('round 4: "Better, the same, or worse?" when he comes back after riding a change; the next step only after an answer', async () => {
+  // seed=rode: he raised the saddle 5 mm three days ago and filmed it straight after; not asked yet.
+  const d = await b('setup=wall&low&flow&seed=rode');
+  ok(d);
+  assert.deepEqual(d.flow.screens, ['setup', 'screen', 'fitter', 'pain', 'feel', 'ready']);
+  assert.equal(d.flow.feelSub, 'Since you raised the saddle 5 mm.');
+  assert.ok(d.flow.said.includes(FEEL_Q), d.flow.said.join(' | '));
+  const made = (h) => h.find(s => s.made)?.made;
+  assert.deepEqual(made(d.flow.history).feel.map(f => f.said), ['better'], 'stored with the change');
+  // Better: the next step, as usual.
+  assert.match(d.what, /^Raise the Saddle About \d+ mm$/);
+  assert.ok(d.made, 'the change card');
+  for (const q of ['setup=wall&low&flow&seed=rode&feel=same']) assert.match((await b(q)).what, /^Raise the Saddle About/, q);
+  // Worse once, or not ridden yet: no next step today. The fixer: not ridden yet says where the knee
+  // is, then "ride it first"; worse once says to ride it once more (its own words, not "next time").
+  for (const q of ['setup=wall&low&flow&seed=rode&feel=worse', 'setup=wall&low&flow&seed=rode&feel=later']) {
+    const w = await b(q);
+    ok(w);
+    assert.equal(w.made, false, `${q}: no change card`);
+    assert.equal(w.status, 'After a ride', `${q}: nothing to change today, so not Needs attention`);
+    if (/worse/.test(q)) {
+      assert.equal(w.what, 'It Felt Worse. Ride It Once More', q);
+      assert.equal(w.said.at(-1), WORSE, q);
+      assert.equal(w.saved.wait, 'worse', q);
+    } else {
+      assert.match(w.what, /^Still (a Little )?(Low|High)\. Ride It First$/, q);
+      assert.match(w.said.at(-1), /^Your saddle still looks (a little )?(low|high)\. One change per ride\. Ride it first\. Next time, tell me how it felt\.$/, q);
+      assert.equal(w.saved.wait, 'ride', q);
+    }
+  }
+  assert.deepEqual(made((await b('setup=wall&low&flow&seed=rode&feel=worse')).history).feel.map(f => f.said), ['worse']);
+  assert.equal(made((await b('setup=wall&low&flow&seed=rode&feel=later')).history).feel, undefined, 'Not Ridden Yet stores nothing');
+  // The film straight after a change (I Moved It, Check Now) checks the position, and no next step
+  // follows until he has ridden it; it is never asked how it felt (not ridden yet).
+  const now = await b('setup=trainer&low&then=now');
+  ok(now.next);
+  // The fixer (QA2 blocking 5): one title with where the knee is and the rule, a neutral status, and
+  // the too-small note in the voice and one tap away, not on the sheet.
+  assert.match(now.next.what, /^Still (a Little )?Low\. Ride It First$/);
+  assert.equal(now.next.status, 'After a ride');
+  assert.equal(now.next.compare, null, 'the too-small note is one tap away');
+  assert.match(now.next.said.at(-1), /^That change is too small for me to measure\. .* Your saddle still looks (a little )?low\. One change per ride\. Ride it first\. Next time, tell me how it felt\.$/, 'what the film showed, where the knee is, then ride it first');
+  assert.ok(!now.next.said.includes(LEAVE), 'nothing to film again, so the phone need not stay');
+  assert.ok(!now.next.said.includes(FEEL_Q));
+  // In range after the change: the win, as before.
+  assert.equal((await b('setup=wall&low=30&mm=30&then=now')).next.what, 'Your Saddle Change Worked');
+});
+
+test('round 4: two "worse" answers on the same change put it back, recorded as undone; with pain, see a bike fitter', async () => {
+  // seed=worse: the same change, already "worse" once.
+  const d = await b('setup=wall&low&flow&seed=worse&feel=worse');
+  ok(d);
+  assert.deepEqual(d.flow.screens, ['setup', 'screen', 'fitter', 'pain', 'feel', 'revert', 'ready']);
+  assert.equal(d.flow.revertH, 'Put the Saddle Back');
+  assert.equal(d.flow.revertSub, 'To your tape mark. It felt worse twice.');
+  assert.ok(d.flow.said.includes('It felt worse twice. Put the saddle back to your tape mark.'), d.flow.said.join(' | '));
+  assert.ok(!d.flow.said.includes('With pain, see a bike fitter.'));
+  const made = d.flow.history.find(s => s.made).made;
+  assert.ok(made.undone, 'recorded as undone');
+  assert.deepEqual(made.feel.map(f => f.said), ['worse', 'worse']);
+  // The same change is not suggested again.
+  assert.equal(d.what, 'Leave the Saddle at Your Tape Mark');
+  assert.equal(d.made, false);
+  const p = await b('pain&setup=wall&low&flow&seed=worse&feel=worse');
+  assert.equal(p.flow.revertSub, 'To your tape mark, then see a bike fitter.');
+  assert.ok(p.flow.said.includes('With pain, see a bike fitter.'), p.flow.said.join(' | '));
+  // Worse, then better: settled, nothing put back, and the next step comes.
+  const ok2 = await b('setup=wall&low&flow&seed=worse&feel=better');
+  assert.ok(!ok2.flow.screens.includes('revert'));
+  assert.match(ok2.what, /^Raise the Saddle About/);
+});
+
+test('round 4: a bike a fitter set up is reported, not changed; with pain at most 5 mm and "tell your bike fitter"', async () => {
+  const d = await b('setup=wall&low&flow&fitter=yes&then=home');
+  ok(d);
+  assert.equal(d.flow.fitterStored, 'yes', 'remembered on the phone');
+  assert.equal(d.what, 'Your Saddle Looks Low');
+  assert.equal(d.made, false, 'no millimetres to save');
+  assert.match(d.said.at(-1), /^A bike fitter set up this bike, so I only report\. Your saddle looks low\. If it bothers you, ask your fitter\./);
+  assert.ok(!/millimetre/.test(d.said.at(-1)), d.said.at(-1));
+  assert.ok(!d.homeFlow.screens.includes('fitter'), 'asked once');
+  const p = await b('pain&setup=wall&low&flow&fitter=yes');
+  ok(p);
+  assert.equal(p.what, 'Raise the Saddle About 5 mm');
+  assert.ok(p.said.at(-1).includes('Tell your bike fitter too.'), p.said.at(-1));
+});
+
+test('round 4: "Same shoes and shorts as last time?" on a retest; a no keeps the film but does not compare it', async () => {
+  // seed=trend: a 10 mm raise saved six days ago, not checked yet.
+  const d = await b('setup=wall&low&flow&seed=trend&kit=no');
+  ok(d);
+  assert.equal(d.flow.kitRow, 'Same shoes and shorts as last time');
+  assert.ok(d.flow.kitDiff, 'Different Shoes or Shorts under Start');
+  assert.ok(d.flow.said.includes('Same shoes and shorts as last time?'), d.flow.said.join(' | '));
+  assert.ok(!d.flow.said.includes(KIT));
+  assert.match(d.compare || '', /^Not compared with the film before raising the saddle: other shoes or shorts this time\./);
+  assert.equal(d.saved.kit, 'diff', 'kept, marked');
+  assert.ok(d.retestCard, 'the change still waits for a film in the same kit');
+  // The same kit (Start): compared as before.
+  const same = await b('setup=wall&low&flow&seed=trend');
+  ok(same);
+  assert.ok(!/other shoes or shorts/.test(same.compare || ''), same.compare);
+  assert.match(same.compare || '', /^Knee bend \d+° before, \d+° now\./);
+  assert.equal(same.saved.kit, undefined);
+});
+
+// ── Round 4, the fixer: QA's blocking findings, whole sessions ────────────────────────────────
+// repeat=, homes= and made=yes: more checks after the first (flow-runner.mjs).
+const FIX = ['setup=wall&low=20&flow&repeat=2', 'setup=trainer&low=20&flow&repeat=2', 'setup=friend&low=20&flow&repeat=2'];
+for (const q of FIX) session(q, 400000);
+
+test('fixer, QA1 blocking 1: just outside the range with the held-still reading out, Check Again twice: two films decide, no endless "film once more"', async () => {
+  for (const q of FIX) {
+    const d = await session(q, 400000);
+    ok(d);
+    // The first film is close to the edge: one more, the phone where it is.
+    assert.equal(d.what, 'Film Once More', q);
+    assert.equal(d.said.at(-1), 'Close to the edge. Let me film once more.', q);
+    assert.equal(d.more.length, 2, q);
+    for (const [i, m] of d.more.entries()) {
+      ok(m);
+      assert.ok(!/once more/i.test(m.said.at(-1)), `${q}, film ${i + 2}: ${m.said.at(-1)}`);
+      assert.equal(m.what, 'Nothing to Change Today', `${q}, film ${i + 2}`);
+      assert.equal(m.bar.again, 'tinted', `${q}, film ${i + 2}: the check is done, Check Again is not the primary button`);
+      assert.ok(!m.said.includes(LEAVE), `${q}, film ${i + 2}: the phone need not stay`);
+    }
+    assert.ok(d.more[0].saved.edge != null, `${q}: the second film leaves its reading for the third`);
+  }
+});
+
+// QA1 blocking 2 and QA2 blocking 6: one "worse", then a new check minutes later from the Check tab.
+const FEEL_FIX = ['setup=wall&low&flow&seed=rode&feel=worse&homes=1', 'setup=wall&low&flow&seed=unsaid&made=yes', 'setup=wall&low&flow&seed=unsaid&made=yes&feel=later'];
+for (const q of FEEL_FIX) session(q, 400000);
+test('fixer, QA1 blocking 2 and QA2 blocking 6: after one "worse", ride it once more; not asked again minutes later, never put back after one ride', async () => {
+  const d = await session(FEEL_FIX[0], 400000);
+  ok(d);
+  assert.ok(d.flow.screens.includes('feel'));
+  assert.equal(d.what, 'It Felt Worse. Ride It Once More');
+  assert.equal(d.why, 'If it is still worse, I will tell you to put it back.');
+  assert.equal(d.said.at(-1), WORSE);
+  // Minutes later, from the Check tab: the question is not asked again, and nothing is put back.
+  const m = d.more[0];
+  ok(m);
+  assert.deepEqual(m.homeFlow.screens, ['setup', 'screen', 'pain', 'ready'], 'one answer per ride');
+  assert.equal(m.what, 'It Felt Worse. Ride It Once More');
+  assert.ok(![...m.homeFlow.said, ...m.said].some(l => /worse twice|Put the saddle back/i.test(l)), [...m.homeFlow.said, ...m.said].join(' | '));
+  const made = m.history.find(s => s.made).made;
+  assert.equal(made.undone, undefined, 'not put back');
+  assert.deepEqual(made.feel.map(f => f.said), ['worse']);
+});
+
+// QA2 blocking 4: he made the change after closing the results, rode it, and says so on the Check tab
+// ("Before you start: did you ...?", Save and Start). That is the usual path, and it must reach the
+// feel question, not "Ride It First" with the question never asked.
+test('fixer, QA2 blocking 4: a change saved on the Check tab after riding gets "Better, the same, or worse?", then the next step', async () => {
+  const d = await session(FEEL_FIX[1], 400000);
+  ok(d);
+  assert.match(String(d.flow.madeAsked), /^Before you start: did you raise the saddle about 5 mm\?$/);
+  assert.deepEqual(d.flow.screens, ['setup', 'screen', 'fitter', 'pain', 'feel', 'ready']);
+  assert.ok(d.flow.said.includes(FEEL_Q), d.flow.said.join(' | '));
+  const made = d.history.find(s => s.made).made;
+  assert.equal(made.mm, 5);
+  assert.deepEqual(made.feel.map(f => f.said), ['better']);
+  assert.ok(!/Ride It First|Ride It Once More/.test(d.what), d.what);
+  assert.notEqual(d.saved.wait, 'ride');
+  // Not ridden yet after all: then ride it first is right.
+  const later = await session(FEEL_FIX[2], 400000);
+  ok(later);
+  assert.ok(later.flow.screens.includes('feel'));
+  assert.match(later.what, /Ride It First$/);
+});
+
+// QA2 minor: the Put the Saddle Back picture pointed down even when the change put back was lowering it.
+for (const q of ['setup=wall&low=-25&flow&seed=worselow&feel=worse']) session(q, 400000);
+test('fixer, QA2 minor: putting back a lowered saddle shows an up arrow; a raised one, down', async () => {
+  const up = await session('setup=wall&low=-25&flow&seed=worselow&feel=worse', 400000);
+  ok(up);
+  assert.equal(up.flow.revertH, 'Put the Saddle Back');
+  assert.equal(up.flow.revertArrow, 'M244 118V84M232 96l12-13 12 13');
+  const down = await b('setup=wall&low&flow&seed=worse&feel=worse');
+  assert.equal(down.flow.revertArrow, 'M244 84v34M232 106l12 13 12-13');
 });

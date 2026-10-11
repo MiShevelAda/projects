@@ -90,10 +90,10 @@ test('the Latest Check cards: the stored knee on its range bar, and reach as one
   const [s, r] = ui.latestCards(entry({ areas: { saddle: 'amber', reach: 'after' }, suggested: { kind: 'saddle', raise: true, mm: [12, 15] } }));
   assert.equal(s.title, 'Saddle Height');
   assert.equal(s.value, 44);
-  assert.deepEqual([s.lo, s.hi], [30, 40]);
+  assert.deepEqual([s.lo, s.hi], [33, 43]); // round 4: Millour's band (was 30 to 40)
   assert.equal(s.status, 'Fair');
   assert.equal(s.step, 'Raise the saddle about 12 to 15 mm.');
-  assert.equal(s.label, 'Saddle height, 44 degrees, target 30 to 40, Fair. Raise the saddle about 12 to 15 mm.');
+  assert.equal(s.label, 'Saddle height, 44 degrees, target 33 to 43, Fair. Raise the saddle about 12 to 15 mm.');
   assert.ok(r.collapsed);
   assert.equal(r.line, 'Checked after the saddle');
   assert.equal(r.label, 'Reach and Bars: Checked after the saddle');
@@ -102,10 +102,11 @@ test('the Latest Check cards: the stored knee on its range bar, and reach as one
   assert.equal(still.value, 33);
   assert.deepEqual([still.lo, still.hi], [25, 35]);
   assert.equal(still.metric, 'knee bend, held still');
-  // Reach measured: three rows with their own targets.
+  // Reach measured: the back and elbow with their own targets. The shoulder is for reference only
+  // (round 4, SPEC 4.2), so no target bar is drawn for it.
   const [, reach] = ui.latestCards(entry({ areas: { saddle: 'green', reach: 'amber' } }));
   assert.ok(!reach.collapsed);
-  assert.deepEqual(reach.rows.map(x => [x.key, x.value, x.lo, x.hi]), [['torso', 46, 40, 50], ['elbow', 22, 15, 30], ['shoulder', 79, 80, 95]]);
+  assert.deepEqual(reach.rows.map(x => [x.key, x.value, x.lo, x.hi]), [['torso', 46, 40, 50], ['elbow', 22, 15, 30]]);
   assert.deepEqual(ui.latestCards(null), []);
 });
 
@@ -159,8 +160,13 @@ test('the changes he made: what the next check filmed the same way showed, or no
   assert.equal(list[0].then, 'Not checked yet');
   assert.equal(list[1].title, 'Raised the Saddle 5 mm');
   assert.ok(!list[1].pending);
-  // The trainer check in between was filmed another way, so the wall check after it counts.
-  assert.equal(list[1].then, 'Then: knee bend 47° before, 44° after');
+  // The trainer check in between was filmed another way, so the wall check after it counts. A 5 mm
+  // change is too small for this camera to measure (fit.tooSmallToSee), so no before and after is
+  // shown as if it had been checked (the fixer, QA round 4; SPEC 7.1 item 11).
+  assert.equal(list[1].then, 'Too small for me to measure');
+  // A 10 mm change, checked: its before and after.
+  const ten = [entry({ at: at('10-05'), values: { kneePedal: 46 } }), entry({ at: at('10-03'), values: { kneePedal: 50 }, made: { kind: 'saddle', dir: 1, mm: 10, at: at('10-04') } })];
+  assert.equal(ui.changesList(ten)[0].then, 'Then: knee bend 50° before, 46° after');
   assert.equal(ui.changesList([entry({ made: { kind: 'bars', at: 'x' } })])[0].title, 'Raised the Handlebars');
   assert.equal(ui.markLabel({ kind: 'saddle', dir: -1, mm: 4 }), 'Saddle down 4 mm');
   assert.equal(ui.markLabel({ kind: 'bars' }), 'Bars up');
