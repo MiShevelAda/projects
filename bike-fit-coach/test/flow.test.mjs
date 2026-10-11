@@ -859,11 +859,14 @@ test('fixer, QA2 minor: putting back a lowered saddle shows an up arrow; a raise
 
 // ── Round 4, the second fixer: the re-test's two findings ───────────────────────────────────────
 // Re-test finding 1 (SPEC 4.3): a saddle change that worked was "Good" on the status above the
-// headline and on the 3 m screen while the saddle card under it said "Fair". low=-18: the made-up
-// saddle 18 mm high (a knee of about 29: lower it 3 mm); mm=10 lowers it 10 mm, to about 34, inside
+// headline and on the 3 m screen while the saddle card under it said "Fair". low=-22: the made-up
+// saddle 22 mm high (a knee of about 27: lower it 5 mm); mm=15 lowers it 15 mm, to about 34.5, inside
 // the band but within u of its edge. The win's title and voice stay; the status is the saddle's own.
-const WIN_FAIR = ['setup=wall&low=-18&mm=10&then=now', 'setup=wall&low=-18&mm=10&then=now&screen=towards', 'setup=friend&low=-18&mm=10&then=now&screen=away',
-  'setup=trainer&low=-18&mm=10&then=now&screen=towards'];
+// Both readings sit 1.5 to 3 degrees from a zone edge, because the made-up rider's noise is random:
+// at low=-18 the first knee read 29 or 30, and 30 is the edge between "lower it" and "film once
+// more", which failed one CI run.
+const WIN_FAIR = ['setup=wall&low=-22&mm=15&then=now', 'setup=wall&low=-22&mm=15&then=now&screen=towards', 'setup=friend&low=-22&mm=15&then=now&screen=away',
+  'setup=trainer&low=-22&mm=15&then=now&screen=towards'];
 for (const q of WIN_FAIR) session(q, 300000);
 test('second fixer, re-test 1: a saddle change that worked says Good only when the saddle card says Good, else Fair', async () => {
   for (const q of WIN_FAIR) {
