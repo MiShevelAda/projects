@@ -71,7 +71,8 @@ test('the win, said as the win: "That worked. Your knee is in range now." and wh
   assert.ok(ui.retestWin(r), 'a win');
   assert.equal(fit.spokenSummary(r, { win: true }), 'That worked. Your knee is in range now. Ride it, and check again after a few rides.');
   // With pain or numbness that keeps coming back, that is said first, as always.
-  assert.match(fit.spokenSummary(r, { win: true, pain: true }), /^You said pain or numbness keeps coming back\..*That worked\. Your knee is in range now\. Ride it, and check again after a few rides\.$/);
+  // Round 5: the short line, then the win, then when to get help now (honest.test.mjs).
+  assert.equal(fit.spokenSummary(r, { win: true, pain: true }), `${fit.PAIN_SHORT} That worked. Your knee is in range now. Ride it, and check again after a few rides. ${fit.PAIN_NOW}`);
   // Say It Again: the win, then the before and after.
   const long = fit.spokenSummary(r, { win: true, long: true });
   assert.match(long, /^That worked\. Your knee is in range now\. Ride it, and check again after a few rides\. Your knee moved the right way, and it is in range now\./);

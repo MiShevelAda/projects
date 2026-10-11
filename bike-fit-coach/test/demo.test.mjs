@@ -88,8 +88,17 @@ test('the page: the demo is muted, inline, without controls, and one tap anywher
 });
 
 test('day one: the placement loop while the phone is placed, then the moves before getting on, for each setup', async () => {
+  // Round 5 (the UX review, item 8): the moves play only when the rider can see them. With the screen
+  // away he walks off to the bike as the get-on line starts, so they played to nobody; then only the
+  // placement loop plays, while he is at the phone. Learn plays the moves on a tap.
   for (const s of SETUPS) {
-    const r = await session(`setup=${s}`);
+    const away = await session(`setup=${s}`);
+    assert.ok(away.results, `${s}: reached the results`);
+    assert.deepEqual(away.demos.map(x => x.files.join('+')), ['place'], `${s}, screen away`);
+    assert.equal(away.demos[0].end.phase, 'phone');
+  }
+  for (const s of SETUPS) {
+    const r = await session(`setup=${s}&screen=towards`);
     assert.ok(r.results, `${s}: reached the results`);
     const d = r.demos;
     assert.deepEqual(d.map(x => x.files.join('+')), ['place', `hold-${s}+pedal-${s}`], s);
@@ -109,7 +118,7 @@ test('day one: the placement loop while the phone is placed, then the moves befo
 });
 
 test('a returning run shows no demo: the next check from the Check tab, and Check Now from the results', async () => {
-  const home = await session('setup=wall&then=home');
+  const home = await session('setup=wall&screen=towards&then=home');
   assert.equal(home.demos.length, 2, 'day one has its demos');
   assert.deepEqual(home.next.demos, [], 'never on a returning run');
   const now = await session('setup=trainer&low&then=now');
@@ -121,7 +130,7 @@ test('a returning run shows no demo: the next check from the Check tab, and Chec
 });
 
 test('a tap skips a demo at once, and the check goes on as before', async () => {
-  const r = await session('setup=wall&skipdemo');
+  const r = await session('setup=wall&screen=towards&skipdemo');
   assert.ok(r.results);
   assert.ok(r.demoTap, 'the moves demo was tapped');
   const d = r.demos.find(x => x.phase === 'mount');

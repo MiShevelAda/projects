@@ -166,7 +166,8 @@ test('a retest in other shoes or shorts is kept but not compared, and the change
 test('the Check tab says what waits: ride it, a fitter\'s bike, or a change put back', () => {
   assert.equal(ui.homeSummary({ areas: { saddle: 'red', reach: 'after' }, wait: 'ride' }), 'Ride your last change, then check again.');
   assert.equal(ui.homeSummary({ areas: { saddle: 'red', reach: 'after' }, wait: 'fitter' }), 'A fitter set up your bike, so I only report.');
-  assert.equal(ui.homeSummary({ areas: { saddle: 'red', reach: 'after' }, wait: 'undone' }), 'Your last change felt worse twice. A fitter can look at why.');
+  // Round 5: the calm next step in plain words, kind by kind (honest.test.mjs).
+  assert.equal(ui.homeSummary({ areas: { saddle: 'red', reach: 'after' }, wait: 'undone' }), 'Saddle back at your tape mark. A fitter can look at why.');
   const card = ui.latestCards({ areas: { saddle: 'red', reach: 'after' }, values: { kneePedal: 47 }, wait: 'ride', would: { kind: 'saddle', raise: true, mm: [5, 5] } })[0];
   assert.equal(card.step, 'Ride it first, then check again.');
   assert.deepEqual(fit.historyWords({ wait: 'ride', values: { kneePedal: 47 } }), ['ride it first', 'knee 47°']);

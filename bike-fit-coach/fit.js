@@ -1043,6 +1043,9 @@ function offWords(r) {
 // again, so it speaks for itself. heldSaddle: the saddle change is held (the knee is still out of
 // range); r.heldBars: the saddle is in range, and only a handlebar change waits for one more film.
 const heldSaddle = (r) => !!r.held && !r.heldBars && (r.verdict === 'change' || r.verdict === 'ok');
+// A retest whose knee moved less than SAME_TOL after a change near the smallest the camera can see
+// (judgeChange's 'unseen' with nearSmallest): it says it cannot tell yet whether the saddle moved.
+const cannotTellYet = (t) => t?.verdict === 'unseen' && nearSmallest(t.mm);
 
 // Why a session gave no knee reading at all, from what the pedal step saw (advise() sets
 // r.strokesSeen: null when the pedals were never seen turning). Never blames the framing on its own:
@@ -1131,6 +1134,13 @@ export function headline(r, unit = '°') {
       why: 'Your saddle height looks right now. Your last saddle change did not move your knee as much as expected, so one more film first, to be sure, before you change anything else.' };
   }
   if (heldSaddle(r)) {
+    // One true thing (round 5, the UX review's top finding): when the retest says the camera cannot
+    // tell yet (a change near the smallest it can see), the title line says that too, never that the
+    // change failed. How the retest is judged is unchanged (FOR-ALEX.md decision 4 is Alex's).
+    if (cannotTellYet(r.retest)) {
+      return { what: 'Film once more', short: 'I cannot tell yet what your last change did.',
+        why: 'I cannot tell yet what your last change did, so I will not suggest another one until one more film shows it.' };
+    }
     return { what: 'Film once more', short: 'Your last change did not do what it should have.',
       why: 'Your last change did not do what it should have, so I will not suggest another one until one more film shows what it did.' };
   }
@@ -1159,9 +1169,13 @@ export function headline(r, unit = '°') {
     const slow = r.tooFast ? ' more slowly' : '';
     const dir = setupOf(r.setup).dir;
     const inside = zone('kneeStatic', r.knee).side === 'in';
+    // Not out of range held still: the title is what happened, the line what to do. Never "looks
+    // right", which is Good's word (SPEC 4.3), over a Fair pill and a reading that may sit outside its
+    // band (round 5: 4f-cannot-measure-36 showed 37 against 25 to 35 under "Looks Right").
     return r.kneeGrade === 'red'
       ? { what: 'Film again before you move the saddle', short, why: `${lead} Held still, your knee is outside its range, but that reading alone cannot say how far to move the saddle. Film again and pedal ${dir}${slow}.` }
-      : { what: 'Saddle height looks right, held still', short, why: `${lead} Held still, your knee is ${inside ? 'in range' : 'close to its range'}, but that reading is only a cross-check. Film again and pedal ${dir}${slow} to be sure.` };
+      : { what: r.tooFast ? 'You pedalled too fast for me to measure' : 'I could not measure you pedalling', short: `Film again and pedal ${dir}${slow}.`,
+        why: `${lead} Held still, your knee is ${inside ? 'in range' : 'close to its range'}, but that reading is only a cross-check. Film again and pedal ${dir}${slow} to be sure.` };
   }
   if (r.verdict === 'ok') {
     const off = offAngles(r);
@@ -1220,8 +1234,12 @@ export const COME_BACK = 'Check again whenever you change the saddle, stem, shoe
 export function spokenSummary(r, { pain = false, long = false, win = false } = {}) {
   const out = [];
   const c = r.change;
-  if (pain) out.push(painNote(r));
-  if (win && !long) return [...out, WIN_LINE].join(' ');
+  // Pain or numbness: the screen's short line first, so the answer is not held back behind the whole
+  // note (round 5, the UX review's item 7); after the answer, when to get help now, or in the long
+  // version the full note.
+  if (pain) out.push(PAIN_SHORT);
+  const painTail = pain ? [long ? painNote(r) : PAIN_NOW] : [];
+  if (win && !long) return [...out, WIN_LINE, ...painTail].join(' ');
   if (win) out.push(WIN_LINE);
   if (r.retest) out.push(r.retest.spoken);
   if (r.wait === 'ride') {
@@ -1274,7 +1292,8 @@ export function spokenSummary(r, { pain = false, long = false, win = false } = {
       if (r.stillOut && !r.stillOutAgain) out.push('Your held-still reading was outside its range. Film once more to be sure.');
       const ok = UPPER.filter(k => r[k + 'Grade'] === 'green').map(k => NAMES[k]);
       const off = offAngles(r);
-      if (ok.length) out.push(`Your ${list(ok)} ${ok.length > 1 ? 'look' : 'looks'} good.`);
+      // From one hand position only, as the results' step says (the round 5 fixer, QA minor).
+      if (ok.length) out.push(`Your ${list(ok)} ${ok.length > 1 ? 'look' : 'looks'} good for this hand position.`);
       if (off.length) out.push(`Your ${list(off)} ${off.length > 1 ? 'are' : 'is'} ${offWords(r)} the target. That is fine to ride.`);
     }
   } else if (r.verdict === 'disagree') {
@@ -1285,7 +1304,7 @@ export function spokenSummary(r, { pain = false, long = false, win = false } = {
     out.push(headline(r, ' degrees').why);
   }
   if (long) out.push(...(r.notes || []));
-  return out.join(' ');
+  return [...out, ...painTail].join(' ');
 }
 
 // For Copy Results, the report a rider can hand a fitter (SPEC 4.1 item 5, 4.2 item 3, 4.4 item 2):
@@ -1300,7 +1319,9 @@ export function reportLines(r) {
     if (r.averaged) out.push(`That is the average of two films: ${round(r.averaged[0])}° and ${round(r.averaged[1])}°.`);
   }
   if (Number.isFinite(r?.kneeMax)) out.push(`Knee at its straightest in each pedal turn: ${round(r.kneeMax)}°. Target ${mlo} to ${mhi}, the band studies give for maximum extension.`);
-  if (r?.kneeSource) out.push(`Good: inside the target by more than ${U_KNEE}°, the app's provisional error for one check. Fair: within ${U_KNEE}° of an edge.`);
+  // Fair is also a reading the app does not act on alone (areas(): held still only, or an angle at the
+  // front with no bars change), as Learn says (ui.exactLine).
+  if (r?.kneeSource) out.push(`Good: inside the target by more than ${U_KNEE}°, the app's provisional error for one check. Fair: within ${U_KNEE}° of an edge, or a reading the app does not act on alone.`);
   if (Number.isFinite(r?.shoulder)) out.push(`Shoulder angle, between the hip, shoulder and elbow points: ${round(r.shoulder)}°. For reference: no study gives a target for it.`);
   if (r?.change?.kind === 'saddle' && !r.change.directionOnly) {
     out.push(`Millimetres from a rule of thumb, not yet measured for you. About ${MM_PER_DEG} mm of saddle height per degree of knee bend, in steps of 3, 5 or 10 mm.`);
@@ -1450,6 +1471,10 @@ export function pendingChange(history) {
 // under SAME_TOL, about the smallest change one reading can show. Every 3 and 5 mm step is one; a 10
 // mm step is not. The retest then says so and judges only where the knee is now.
 export const tooSmallToSee = (mm) => expectedKneeChange(mm)[1] < SAME_TOL;
+// Design choice: up to an expected 6 degrees (twice SAME_TOL, a change of up to 18 mm) the change is
+// near the smallest one the camera can see, so a knee that did not move means "I cannot tell yet";
+// beyond that, no change at all means it hardly moved.
+export const nearSmallest = (mm) => expectedKneeChange(mm)[1] < 2 * SAME_TOL;
 export const TOO_SMALL_LINE = 'That change is too small for me to measure. Your tape mark shows it moved. I only check whether you are in range now.';
 
 // Compares this session's knee reading with the one before a saddle change.
@@ -1524,13 +1549,13 @@ export function judgeChange(prev, now) {
     text = `${nums('°')} ${should('°', 'mm')}. That fits. The next step is below.`;
     spoken = `${saidNums} ${saidShould}. That fits. Here is the next step.`;
   } else if (recheck) {
-    // The second film that does not fit: going by this reading is the only way forward.
-    text = `${nums('°')} ${should('°', 'mm')}. That still does not fit the change, so I go by this reading. The next step is below.`;
-    spoken = `${saidNums} ${saidShould}. That still does not fit the change, so I go by this reading. Here is the next step.`;
+    // The second film that does not fit: going by this reading is the only way forward. Not "still":
+    // the film before it may have said "I cannot tell yet", never that it did not fit (the round 5
+    // fixer, QA minor). How it is judged is unchanged (decision 4 is Alex's).
+    text = `${nums('°')} ${should('°', 'mm')}. That does not fit the change, so I go by this reading. The next step is below.`;
+    spoken = `${saidNums} ${saidShould}. That does not fit the change, so I go by this reading. Here is the next step.`;
   } else if (verdict === 'unseen') {
-    // Design choice: up to an expected 6 degrees (twice SAME_TOL, a change of up to 18 mm) the change
-    // is near the smallest one the camera can see; beyond that, no change at all means it hardly moved.
-    const small = hi < 2 * SAME_TOL;
+    const small = nearSmallest(m.mm);
     const tail = small ? ', about the smallest change this camera can see, so I cannot tell yet whether the saddle moved.'
       : ', but it hardly changed.';
     text = `${nums('°')} ${should('°', 'mm')}${tail} Check the tape mark, then film once more.`;
@@ -1881,13 +1906,16 @@ const PAIN_LIMITS = 'This check cannot tell what causes your pain. It films you 
 // The same words on the screen and out loud: they have no numbers. "Try this one change first" only
 // with a change to try; "Your position looks in range" only when nothing is to be done (a design
 // choice: with no reading, or a change held back, neither is true, so neither is said).
+// The NHS red flags, in one sentence: when to get help now.
+export const PAIN_NOW = 'Get medical help now if your knee is badly swollen, has changed shape, or cannot take your weight.';
 export function painNote(r) {
   const first = r?.change ? 'Try this one change first. ' : nothingToDo(r) ? 'Your position looks in range. ' : '';
   return `You said pain or numbness keeps coming back. ${first}If it is no better within a few weeks, or it gets worse, see a doctor or physio, and a professional bike fitter. `
-    + 'Get medical help now if your knee is badly swollen, has changed shape, or cannot take your weight. This is not medical advice. ' + PAIN_LIMITS;
+    + `${PAIN_NOW} This is not medical advice. ${PAIN_LIMITS}`;
 }
 // The same advice as one short line for the results screen, where the full note is one tap away. The
-// voice says the full note first, and the sheet ends with Not medical advice.
+// voice says this line first, then the answer, then PAIN_NOW (round 5: the full 88-word note came
+// before the answer; Say It Again says it after the answer), and the sheet ends with Not medical advice.
 export const PAIN_SHORT = 'Pain that keeps coming back: see a doctor or physio, and a bike fitter.';
 
 // ── the result list, one row per measurement ─────────────────────────────────────────────────
@@ -2005,6 +2033,9 @@ export function measures(r, pedal) {
 // and elbow together because they share one cause, so they are graded as one area, not three; the
 // shoulder is for reference only (SPEC 4.2), so the back and elbow set the area's status.
 // rows: the output of measures(). Each area: { key, name, grade, status, why, step, rows }.
+// Said once, in the step (the round 5 fixer, QA minor: the Details said it a second time, "Checked with
+// your hands in one place only."). The Check tab's card uses it too (ui.latestCards).
+export const ONE_HAND_STEP = 'No change needed for this hand position.';
 export function areas(r, rows) {
   const by = Object.fromEntries((rows || []).map(x => [x.key, x]));
   const pick = (...ks) => ks.map(k => by[k]).filter(Boolean);
@@ -2042,13 +2073,15 @@ export function areas(r, rows) {
   } else if (!off.length) {
     // Every graded angle inside its band: Good when each is inside by more than its u, else Fair,
     // with the ones near an edge named. Nothing to change either way.
+    // From one hand position only (round 5, the UX review's item 9): the film saw the hands where the
+    // voice put them, never in the drops or on the tops, so the area says so.
     const near = seen.filter(k => g[k] !== 'green').map(k => NAMES[k]);
     const who = seen.length === 2 ? 'back and elbow angles are' : `${NAMES[seen[0]]} is`;
     reach = near.length
       ? area('reach', 'Reach and bar height', 'amber',
         `Your ${who} inside ${seen.length === 2 ? 'their targets' : 'its target'}. Your ${list(near)} ${near.length > 1 ? 'are' : 'is'} near the edge. That is fine to ride.`,
-        'No change needed.', urows)
-      : area('reach', 'Reach and bar height', 'green', `Your ${who} inside ${seen.length === 2 ? 'their targets' : 'its target'}.`, 'No change needed.', urows);
+        ONE_HAND_STEP, urows)
+      : area('reach', 'Reach and bar height', 'green', `Your ${who} inside ${seen.length === 2 ? 'their targets' : 'its target'}.`, ONE_HAND_STEP, urows);
   } else {
     // Fair, not Needs attention, for angles outside their range without a bars change. A design
     // choice: fit-rules.md rule 4 needs two signs before a change, and a red pill with "nothing to

@@ -156,7 +156,8 @@ test('after a break while holding still, he is found again wherever he gets back
   const same = await session('setup=friend&away=20');
   ok(same);
   assert.deepEqual(same.phases.map(p => p.phase).slice(-3), ['still', 'pedal', null]);
-  assert.ok(same.said.includes('Take your time. Get back on when you are ready. I will wait.'));
+  // Not "I will wait": 14 s later it says "I have lost you" (the round 5 fixer, QA minor).
+  assert.ok(same.said.includes('Take your time. Get back on when you are ready.'));
   // Alone in the picture, found anywhere, as before.
   const alone = await session('setup=wall&away=20&awayshift=150');
   ok(alone);
@@ -291,7 +292,8 @@ test('the screen towards the rider, for each way of holding the bike: the front 
     assert.equal(d.cameraInfo?.asked, 'user', `${q}: facingMode user`);
     assert.ok(d.seeWhat, `${q}: the result showed on the camera view, and See What to Do opened the results`);
     assert.ok(['Good', 'Again', 'Bars'].includes(d.runField) || /mm$/.test(d.runField), `${q}: ${d.runField}`);
-    assert.ok(d.said.some(s => /, with the screen facing the bike\.$/.test(s)), `${q}: the placement line`);
+    assert.ok(d.said.includes('Point the screen at the pedals.'), `${q}: the placement lines`);
+    assert.ok(!d.said.includes('Point the back of the phone at the pedals.'), q);
     assert.ok(d.said.includes('Checking the picture. Stay on. I will tell you if the phone needs to move.'), q);
     assert.ok(d.said.some(s => /^Eyes ahead\. Hold still/.test(s)), `${q}: eyes ahead while holding still`);
     assert.ok(d.said.some(s => /Eyes ahead, I will count for you\.$/.test(s)), `${q}: eyes ahead while pedalling`);
@@ -308,7 +310,12 @@ test('the screen towards the rider, for each way of holding the bike: the front 
     assert.equal(d.cameraInfo?.asked, 'environment', q);
     assert.ok(!d.seeWhat, q);
     assert.ok(!d.said.some(s => /Eyes ahead|screen facing the bike|A tick means/.test(s)), q);
-    assert.ok(d.said.some(s => /opposite the pedals and facing them\.$/.test(s)), `${q}: the placement line with its details`);
+    // Round 5: the placement in six short lines, in the order the hands do it.
+    const PLACED = ['Put the chair opposite the pedals, about 3 metres away.', 'Turn the chair back away from the bike.', 'Put the box on the chair.',
+      'Stand the phone on it, sideways and upright.', 'Keep the lens level with the top of the tyres.', 'Point the back of the phone at the pedals.'];
+    const at = d.said.indexOf(PLACED[0]);
+    assert.ok(at >= 0, `${q}: the placement lines`);
+    assert.deepEqual(d.said.slice(at, at + 6), PLACED, q);
   }
   // A saddle too low: the millimetres on the camera view, the same advice as the results sheet.
   const low = await session('setup=wall&screen=front&low');
@@ -642,8 +649,11 @@ const B = ['setup=trainer&flow&then=home', 'setup=wall&flow&then=home', 'setup=f
   'setup=trainer&low&then=now', 'setup=wall&low=30&mm=30&then=now'];
 for (const q of B) session(q, 300000);
 const b = (q) => session(q, 300000);
-const WARM = { trainer: 'Before I film, ride easily for five minutes. I will wait.', wall: 'If you can, go for a ten-minute ride first.', friend: 'If you can, go for a ten-minute ride first.' };
-const KIT = 'Are your cycling shoes and padded shorts on? They change how high you sit.';
+// Round 5 (the UX review, item 8): no promise the app does not keep. "I will wait" is gone (Getting
+// Ready waits for a tap, as every screen does, and times nothing), and the kit line is a statement:
+// as a question it had no answer on the screen.
+const WARM = { trainer: 'Before I film, ride easily for five minutes.', wall: 'If you can, go for a ten-minute ride first.', friend: 'If you can, go for a ten-minute ride first.' };
+const KIT = 'Wear your cycling shoes and padded shorts. They change how high you sit.';
 const EFFORT = 'Now pedal at the effort of a long ride, where you could still talk.';
 const FITTER_Q = 'Has a bike fitter set this bike up for you?';
 const FEEL_Q = 'You rode it. Better, the same, or worse?';
@@ -659,6 +669,7 @@ test('round 4: the warm-up and the kit on Getting Ready, said before filming for
     assert.ok(d.flow.said.includes(FITTER_Q), `${setup}: ${d.flow.said.join(' | ')}`);
     // Getting Ready says the warm-up for this setup and, the first time, the kit; its rows show both.
     assert.deepEqual(d.flow.said.slice(-2), [WARM[setup], KIT], setup);
+    assert.ok(!d.flow.said.some(l => /I will wait|\?$/.test(l) && l !== FITTER_Q), `${setup}: no promise and no question without an answer: ${d.flow.said.join(' | ')}`);
     assert.equal(d.flow.warmRow, setup === 'trainer' ? 'Ride easily for 5 minutes first' : 'A 10-minute ride first, if you can', setup);
     assert.equal(d.flow.kitRow, 'Your road bike, cycling shoes and padded shorts', setup);
     assert.equal(d.flow.kitDiff, false, `${setup}: no kit question on a first check`);
@@ -726,20 +737,30 @@ test('round 4: two "worse" answers on the same change put it back, recorded as u
   // seed=worse: the same change, already "worse" once.
   const d = await b('setup=wall&low&flow&seed=worse&feel=worse');
   ok(d);
-  assert.deepEqual(d.flow.screens, ['setup', 'screen', 'fitter', 'pain', 'feel', 'revert', 'ready']);
+  // Round 5 (the UX review, item 5): the revert screen ends the check with the next steps in plain
+  // words and one button, I Put It Back, which goes to the Check tab and starts no film. The check the
+  // runner films after it is the rider's next one, from the Check tab ('home' marks the way back).
+  assert.deepEqual(d.flow.screens.slice(0, 7), ['setup', 'screen', 'fitter', 'pain', 'feel', 'revert', 'home']);
   assert.equal(d.flow.revertH, 'Put the Saddle Back');
-  assert.equal(d.flow.revertSub, 'To your tape mark. It felt worse twice.');
-  assert.ok(d.flow.said.includes('It felt worse twice. Put the saddle back to your tape mark.'), d.flow.said.join(' | '));
-  assert.ok(!d.flow.said.includes('With pain, see a bike fitter.'));
+  assert.equal(d.flow.revertSub, 'It felt worse twice.');
+  assert.deepEqual(d.flow.revertRows, ['Saddle back to your tape mark', 'Then ride as before', 'A bike fitter can look at why']);
+  assert.equal(d.flow.afterRevert.phase, null, 'no film started from it');
+  assert.equal(d.flow.afterRevert.summary, 'Saddle back at your tape mark. A fitter can look at why.');
+  assert.doesNotMatch(d.flow.afterRevert.cards, /Ride it once more/);
+  for (const l of ['It felt worse twice. Put the saddle back to your tape mark.', 'Then ride as before.', 'A bike fitter can look at why.']) assert.ok(d.flow.said.includes(l), `${l}: ${d.flow.said.join(' | ')}`);
+  assert.ok(!d.flow.said.includes('With pain, see a doctor or physio, and a bike fitter.'));
   const made = d.flow.history.find(s => s.made).made;
   assert.ok(made.undone, 'recorded as undone');
   assert.deepEqual(made.feel.map(f => f.said), ['worse', 'worse']);
-  // The same change is not suggested again.
+  // A later check: the same change is not suggested again.
   assert.equal(d.what, 'Leave the Saddle at Your Tape Mark');
   assert.equal(d.made, false);
   const p = await b('pain&setup=wall&low&flow&seed=worse&feel=worse');
-  assert.equal(p.flow.revertSub, 'To your tape mark, then see a bike fitter.');
-  assert.ok(p.flow.said.includes('With pain, see a bike fitter.'), p.flow.said.join(' | '));
+  assert.equal(p.flow.revertSub, 'It felt worse twice.');
+  // The results' own pain words (fit.PAIN_SHORT): a doctor or physio, and a bike fitter (the round 5 fixer).
+  assert.equal(p.flow.revertRows[2], 'With pain, see a doctor or physio, and a bike fitter');
+  assert.ok(p.flow.said.includes('With pain, see a doctor or physio, and a bike fitter.'), p.flow.said.join(' | '));
+  assert.ok(!p.flow.said.includes('A bike fitter can look at why.'));
   // Worse, then better: settled, nothing put back, and the next step comes.
   const ok2 = await b('setup=wall&low&flow&seed=worse&feel=better');
   assert.ok(!ok2.flow.screens.includes('revert'));
@@ -844,6 +865,33 @@ test('fixer, QA2 blocking 4: a change saved on the Check tab after riding gets "
   ok(later);
   assert.ok(later.flow.screens.includes('feel'));
   assert.match(later.what, /Ride It First$/);
+});
+
+// Round 5 (the UX review, item 10): one place to change the fitter answer, and Reduce Motion kept.
+for (const q of ['setup=wall&low&flow&fitter=yes&flipfitter&then=home', 'setup=wall&screen=towards&reduce&learn=wall']) session(q, 400000);
+test('round 5: the fitter answer changes from Learn, and the next check goes by it', async () => {
+  const d = await session('setup=wall&low&flow&fitter=yes&flipfitter&then=home', 400000);
+  ok(d);
+  assert.equal(d.what, 'Your Saddle Looks Low', 'a fitter\'s bike: report only');
+  const { check: before, ...rowBefore } = d.fitterRow.before, { check: after, ...rowAfter } = d.fitterRow.after;
+  assert.deepEqual(rowBefore, { shown: true, sub: 'Yes: I only report what I see.', label: 'Set up by a bike fitter: Yes. Change', stored: 'yes' });
+  assert.deepEqual(rowAfter, { shown: true, sub: 'No: I suggest one change at a time.', label: 'Set up by a bike fitter: No. Change', stored: 'no' });
+  // The Check tab goes by the answer as it is now (the round 5 fixer, QA1 blocking 1: it still said "A
+  // fitter set up your bike, so I only report." and "Ask your fitter before you change it.").
+  assert.equal(before.summary, 'A fitter set up your bike, so I only report.');
+  assert.match(before.cards, /Ask your fitter before you change it\./);
+  assert.doesNotMatch(`${after.summary} ${after.cards}`, /fitter/i, `${after.summary} | ${after.cards}`);
+  assert.match(after.summary, /^Your saddle is probably (a little |too )low\.$/, 'what the check saw, as a suggestion would say it');
+  assert.match(after.cards, /Check again before you change it\./);
+  assert.ok(!d.homeFlow.screens.includes('fitter'), 'not asked again: the row is the place');
+  ok(d.next);
+  assert.match(d.next.what, /^Raise the Saddle About \d+ mm$/, 'the next check goes by the new answer');
+});
+test('round 5: Reduce Motion: no demo plays by itself on day one; Learn still plays one on a tap', async () => {
+  const d = await session('setup=wall&screen=towards&reduce&learn=wall', 400000);
+  ok(d);
+  assert.deepEqual(d.demos.filter(x => x.kind !== 'learn'), [], 'no placement loop, no moves');
+  assert.deepEqual(d.learnDemo.files, ['hold-wall', 'pedal-wall'], 'asked for with a tap');
 });
 
 // QA2 minor: the Put the Saddle Back picture pointed down even when the change put back was lowering it.

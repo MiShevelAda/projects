@@ -174,11 +174,11 @@ test('spoken summary grammar', () => {
   // The other angles are in the longer version that "Say it again" speaks.
   const said = fit.spokenSummary(one, { long: true });
   assert.match(said, /^Nothing to change today\./);
-  assert.match(said, /Your back angle looks good\./);
+  assert.match(said, /Your back angle looks good for this hand position\./);
   assert.match(said, /Your elbow bend is outside the target\. That is fine to ride\./);
   assert.ok(!/shoulder/.test(said), said);
   const both = fit.spokenSummary(fit.advise(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 22, shoulder: 60 }), { long: true });
-  assert.match(both, /Your back angle and elbow bend look good\./);
+  assert.match(both, /Your back angle and elbow bend look good for this hand position\./);
   // Only just outside (within u): "a little outside".
   assert.match(fit.spokenSummary(fit.advise(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 32, shoulder: 75 }), { long: true }), /Your elbow bend is a little outside the target\./);
 });
@@ -418,7 +418,8 @@ test('headline by verdict', () => {
   assert.equal(so.what, 'Film again before you move the saddle');
   assert.match(so.why, /^I could not measure you pedalling\. Held still, your knee is outside its range, but that reading alone cannot say how far to move the saddle\./);
   assert.match(fit.saddleWhy(fit.advise({ kneeFlex: 40 }, null)), /^Held still, your knee bends 40°, outside the 25 to 35 target\. On its own that is only a cross-check/);
-  assert.equal(fit.headline(fit.advise({ kneeFlex: 30 }, null)).what, 'Saddle height looks right, held still');
+  // Round 5: never "looks right" (Good's word) over a Fair held-still reading; the title says what happened.
+  assert.equal(fit.headline(fit.advise({ kneeFlex: 30 }, null)).what, 'I could not measure you pedalling');
   const okR = fit.advise(null, { strokes: 12, kneeFlex: 41, torso: 45, elbow: 22, shoulder: 60 });
   const ok = fit.headline(okR);
   assert.equal(ok.what, 'Nothing to change today');
@@ -656,7 +657,8 @@ test('the film after a held-back retest is compared with the reading before the 
   const f2 = fit.withRetest(r2, fit.judgeChange(fit.pendingChange([madeAt]), { knee: r2.knee, src: r2.kneeSource }));
   assert.equal(f2.retest.verdict, 'unseen');
   assert.equal(f2.held, true);
-  assert.match(fit.headline(f2).why, /until one more film shows what it did/);
+  // Round 5: a 15 mm change near the smallest the camera can see: "cannot tell yet", in the title too.
+  assert.match(fit.headline(f2).why, /^I cannot tell yet what your last change did, so I will not suggest another one until one more film shows it\.$/);
   assert.match(fit.spokenSummary(f2), /Check the tape mark, then film once more\. I will not suggest another change until then\.$/);
   const history = [{ at: 'B', knee: 50, src: 'pedalling', held: true }, madeAt];
   // Film 3, the saddle now really moved: compared with film 1, and it fits.
@@ -673,7 +675,9 @@ test('the film after a held-back retest is compared with the reading before the 
   assert.equal(f3b.retest.recheck, true);
   assert.ok(!f3b.held);
   assert.equal(f3b.change.kind, 'saddle');
-  assert.match(f3b.retest.text, /That still does not fit the change, so I go by this reading\. The next step is below\.$/);
+  // Not "still": the film before it said "I cannot tell yet", not that it did not fit (the round 5 fixer).
+  assert.match(f3b.retest.text, /\. That does not fit the change, so I go by this reading\. The next step is below\.$/);
+  assert.doesNotMatch(`${f3b.retest.text} ${f3b.retest.spoken}`, /still does not fit/);
   assert.match(fit.spokenSummary(f3b), /so I go by this reading\. Here is the next step\. Raise the saddle/);
   assert.notEqual(fit.headline(f3b).what, 'Film once more');
   // In range on the second look: leave it.
@@ -807,8 +811,9 @@ test('areas: all in range is Good twice', () => {
   assert.equal(a.saddle.status, 'Good');
   assert.equal(a.saddle.step, 'Leave the saddle height as it is.');
   assert.equal(a.reach.status, 'Good');
+  // Round 5: from one hand position only, and it says so (honest.test.mjs).
   assert.equal(a.reach.why, 'Your back and elbow angles are inside their targets.'); // the shoulder is for reference
-  assert.equal(a.reach.step, 'No change needed.');
+  assert.equal(a.reach.step, 'No change needed for this hand position.');
   // Within u of a target, outside it: Fair, and never "inside" it (was Good, "within 2.5° of it").
   const edge = areasOf(null, { strokes: 12, kneeFlex: 38, torso: 38, elbow: 22, shoulder: 88 });
   assert.equal(edge.reach.status, 'Fair');
@@ -817,7 +822,7 @@ test('areas: all in range is Good twice', () => {
   const inside = areasOf(null, { strokes: 12, kneeFlex: 38, torso: 42, elbow: 22, shoulder: 88 });
   assert.equal(inside.reach.status, 'Fair');
   assert.equal(inside.reach.why, 'Your back and elbow angles are inside their targets. Your back angle is near the edge. That is fine to ride.');
-  assert.equal(inside.reach.step, 'No change needed.');
+  assert.equal(inside.reach.step, 'No change needed for this hand position.');
 });
 
 test('areas: a long, low front end with the saddle right', () => {
@@ -894,9 +899,12 @@ test('areas: a retest that holds the change back', () => {
 test('pain or numbness: said first, staged, with its limits and "not medical advice"', () => {
   const pedal = { strokes: 12, kneeFlex: 47, torso: 45, elbow: 22, shoulder: 88 };
   const r = fit.advise(null, pedal);
-  const said = fit.spokenSummary(r, { pain: true });
+  // Round 5: the short line first and the full note in Say It Again, after the answer
+  // (honest.test.mjs); the full note is on the screen under More.
+  const said = fit.spokenSummary(r, { pain: true, long: true });
   const note = fit.painNote(r);
-  assert.ok(said.startsWith(note), said);
+  assert.ok(said.startsWith(fit.PAIN_SHORT), said);
+  assert.ok(said.endsWith(note), said);
   assert.ok(note.startsWith('You said pain or numbness keeps coming back. Try this one change first.'), note);
   for (const t of [note, said]) {
     assert.match(t, /few weeks/);
@@ -905,22 +913,22 @@ test('pain or numbness: said first, staged, with its limits and "not medical adv
     assert.match(t, /professional bike fitter/);
     assert.match(t, /doctor or physio/);
     assert.ok(!/\u2014/.test(t));
-    assert.ok(!/\d|°/.test(t.slice(0, note.length)), 'no numbers in the pain note');
   }
+  assert.ok(!/\d|°/.test(note), 'no numbers in the pain note');
   // Without the answer: none of it.
   const plain = fit.spokenSummary(r);
   for (const w of [/few weeks/, /not medical advice/, /cannot see your feet/, /pain/]) assert.ok(!w.test(plain), plain);
-  assert.equal(said, `${note} ${plain}`); // the rest is unchanged
+  assert.equal(fit.spokenSummary(r, { pain: true }), `${fit.PAIN_SHORT} ${plain} ${fit.PAIN_NOW}`); // the rest is unchanged
   assert.deepEqual(fit.advise(null, pedal), r);
   // Nothing to change: "Your position looks in range." in place of "Try this one change first."
   const ok = fit.advise(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 22, shoulder: 88 });
   assert.match(fit.painNote(ok), /^You said pain or numbness keeps coming back\. Your position looks in range\. If it is no better/);
-  assert.ok(fit.spokenSummary(ok, { pain: true }).endsWith('Nothing to change today. Your saddle height looks right.'));
+  assert.ok(fit.spokenSummary(ok, { pain: true }).endsWith(`Nothing to change today. Your saddle height looks right. ${fit.PAIN_NOW}`));
   // Nothing measured: neither line, since neither would be true.
   assert.match(fit.painNote(fit.advise(null, null)), /^You said pain or numbness keeps coming back\. If it is no better/);
   // Before the retest line too.
   const re = fit.withRetest(r, fit.judgeChange({ made: { kind: 'saddle', dir: 1, mm: 10 }, knee: 43, src: 'pedalling' }, { knee: 47, src: 'pedalling' }));
-  assert.match(fit.spokenSummary(re, { pain: true }), /^You said pain or numbness.*side to side\. Knee bend 43 degrees before/);
+  assert.ok(fit.spokenSummary(re, { pain: true }).startsWith(`${fit.PAIN_SHORT} Knee bend 43 degrees before`));
 });
 
 test('a retest on two readings that disagree keeps the disagree wording', () => {

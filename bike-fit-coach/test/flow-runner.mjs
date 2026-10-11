@@ -59,6 +59,12 @@
 //   made=yes      on the Check tab's "Before you start: did you ...?", tap Save and Start (the stepper's
 //                 millimetres) instead of "No, start anyway".
 // Each of those checks is printed in "more", with the fields of a check and its walk as "homeFlow".
+// Round 5, for the runner only:
+//   reduce        the phone has Reduce Motion on (prefers-reduced-motion matches);
+//   flipfitter    after the first check, tap Learn's bike fitter row (Change) before any then=; printed
+//                 as "fitterRow": shown, its line and the answer stored, and the Check tab's line and
+//                 cards ("check"), before and after the tap.
+
 const query = process.argv[2] || '';
 const parts = query.split('&').filter(Boolean);
 const arg = (k) => parts.find(x => x.startsWith(`${k}=`))?.slice(k.length + 1) ?? null;
@@ -69,7 +75,8 @@ const flowFirst = parts.includes('flow'), fitterArg = arg('fitter'), feelArg = a
 const repeatN = Number(arg('repeat')) || 0, homesN = Number(arg('homes')) || 0;
 const skipDemo = parts.includes('skipdemo'), skipPlace = parts.includes('skipplace'), learnArg = arg('learn');
 const bigText = parts.includes('bigtext'), tallBar = parts.includes('tallbar');
-const RUNNER = new Set(['pain', 'nudge', 'painwait', 'skiprelevel', 'skipoff', 'skipframe', 'flow', 'skipdemo', 'skipplace', 'bigtext', 'tallbar']);
+const reduce = parts.includes('reduce'), flipFitter = parts.includes('flipfitter');
+const RUNNER = new Set(['pain', 'nudge', 'painwait', 'skiprelevel', 'skipoff', 'skipframe', 'flow', 'skipdemo', 'skipplace', 'bigtext', 'tallbar', 'reduce', 'flipfitter']);
 const skipWhen = ['skiprelevel', 'skipoff', 'skipframe'].find(x => parts.includes(x)) || null;
 let skip = null, skipSeen = null; // the tap, and when the frame step first showed MOVE (skipframe)
 const pageQuery = parts.filter(x => !RUNNER.has(x) && !/^(fps|then|when|where|mm|fitter|feel|kit|learn|repeat|homes|made)=/.test(x)).join('&');
@@ -145,7 +152,7 @@ globalThis.document = {
 globalThis.window = globalThis;
 // Every scroll the app asks for, as the y it scrolls to (bigtext, above).
 const scrolls = [];
-Object.assign(globalThis, { innerWidth: 844, innerHeight: 390, devicePixelRatio: 1, scrollY: 0, matchMedia: () => ({ matches: false }),
+Object.assign(globalThis, { innerWidth: 844, innerHeight: 390, devicePixelRatio: 1, scrollY: 0, matchMedia: (q) => ({ matches: reduce && /prefers-reduced-motion: reduce/.test(q) }),
   scrollTo: (x, y) => { scrolls.push(typeof x === 'object' ? x?.top ?? 0 : y ?? 0); } });
 Object.defineProperty(globalThis, 'navigator', { value: { userAgent: 'node', platform: 'Linux', maxTouchPoints: 0, standalone: false }, configurable: true, writable: true });
 globalThis.location = { search: `?sim${pageQuery ? '&' + pageQuery : ''}`, pathname: '/', href: 'http://localhost/' };
@@ -213,13 +220,25 @@ function walk(painYes) {
       info.feelQ = $('feelQ').textContent; info.feelSub = $('feelSub').textContent;
       if (feelArg === 'later') $('feelLater').click();
       else { $({ better: 'feelBetter', same: 'feelSame', worse: 'feelWorse' }[feelArg || 'better']).click(); $('feelNext').click(); }
-    } else if (step === 'revert') { info.revertH = $('revertH').textContent; info.revertSub = $('revertSub').textContent; info.revertArrow = $('revertArrow').getAttribute('d'); $('revertNext').click(); }
-    else break;
+    } else if (step === 'revert') {
+      info.revertH = $('revertH').textContent; info.revertSub = $('revertSub').textContent; info.revertArrow = $('revertArrow').getAttribute('d');
+      info.revertRows = ['revertBack', 'revertRide', 'revertFitter'].map(id => $(id).textContent);
+      $('revertNext').click();
+      // Round 5: I Put It Back ends the check on the Check tab, with no film started. What the tab says
+      // then, and the rider's next check from it, as he would start it later.
+      if ($('flow').hidden && $('home').hidden === false) {
+        info.screens.push('home');
+        info.afterRevert = { phase: bfc.phase() ?? null, summary: $('homeSummary').textContent, cards: $('latestCards').children.map(deepText).join(' | ') };
+        $('newCheck').click();
+      }
+    } else break;
   }
   Object.assign(info, { said: bfc.said.slice(from), kitRow: $('kitRow').textContent, warmRow: $('warmRow').textContent, kitDiff: $('kitDiff').hidden === false,
     fitterStored: store.get('bfc.fitter') ?? null, history: hist() });
   return info;
 }
+// Every word an element and its children carry, with their VoiceOver labels.
+const deepText = (e) => [e?.textContent, e?.attrs?.['aria-label'], ...(e?.children || []).map(deepText)].filter(Boolean).join(' ');
 // Getting Ready's Start, or Different Shoes or Shorts (kit=no) when it shows.
 const tapStart = () => (kitArg === 'no' && $('kitDiff').hidden === false ? $('kitDiff') : $('start')).click();
 // start() waits for the made-up rider's module to load, on the real event loop.
@@ -329,6 +348,10 @@ if (allowShown) $('allowStart').click();
 await started();
 const first = await runSession(from1);
 const out = { ...first, allowShown, flow, learnDemo, bigtext: flow?.bigtext };
+// check: the Check tab's line and cards, which go by the answer as it is now (the round 5 fixer).
+const fitterRow = () => ({ shown: $('fitterSet').hidden === false, sub: $('fitterSetSub').textContent, label: $('fitterChange').getAttribute('aria-label'), stored: store.get('bfc.fitter') ?? null,
+  check: { summary: $('homeSummary').textContent, cards: $('latestCards').children.map(deepText).join(' | ') } });
+if (flipFitter) { const before = fitterRow(); $('fitterChange').click(); out.fitterRow = { before, after: fitterRow() }; }
 if (then) {
   const from = mark();
   if (nudge) { $('rMadeMore').click(); $('rMadeLess').click(); await wait(3); }

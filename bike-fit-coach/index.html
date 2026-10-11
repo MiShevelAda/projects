@@ -121,7 +121,10 @@
   .a2hs ol li > span:first-child { width: 1.65rem; height: 1.65rem; border-radius: 50%; background: var(--blue-bg); color: var(--blue-text); font-size: 0.882rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
   .a2hs .btns { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
   .assess { padding: 0; gap: 0; overflow: hidden; border-radius: 26px; }
-  .assess .art { height: 140px; background: var(--hero-field); position: relative; overflow: hidden; }
+  /* The picture gives way at the accessibility text sizes (1rem from 26 px: iOS's largest standard size
+     is 23 px, the first larger one 28 px), so Start a Check and Check It Now stay above the tab bar
+     (the round 5 fixer). A step, not a squeeze: under 26 px the full 140 px, from 26 px none. */
+  .assess .art { height: clamp(0px, calc((26px - 1rem) * 1000), 140px); background: var(--hero-field); position: relative; overflow: hidden; }
   .assess .art > svg { position: absolute; left: 50%; top: 0; transform: translateX(-50%); }
   .assess .body { padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 6px; }
   .assess .body > div { display: flex; flex-direction: column; gap: 6px; }
@@ -223,6 +226,12 @@
   button.learnrow { appearance: none; width: 100%; margin: 0; border: 0; border-top: 1px solid var(--sep); background: none; color: inherit; font: inherit; text-align: left; grid-template-columns: 2.1rem minmax(0, 1fr) 1.65rem; align-items: center; }
   button.learnrow:first-child { border-top: 0; }
   .learnrow svg.play { width: 1.65rem; height: 1.65rem; }
+  /* The answer and Change share a line while there is room; at the largest text sizes Change goes
+     under the answer, so the label and its answer are not squeezed to a word a line (the round 5 fixer). */
+  button.learnrow.fitrow { grid-template-columns: 2.1rem minmax(0, 1fr); }
+  .fitrow .fitbody { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-width: 0; }
+  .fitrow .fitbody > div { flex: 1 1 9em; min-width: 0; }
+  .learnrow .change { flex: none; color: var(--blue-text); font-size: 1rem; }
   .learnDemo { appearance: none; display: block; width: 100%; margin: 0; padding: 0 16px 16px; border: 0; background: none; }
   .learnDemo video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; background: #131A24; object-fit: contain; }
   /* Details one tap away on the tabs: a row that opens. */
@@ -725,11 +734,21 @@
       </svg>
     </div>
     <button id="revertClose" class="glass close" type="button" aria-label="Close"><svg width="16" height="16" aria-hidden="true"><use href="#xmark"/></svg></button>
-    <div class="fhead">
-      <h1 id="revertH" tabindex="-1">Put the Saddle Back</h1>
-      <p id="revertSub">To your tape mark. It felt worse twice.</p>
+    <!-- Round 5: the end of "worse twice", the next step in three short rows (app.js showRevert sets
+         them for the saddle or the handlebars, and with pain), and I Put It Back, which goes to the
+         Check tab and starts no film. -->
+    <div class="readybody">
+      <div class="fhead flush">
+        <h1 id="revertH" tabindex="-1">Put the Saddle Back</h1>
+        <p id="revertSub">It felt worse twice.</p>
+      </div>
+      <ul class="ilist">
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h6v18h-6zM10 21h14v10H10zM12 17h10"/></svg><span id="revertBack">Saddle back to your tape mark</span></li>
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 24a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M21 24a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M8 24l6-10h7l5 10M14 14l3 10H8M12 10h5M21 14l2-4h3"/></svg><span id="revertRide">Then ride as before</span></li>
+        <li><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 4a5 5 0 1 0 0 10a5 5 0 1 0 0-10M7 30v-4a10 10 0 0 1 20 0v4"/></svg><span id="revertFitter">A bike fitter can look at why</span></li>
+      </ul>
     </div>
-    <div class="fbar"><button id="revertNext" class="fprimary" type="button">Next</button></div>
+    <div class="fbar"><button id="revertNext" class="fprimary" type="button">I Put It Back</button></div>
   </section>
 
   <section id="flowReady" class="fscreen" aria-labelledby="readyH" hidden>
@@ -857,17 +876,6 @@
       <p id="copyDone" class="small" role="status" hidden>Copied. Paste it into Safari's address bar.</p>
     </section>
 
-    <section id="a2hs" class="card a2hs" aria-labelledby="a2hsH" hidden>
-      <div class="head">
-        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="3" y="3" width="24" height="24" rx="7" fill="var(--blue)"/><path d="M15 9v12M9 15h12" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/></svg>
-        <b id="a2hsH">Keep Your Results</b>
-      </div>
-      <p class="small">Add it to your Home Screen, so Safari keeps your results.</p>
-      <div class="row">
-        <button id="showShare" class="soft" type="button">Show Me How</button>
-      </div>
-    </section>
-
     <p id="homeSummary" class="lede" hidden></p>
 
     <section class="card retest made-home" id="hMade" aria-labelledby="hmade-h" hidden>
@@ -912,6 +920,19 @@
         </span>
         <button id="retestStart" class="primary" type="button" hidden>Check It Now</button>
         <button id="newCheck" class="primary" type="button">Start a Check</button>
+      </div>
+    </section>
+
+    <!-- Round 5 (the UX review, item 10): under the assessment card, so at the largest text sizes
+         Keep Your Results never pushes Start a Check off the first screen. -->
+    <section id="a2hs" class="card a2hs" aria-labelledby="a2hsH" hidden>
+      <div class="head">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="3" y="3" width="24" height="24" rx="7" fill="var(--blue)"/><path d="M15 9v12M9 15h12" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/></svg>
+        <b id="a2hsH">Keep Your Results</b>
+      </div>
+      <p class="small">Add it to your Home Screen, so Safari keeps your results.</p>
+      <div class="row">
+        <button id="showShare" class="soft" type="button">Show Me How</button>
       </div>
     </section>
 
@@ -1029,9 +1050,15 @@
       </label>
     </section>
 
+    <!-- Round 5 (the UX review, item 10): the one place to change the bike fitter answer, shown once
+         it is answered. A tap changes it; the next check goes by it. -->
+    <section id="fitterSet" class="card flat" aria-label="Bike fitter" hidden>
+      <button id="fitterChange" class="learnrow fitrow" type="button" aria-label="Set up by a bike fitter: Yes. Change"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4a4.5 4.5 0 1 0 0 9a4.5 4.5 0 1 0 0-9M5 25v-2a9 9 0 0 1 18 0v2"/></svg><div class="fitbody"><div><b>Set Up by a Bike Fitter</b><span id="fitterSetSub">Yes: I only report what I see.</span></div><span class="change">Change</span></div></button>
+    </section>
+
     <details class="card learnmore" aria-labelledby="exact-h">
       <summary id="exact-h">How Exact It Is</summary>
-      <p class="small">In one study of 26 cyclists filmed from the side, this kind of phone pose model was typically off by 3 to 9 degrees against lab markers, so small changes can hide inside that error. Readings within 2.5 degrees of a target count as in range. It is a good start, not a professional fit. For pain or numbness that keeps coming back, see a professional bike fitter. Not medical advice.</p>
+      <p class="small">In one study of 26 cyclists filmed from the side, this kind of phone pose model was typically off by 3 to 9 degrees against lab markers, so small changes can hide inside that error. <span id="exactU">Good means more than 3 degrees inside the target. Fair means within 3 degrees of an edge, or a reading I cannot act on alone.</span> It is a good start, not a professional fit. For pain or numbness that keeps coming back, see a professional bike fitter. Not medical advice.</p>
     </details>
 
     <details class="card learnmore">

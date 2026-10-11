@@ -88,18 +88,53 @@ export function rangeLabel(name, value, [lo, hi], status) {
   return [name, v, `target ${lo} to ${hi}`, status].filter(Boolean).join(', ');
 }
 
+// Learn's How Exact It Is, from the app's own error for the knee (fit.U_KNEE, SPEC 4.3), so the page
+// cannot say one number while the code uses another (round 5: it said 2.5 degrees while u was 3, and
+// called a reading just outside its band "in range", where the code calls it Fair). Fair is also a
+// reading the app does not act on alone, however far out (fit.areas: held still only, or an angle at
+// the front with no bars change); the round 5 fixer, QA1 blocking 2. Copy Results says the same
+// (fit.reportLines).
+export const exactLine = (u = fit.U_KNEE) => `Good means more than ${u} degrees inside the target. Fair means within ${u} degrees of an edge, or a reading I cannot act on alone.`;
+
 // ── the Check tab ────────────────────────────────────────────────────────────────────────────
 // One short line under the title (DECISIONS.md, 2026-10-10: one title, at most one short line), from
 // the newest session that measured something (its stored grades and suggestion): the one thing to do
 // if there is one, else how the saddle and reach look. The cards under it carry the rest.
 // A change held by fit.withFeel says why instead: ride the last one first, a fitter's bike, or a change
 // put back after it felt worse twice.
-const WAIT_SUMMARY = { ride: 'Ride your last change, then check again.', worse: 'It felt worse. Ride it once more, then tell me how it felt.', fitter: 'A fitter set up your bike, so I only report.',
-  undone: 'Your last change felt worse twice. A fitter can look at why.' };
-export function homeSummary(latest) {
+const WAIT_SUMMARY = { ride: 'Ride your last change, then check again.', worse: 'It felt worse. Ride it once more, then tell me how it felt.', fitter: 'A fitter set up your bike, so I only report.' };
+// A change put back after it felt worse twice: the next step, calm and in plain words (round 5, the
+// UX review's item 5: journey 2 ended on a red Needs attention with nothing to do).
+const UNDONE_SUMMARY = { saddle: 'Saddle back at your tape mark. A fitter can look at why.', bars: 'Handlebars back as they were. A fitter can look at why.' };
+// The change put back (fit.recordFeel: made.undone) when no check has been filmed since: the latest
+// check's own words ("ride it once more") are out of date then. history: newest first; without it, null.
+export function undoneSince(latest, history) {
+  const m = fit.lastMade(history)?.made;
+  return m?.undone && latest?.at && !(new Date(latest.at) > new Date(m.undone)) ? m : null;
+}
+// The bike fitter answer as it is now (the round 5 fixer, QA1 blocking 1: after Learn's Change to No,
+// the Check tab still said "A fitter set up your bike", from the stored check). answer: { fitter: 'yes',
+// 'no' or null, fitterAt: when it was last changed in Learn, or null }. Returns 'no' when the check
+// held its change for a fitter's bike and the answer is No now; 'yes' when the check suggested a change
+// before the answer was changed to Yes, and it is not made yet; else null, and the check's own words
+// stand. A change given after Yes (with pain) or already made is left as it is.
+export function fitterChanged(entry, { fitter = null, fitterAt = null } = {}) {
+  if (entry?.wait === 'fitter' && fitter === 'no') return 'no';
+  if (fitter === 'yes' && fitterAt && entry?.suggested && !entry.made && !entry.wait
+    && new Date(entry.at) < new Date(fitterAt)) return 'yes';
+  return null;
+}
+// The step for a change a fitter's bike held, once the answer is No: the next check suggests it, and
+// only a change a check suggested can be checked afterwards.
+const AGAIN_STEP = 'Check again before you change it.';
+export function homeSummary(latest, history = null, answer = {}) {
   if (!latest?.areas) return '';
-  if (WAIT_SUMMARY[latest.wait]) return WAIT_SUMMARY[latest.wait];
-  const g = latest.areas, sug = latest.suggested;
+  const back = undoneSince(latest, history)?.kind || (latest.wait === 'undone' ? latest.would?.kind || 'saddle' : null);
+  if (back) return UNDONE_SUMMARY[back] || UNDONE_SUMMARY.saddle;
+  const now = fitterChanged(latest, answer);
+  if (now === 'yes') return WAIT_SUMMARY.fitter;
+  if (now !== 'no' && WAIT_SUMMARY[latest.wait]) return WAIT_SUMMARY[latest.wait];
+  const g = latest.areas, sug = latest.suggested || (now === 'no' ? latest.would : null);
   // "a little" or "too", as the results said it (fit.suggestedChange keeps it; with pain the step is
   // capped, the words are not). Saved before that: from the step, "a little" for 3 and 5 mm, "too" for
   // 10; a suggestion saved before round 4 holds a range, and its grade says it, as then.
@@ -111,6 +146,9 @@ export function homeSummary(latest) {
   // Fair with nothing to do (in range, near the edge) is in range, not "one more check".
   const saddleOk = g.saddle === 'green' || (g.saddle === 'amber' && latest.nothing);
   if (g.saddle === 'amber' && !saddleOk) return 'Your saddle height needs one more check.';
+  // Measured, but the retest held the next change back for one more film (round 5: 2-low-51 said
+  // "could not measure" over the 51 its own card showed). "Could not measure" only with no reading.
+  if (!saddleOk && g.saddle && g.saddle !== 'na') return 'Your last check asked for one more film.';
   if (!saddleOk) return 'Your last check could not measure your saddle height.';
   // Fair is in range but not sure: never "looks right", which is Good's word (SPEC 4.3).
   if (g.saddle === 'amber') return 'Your saddle height is in range, near the edge.';
@@ -122,15 +160,27 @@ export function homeSummary(latest) {
 // The cards under "Latest Check", from a stored session. dayLabel formats its date. The saddle card
 // has the pedalling knee (or the held-still one when that is all there was) on its range bar; the
 // reach card has the back, elbow and shoulder, or one line when it waited for the saddle.
-export function latestCards(entry) {
+export function latestCards(entry, history = null, answer = {}) {
   if (!entry?.areas) return [];
-  const v = entry.values || {}, g = entry.areas, sug = entry.suggested;
+  const v = entry.values || {}, g = entry.areas;
   const kneeKey = fin(v.kneePedal) ? 'kneePedal' : fin(v.kneeStill) ? 'kneeStill' : 'kneePedal';
   const [lo, hi] = fit.TARGETS[METRIC[kneeKey].target];
+  // A change put back since this check (undoneSince): its step is the put-back one, not this check's.
+  const back = undoneSince(entry, history);
+  if (back) entry = { ...entry, wait: 'undone', would: { kind: back.kind } };
+  // The fitter answer changed since this check (fitterChanged): a change suggested before Yes is held
+  // as on a fitter's bike; one held for a fitter's bike before No waits for the next check.
+  const now = back ? null : fitterChanged(entry, answer);
+  if (now === 'yes') entry = { ...entry, wait: 'fitter', would: entry.suggested, suggested: undefined };
+  const sug = entry.suggested;
   const held = (kind) => entry.wait && entry.would?.kind === kind;
-  const step = sug?.kind === 'saddle' ? `${cap(fit.suggestionText(sug))}.`
-    : held('saddle') ? fit.waitStep(entry)
+  const waitStep = (e) => (now === 'no' ? AGAIN_STEP : fit.waitStep(e));
+  const step = back?.kind === 'saddle' ? fit.waitStep(entry)
+    : sug?.kind === 'saddle' ? `${cap(fit.suggestionText(sug))}.`
+    : held('saddle') ? waitStep(entry)
     : g.saddle === 'green' ? 'Leave the saddle height as it is.' : '';
+  // Reach and Bars Good: the results' own step, from one hand position (the round 5 fixer, QA minor).
+  const reachOk = g.reach === 'green' ? fit.ONE_HAND_STEP : '';
   const saddle = { key: 'saddle', title: AREA_TITLE.saddle, grade: g.saddle, status: fit.STATUS[g.saddle] || fit.STATUS.na,
     value: v[kneeKey], metric: METRIC[kneeKey].name, lo, hi, step };
   saddle.label = rangeLabel('Saddle height', saddle.value, [lo, hi], saddle.status) + (step ? `. ${step}` : '');
@@ -142,7 +192,7 @@ export function latestCards(entry) {
   const reach = { key: 'reach', title: AREA_TITLE.reach, grade: g.reach, status: fit.STATUS[g.reach] || fit.STATUS.na, rows,
     collapsed: g.reach === 'after' || !rows.length,
     line: g.reach === 'after' ? 'Checked after the saddle' : !rows.length ? 'Not measured' : '',
-    step: sug?.kind === 'bars' ? `${cap(fit.suggestionText(sug))}.` : held('bars') ? fit.waitStep(entry) : '' };
+    step: back?.kind === 'bars' ? fit.waitStep(entry) : sug?.kind === 'bars' ? `${cap(fit.suggestionText(sug))}.` : held('bars') ? waitStep(entry) : reachOk };
   reach.label = reach.collapsed ? `${AREA_TITLE.reach}: ${reach.line}`
     : [`${AREA_TITLE.reach}, ${reach.status}`, ...rows.map(r => rangeLabel(r.name, r.value, [r.lo, r.hi], ''))].join('. ') + (reach.step ? `. ${reach.step}` : '');
   return [saddle, reach];
