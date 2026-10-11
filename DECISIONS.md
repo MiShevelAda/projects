@@ -6,6 +6,20 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ---
 
+## 2026-10-11
+
+### The 3D demo clips: look A, the realistic rider
+
+> **"A is fine"**
+
+His pick between the two 3D pilot clips rendered on this machine with no filming: look A, a realistic
+rider (a woman of about 33 in cycling kit, pedalling backwards against a wall), over look B, the same
+rider and motion as a plain grey mannequin. **What it changed.** Every remaining demo shot is
+finished in the realistic look, with the pilot review's realism fixes (iPhone-like tone and noise,
+matte kit with tan lines, a little natural sway, a lived-in room). Drafts already made in both looks
+stay as drafts; only look A gets final-quality renders. The drawn clips stay in the app as
+placeholders until the 3D clips replace them.
+
 ## 2026-10-10
 
 ### All of Matt Pocock's skills, usable in the running session; Code Review off
