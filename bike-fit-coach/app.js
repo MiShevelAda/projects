@@ -49,7 +49,8 @@ const el = Object.fromEntries(['home', 'flow', 'flowSetup', 'flowScreen', 'flowP
   'flowFitter', 'fitterQ', 'fitterCard', 'fitterErr', 'fitterNo', 'fitterYes', 'fitterNext', 'fitterBack', 'fitterClose',
   'flowFeel', 'feelQ', 'feelSub', 'feelCard', 'feelErr', 'feelNext', 'feelLater', 'feelBack', 'feelClose',
   'flowRevert', 'revertH', 'revertSub', 'revertNext', 'revertClose', 'kitRow', 'warmRow', 'kitDiff',
-  'demo', 'demoVideo', 'placeVideo', 'learnDemo', 'learnVideo', 'learnTrainer', 'learnWall', 'learnFriend']
+  'demo', 'demoVideo', 'placeVideo', 'learnDemo', 'learnVideo', 'learnTrainer', 'learnWall', 'learnFriend', 'exactU',
+  'fitterSet', 'fitterSetSub', 'fitterChange']
   .map(id => [id, $(id)]));
 const now = () => performance.now() / 1000;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -690,9 +691,19 @@ const STOP_LINE = 'If it still does not work, tap Stop on the screen. The tips a
 // Where the phone goes, said at the start of step 1. Everything round 1 said (sideways, upright, not
 // leaning back, 60 to 80 cm, a chair with a box, about 3 m, facing the pedals) and the placement
 // details: opposite the pedals, the chair back away from the bike, the front edge of the box, the
-// lens about level with the top of the tyres. The screen facing the rider adds "with the screen facing
-// the bike". No tilt line ever says which way to tilt.
-const PLACE_LINE = 'Stand the phone sideways and upright on a box on a chair. Turn the chair back away from the bike. Keep the lens level with the top of the tyres. Put the phone about 3 metres away, opposite the pedals and facing them';
+// lens about level with the top of the tyres. No tilt line ever says which way to tilt. Round 5 (the
+// UX review, item 6): six short lines in the order the hands do it, each its own clip and caption,
+// where one 43-word line gave five instructions in one breath. The screen facing the rider ends with
+// the screen, the back camera with the back of the phone.
+const PLACE = {
+  chair: 'Put the chair opposite the pedals, about 3 metres away.',
+  back: 'Turn the chair back away from the bike.',
+  box: 'Put the box on the chair.',
+  phone: 'Stand the phone on it, sideways and upright.',
+  lens: 'Keep the lens level with the top of the tyres.',
+  face: 'Point the back of the phone at the pedals.',
+  faceFront: 'Point the screen at the pedals.',
+};
 const LOST_STOP = 'I still cannot see you. If it does not work, tap Stop on the screen. The tips are in Learn.';
 const WHO_STOP = 'I cannot tell who is on the bike. Tap Stop on the screen, then start again.';
 // Round 3, the customer research (cx-research/REPORT.md): lines that keep the phone where it is for
@@ -715,9 +726,16 @@ const FITTER_LINE = 'Has a bike fitter set this bike up for you?';
 const FEEL_LINE = 'You rode it. Better, the same, or worse?';
 const FEEL_ASK = 'First, tap how it felt.';
 const REVERT_LINE = { saddle: 'It felt worse twice. Put the saddle back to your tape mark.', bars: 'It felt worse twice. Put the handlebars back as they were.' };
-const REVERT_PAIN = 'With pain, see a bike fitter.';
-const WARM_LINE = { trainer: 'Before I film, ride easily for five minutes. I will wait.', wall: 'If you can, go for a ten-minute ride first.', friend: 'If you can, go for a ten-minute ride first.' };
-const KIT_LINE = 'Are your cycling shoes and padded shorts on? They change how high you sit.';
+// With pain, the results' own words (fit.PAIN_SHORT): a doctor or physio, and a bike fitter.
+const REVERT_PAIN = 'With pain, see a doctor or physio, and a bike fitter.';
+// Round 5: the rest of the next step, said after REVERT_LINE, as the revert screen's rows show it.
+const REVERT_RIDE = 'Then ride as before.';
+const REVERT_FITTER = 'A bike fitter can look at why.';
+// Round 5 (the UX review, item 8): nothing the app does not keep. "I will wait" promised a wait that
+// nothing timed (Getting Ready waits for a tap, as every screen does), and the kit line was a question
+// with no answer on the screen, so it says what to wear.
+const WARM_LINE = { trainer: 'Before I film, ride easily for five minutes.', wall: 'If you can, go for a ten-minute ride first.', friend: 'If you can, go for a ten-minute ride first.' };
+const KIT_LINE = 'Wear your cycling shoes and padded shorts. They change how high you sit.';
 const RETEST_KIT_LINE = 'Same shoes and shorts as last time?';
 const EFFORT_LINE = 'Now pedal at the effort of a long ride, where you could still talk.';
 // A rider who has checked on this phone before gets the short run (the customer research, item 7):
@@ -778,7 +796,12 @@ const HANDLERS = {
       // bike is the largest error the app cannot see, camera panel), the chair back away from the bike
       // (out of the picture), the phone at the front edge of the box, the lens about level with the
       // top of the tyres. The placement screen shows the same, drawn.
-      Voice.say(PLACE_LINE + (frontMode() ? ', with the screen facing the bike.' : '.'));
+      Voice.say(PLACE.chair);
+      Voice.say(PLACE.back);
+      Voice.say(PLACE.box);
+      Voice.say(PLACE.phone);
+      Voice.say(PLACE.lens);
+      Voice.say(frontMode() ? PLACE.faceFront : PLACE.face);
       // Screen away, he is at the phone and can see it: the bike goes inside the big guide before
       // the phone is levelled and before anyone gets on (the customer research, item 3).
       if (!frontMode()) { Voice.say(FRAME_LINE); ph.framing = true; }
@@ -918,11 +941,12 @@ const HANDLERS = {
       ph.demoLine = lastQueued();
     },
     tick({ t, rider }) {
-      // Day one: the drawn demo of the moves begins with the get-on line, while he is still at the
-      // phone (Demo); it ends by itself, at a tap, or when this step ends.
+      // Day one: the drawn demo of the moves begins with the get-on line (Demo); it ends by itself, at
+      // a tap, or when this step ends. Only with the screen towards him (round 5, the UX review's
+      // item 8): with the screen away he walks to the bike as the line starts and can no longer see it.
       if (ph.demoLine && Voice.cur?.text === ph.demoLine && Voice.cur.t0 != null) {
         ph.demoLine = null;
-        Demo.play('moves', el.demo, el.demoVideo, demoMoves(session.setup));
+        if (frontMode()) Demo.play('moves', el.demo, el.demoVideo, demoMoves(session.setup));
       }
       // A rider on aero bars: named once in place of the nags, then the way out.
       if (ph.aeroSince != null && t - ph.aeroSince >= 3 && !session.aeroSaid && quiet(t) > 0.5) {
@@ -1386,7 +1410,8 @@ function lost(t, wait = 8) {
   if (!(t - ph.lostSince > wait)) return false;
   if (crowd.blocking) return true;
   const n = ph.lostN || 0;
-  const line = phase === 'still' && n === 0 ? 'Take your time. Get back on when you are ready. I will wait.'
+  // Not "I will wait": 14 s later it says "I have lost you" (the round 5 fixer, QA minor).
+  const line = phase === 'still' && n === 0 ? 'Take your time. Get back on when you are ready.'
     : n < 2 ? 'I have lost you. Make sure the phone can see you and the whole bike.' : LOST_STOP;
   if (Voice.say(line, { key: 'lost', every: 14, max: 2 })) ph.lostN = n + 1;
   return true;
@@ -1833,9 +1858,9 @@ function draw(raw, W, H, side, others = []) {
 // Short drawn clips of the next moves (assets/demo/), placeholders until realistic clips replace them
 // (README, "The drawn demos"). The design review's rule: a demo plays before a move, never during it.
 // So they play on the first check of a setup on this phone (day one, not session.returning) while the
-// rider is still at the phone and can see the screen, whichever way it faces: the placement loop in
-// the drawing's box while the phone is placed, then getting on and holding still, and pedalling the
-// way this setup pedals, from the get-on line on, before he walks to the bike. Muted: the app's own
+// rider can see the screen: the placement loop in the drawing's box while the phone is placed, then,
+// with the screen towards him only, getting on and holding still, and pedalling the way this setup
+// pedals, from the get-on line on (with the screen away he is walking to the bike by then). Muted: the app's own
 // voice speaks. A tap anywhere on one skips it. A rider who wants to see it again taps his setup's
 // row in Learn. A clip that cannot play (offline, Low Power Mode, a browser without H.264) is let go
 // of at once and the check goes on as without it.
@@ -1848,6 +1873,9 @@ const Demo = {
   // box: what shows and takes the tap; video: its <video>; files: played one after another, or with
   // loop the one file over and over until it is stopped; shown: the box's own look while it plays.
   play(kind, box, video, files, { loop = false, shown = null } = {}) {
+    // Reduce Motion (round 5, the UX review's item 10): nothing plays by itself; the drawing stays,
+    // and Learn's rows still play a demo when tapped, since the tap asks for it.
+    if (kind !== 'learn' && reduceMotion()) return;
     this.stop('replaced');
     const d = { kind, box, video, files, loop, shown, i: 0, timer: null,
       log: { kind, files, t: +now().toFixed(2), phase, line: Voice.cur?.text ?? null, end: null } };
@@ -1901,6 +1929,8 @@ const placeShown = (on) => el.placeVideo.parentElement?.classList.toggle('playin
 el.demo.addEventListener('click', () => { if (Demo.cur?.box === el.demo) Demo.stop('skipped'); });
 el.placeVideo.addEventListener('click', () => { if (Demo.cur?.box === el.placeVideo) Demo.stop('skipped'); });
 el.learnDemo.addEventListener('click', () => { if (Demo.cur?.box === el.learnDemo) Demo.stop('skipped'); });
+// Learn's How Exact It Is, from the error the code uses (round 5: the page said 2.5 while u was 3).
+el.exactU.textContent = ui.exactLine();
 for (const [id, s] of [['learnTrainer', 'trainer'], ['learnWall', 'wall'], ['learnFriend', 'friend']]) {
   el[id].addEventListener('click', () => {
     Demo.play('learn', el.learnDemo, el.learnVideo, demoMoves(s));
@@ -2847,7 +2877,10 @@ function unanswered() {
 // The same question on the Check tab, for when he has left the results without answering.
 let hMadeMode = 'ask', hMadeId = null;
 function renderHomeMade() {
-  const e = unanswered();
+  // Not for a change suggested before the bike fitter answer was changed to Yes: the Check tab no
+  // longer gives it (ui.fitterChanged), so it does not ask whether it was made either.
+  const u = unanswered();
+  const e = u && ui.fitterChanged(u, fitterAnswer()) !== 'yes' ? u : null;
   el.hMade.hidden = !e;
   if (!e) { hMadeId = null; return; }
   if (e.at !== hMadeId) { hMadeId = e.at; hMadeMode = 'ask'; }
@@ -3031,12 +3064,15 @@ function renderCheckTab(h) {
   // or, opened inside another app's browser, Copy the Link, with Start a Check stepping back.
   el.newCheck.className = el.inApp.hidden ? 'primary' : 'tinted';
   const latest = fit.lastChecked(h);
-  const summary = ui.homeSummary(latest);
+  // With the history, so a change put back since the latest check is said (ui.undoneSince), and the
+  // bike fitter answer as it is now, which Learn can change after the check (ui.fitterChanged).
+  const answer = fitterAnswer();
+  const summary = ui.homeSummary(latest, h, answer);
   el.homeSummary.hidden = !summary;
   el.homeSummary.textContent = summary;
   el.latestHead.hidden = !latest;
   el.latestSub.textContent = latest ? [dayLabel(latest.at), fit.setupOf(latest.setup).name].filter(Boolean).join(' · ') : '';
-  el.latestCards.replaceChildren(...ui.latestCards(latest).map(latestCard));
+  el.latestCards.replaceChildren(...ui.latestCards(latest, h, answer).map(latestCard));
 }
 // A card under Latest Check. It opens that area on Progress.
 function latestCard(c) {
@@ -3292,9 +3328,13 @@ for (const p of ['r', 'h']) {
 // question, and remembered ('yes' or 'no'). Yes: the app reports and gives no millimetres, unless he
 // says yes to the pain question; then at most 5 mm, and "tell your bike fitter" (fit.withFeel).
 // Moving a fitter's setup on an unvalidated reading is what would make a fitter score the app low.
-const FITTER_KEY = 'bfc.fitter';
-let fitter = null;
+const FITTER_KEY = 'bfc.fitter', FITTER_AT_KEY = 'bfc.fitterAt';
+let fitter = null, fitterAt = null;
 try { const v = localStorage.getItem(FITTER_KEY); if (v === 'yes' || v === 'no') fitter = v; } catch { /* asked */ }
+// fitterAt: when the answer was last changed in Learn, so the Check tab can tell a check from before it
+// (ui.fitterChanged).
+try { fitterAt = localStorage.getItem(FITTER_AT_KEY) || null; } catch { /* this visit only */ }
+const fitterAnswer = () => ({ fitter, fitterAt });
 // fitterPick: the answer tapped on the screen, saved by Next; fitterShown: asked in this check, so
 // Back from the pain question goes back to it.
 let fitterPick = null, fitterShown = false;
@@ -3327,9 +3367,28 @@ el.fitterNext.addEventListener('click', () => {
   }
   fitter = fitterPick;
   try { localStorage.setItem(FITTER_KEY, fitter); } catch { /* asked again next time */ }
+  renderFitterRow();
   showFlow('pain');
 });
 el.fitterBack.addEventListener('click', () => showFlow('screen'));
+// The one place to change the answer (round 5, the UX review's item 10: a wrong tap made the app
+// report-only for good): a row in Learn, shown once it is answered. A tap changes it, and the next
+// check goes by it.
+function renderFitterRow() {
+  el.fitterSet.hidden = fitter == null;
+  el.fitterSetSub.textContent = fitter === 'yes' ? 'Yes: I only report what I see.' : 'No: I suggest one change at a time.';
+  el.fitterChange.setAttribute('aria-label', `Set up by a bike fitter: ${fitter === 'yes' ? 'Yes' : 'No'}. Change`);
+}
+// The Check tab is drawn again with the new answer (the round 5 fixer, QA1 blocking 1: it still said
+// "A fitter set up your bike" after a change to No).
+el.fitterChange.addEventListener('click', () => {
+  fitter = fitter === 'yes' ? 'no' : 'yes';
+  fitterAt = new Date().toISOString();
+  try { localStorage.setItem(FITTER_KEY, fitter); localStorage.setItem(FITTER_AT_KEY, fitterAt); } catch { /* this visit only */ }
+  renderFitterRow();
+  renderHistory();
+});
+renderFitterRow();
 
 // ── better, the same, or worse? ─────────────────────────────────────────────────────────────────
 // SPEC 4.4 item 3: after a change he has ridden (fit.feelDue: the newest change, not settled, saved at
@@ -3375,22 +3434,27 @@ el.feelNext.addEventListener('click', () => {
 });
 el.feelLater.addEventListener('click', () => { feelAsked = true; toReady(); });
 el.feelBack.addEventListener('click', () => showFlow('pain'));
-// "Put the saddle back": one title, one line, Next. With pain, the line says to see a bike fitter.
-// The arrow points the way the saddle goes back: up after lowering it, down after raising it (and down
-// for the handlebars, back down after raising them).
+// "Put the saddle back": one title, one line, the next step as three short rows, and I Put It Back.
+// It ends the check (round 5, the UX review's item 5): the Check tab opens, its line says the same
+// next step (ui.homeSummary), and no film starts, since the saddle is back where it was. With pain,
+// the last row says to see a bike fitter. The arrow points the way the saddle goes back: up after
+// lowering it, down after raising it (and down for the handlebars, back down after raising them).
 const REVERT_ARROW = { down: 'M244 84v34M232 106l12 13 12-13', up: 'M244 118V84M232 96l12-13 12 13' };
 function showRevert(m) {
   const bars = m?.kind === 'bars';
   $('revertArrow').setAttribute('d', REVERT_ARROW[!bars && m?.dir < 0 ? 'up' : 'down']);
   el.revertH.textContent = bars ? 'Put the Handlebars Back' : 'Put the Saddle Back';
-  el.revertSub.textContent = bars ? (pain ? 'As they were, then see a bike fitter.' : 'As they were. It felt worse twice.')
-    : (pain ? 'To your tape mark, then see a bike fitter.' : 'To your tape mark. It felt worse twice.');
+  el.revertSub.textContent = 'It felt worse twice.';
+  $('revertBack').textContent = bars ? 'Handlebars back as they were' : 'Saddle back to your tape mark';
+  $('revertRide').textContent = 'Then ride as before';
+  $('revertFitter').textContent = pain ? 'With pain, see a doctor or physio, and a bike fitter' : 'A bike fitter can look at why';
   showFlow('revert');
   unlockSound();
   Voice.say(REVERT_LINE[bars ? 'bars' : 'saddle']);
-  if (pain) Voice.say(REVERT_PAIN);
+  Voice.say(REVERT_RIDE);
+  Voice.say(pain ? REVERT_PAIN : REVERT_FITTER);
 }
-el.revertNext.addEventListener('click', () => toReady());
+el.revertNext.addEventListener('click', () => show('home'));
 
 // ── Getting Ready: the warm-up and the kit ──────────────────────────────────────────────────────
 // SPEC 5.0, folded into Getting Ready rather than a screen of their own: a row and a spoken line for

@@ -28,8 +28,11 @@ sentences. The full reason and the numbers for a fitter are in **Say It Again** 
 `test/simple.test.mjs` checks the screens and the voice against this.
 
 1. Open the link in Safari on an iPhone, or Chrome on Android.
-2. The first time, in Safari, the Check tab starts with **Keep Your Results**: "Add it to your Home
-   Screen, so Safari keeps your results." **Show Me How** opens three short steps over the page with
+2. The first time, in Safari, the Check tab has **Keep Your Results** under the assessment card
+   (round 5: above it, at the largest text sizes it pushed Start a Check off the first screen; and at
+   those sizes, from 26 px text, the card's picture gives way, so Check It Now stays above the tab bar
+   too): "Add it
+   to your Home Screen, so Safari keeps your results." **Show Me How** opens three short steps over the page with
    an arrow at Safari's own buttons: **Tap Share** below (on iOS 26 it may be under the three dots,
    or at the top), **Tap Add to Home Screen**, **Tap Add**; then open it from there. It then opens full
    screen, like an app, and in Safari it also keeps your past sessions safe: Safari can delete a
@@ -72,7 +75,14 @@ sentences. The full reason and the numbers for a fitter are in **Say It Again** 
      remembered. **Yes**: the results report what the camera sees ("Your Saddle Looks Low", "A
      fitter set up this bike, so I only report.") and give no millimetres and no change card, unless
      he says Yes to the pain question; then the step, at most 5 mm, and "Tell your bike fitter too."
-     There is no way to change the answer on the page yet.
+     Round 5: Learn has the one place to change it, a row **Set Up by a Bike Fitter** ("Yes: I only
+     report what I see." or "No: I suggest one change at a time.", and **Change**, which goes under the
+     answer at the largest text sizes), shown once it is answered; a tap changes the answer, the next
+     check goes by it, and so does the Check tab at once (`ui.fitterChanged`): a check held for a
+     fitter's bike reads, after No, what it saw ("Your saddle is probably too low.") with the step
+     "Check again before you change it."; a change suggested before a change to Yes reads "A fitter set
+     up your bike, so I only report." and "Ask your fitter before you change it.", and is not asked about
+     as made. A change given after Yes (with pain) or already made stays as it was.
    - **Better, the Same, or Worse?** ("Since you raised the saddle 5 mm."), after the pain question,
      when the newest change he saved is at least 30 minutes old, his last answer (if any) too, and he
      has not said it feels better or the same (a design choice: the film straight after a change has
@@ -80,17 +90,22 @@ sentences. The full reason and the numbers for a fitter are in **Say It Again** 
      that suggested it, since he usually made and rode it after closing the results. Said aloud:
      "You rode it. Better, the same, or worse?" **Next** waits for an answer; **Not Ridden Yet** goes
      on without one. The answer is stored with the change. The second **Worse** on the same change
-     opens **Put the Saddle Back** ("To your tape mark. It felt worse twice."; with a Yes to pain,
-     "then see a bike fitter"), and the change is recorded as undone. See "One change per ride" below.
+     opens **Put the Saddle Back** ("It felt worse twice.") with the next step in three short rows
+     ("Saddle back to your tape mark", "Then ride as before", "A bike fitter can look at why"; with a Yes
+     to pain, "With pain, see a doctor or physio, and a bike fitter", the results' own words), said too, and the change is recorded as undone. Its one
+     button, **I Put It Back**, ends the check on the Check tab, whose line says "Saddle back at your tape
+     mark. A fitter can look at why.", and starts no film (round 5: the path used to go on to a film and
+     end on a red Needs attention with nothing to do). See "One change per ride" below.
 4. **Getting Ready** shows the How to Set Up guide (`assets/setup-guide.mp4`, from the live app's
    sound and guide fix: a narrated, captioned drawn guide of this check's own steps, 73 s; tap
    **Play** and it plays in place with its narration) and five rows: a chair and a 20 cm box, your road
    bike, cycling shoes and padded shorts, the warm-up ("Ride easily for 5 minutes first" on a trainer,
    "A 10-minute ride first, if you can" against a wall or with a friend), 3 m of space with light on
    you, the volume up and silent mode off. Arriving from the questions, the voice says the warm-up
-   ("Before I film, ride easily for five minutes. I will wait.", or "If you can, go for a ten-minute
-   ride first.") and, on the first check on this phone, "Are your cycling shoes and padded shorts on?
-   They change how high you sit." On a retest (a change waits to be checked) the kit row reads "Same
+   ("Before I film, ride easily for five minutes.", or "If you can, go for a ten-minute ride first.")
+   and, on the first check on this phone, "Wear your cycling shoes and padded shorts. They change how
+   high you sit." (Round 5: "I will wait" promised a wait nothing timed, and the kit line was a question
+   with no answer on the screen.) On a retest (a change waits to be checked) the kit row reads "Same
    shoes and shorts as last time", the voice asks it, **Start** means yes, and **Different Shoes or
    Shorts** under it means no: that film is kept but not compared, and the change keeps waiting. The steps for your
    setup are folded into **Setup Steps**, one tap away, the first time too: the voice says each of
@@ -107,10 +122,11 @@ sentences. The full reason and the numbers for a fitter are in **Say It Again** 
    that is wrong, tap Stop now."), and the camera view shows it under the step (with the screen
    away). On a trainer it asks you to check the bike is level. Then **Stand Your iPhone Sideways on
    the Chair** ("On a box, 4 big steps from the pedals."), with a drawing of the spot, while the voice
-   says it in short sentences: "Stand the phone sideways and upright on a box on a chair. Turn the
-   chair back away from the bike. Keep the lens level with the top of the tyres. Put the phone about
-   3 metres away, opposite the pedals and facing them." With the screen towards you it ends "...,
-   with the screen facing the bike." The rest of the detail (the lens 60 to 80 cm up, the front edge
+   says it in six short lines, each its own clip and caption, in the order the hands do it (round 5:
+   it was one 43-word line): "Put the chair opposite the pedals, about 3 metres away." "Turn the
+   chair back away from the bike." "Put the box on the chair." "Stand the phone on it, sideways and
+   upright." "Keep the lens level with the top of the tyres." "Point the back of the phone at the
+   pedals." (with the screen towards you, "Point the screen at the pedals."). The rest of the detail (the lens 60 to 80 cm up, the front edge
    of the box) is in the drawing and in Learn's **Every Detail**. It beeps, once it has finished speaking, until the phone is level, and the
    screen shows how many degrees it is off and a level bubble; no line ever says which way to tilt
    (turning the phone round flips that). With the screen away, you are at the phone and can see
@@ -392,14 +408,20 @@ that had a warning.
 
 - **Saddle height**, from the two knee readings. Its step is the saddle change, if there is one.
   With only the held-still reading it is **Fair** at best, never Good, because that reading is only
-  a cross-check (see below).
+  a cross-check (see below). Its title then says what happened, **I Could Not Measure You Pedalling**
+  ("Film again and pedal backwards."), or with the reading out of range **Film Again Before You Move
+  the Saddle** (round 5: it said "Saddle Height Looks Right, Held Still" over a Fair 37 outside 25 to
+  35; "looks right" is Good's word).
 - **Reach and bar height**, from the back and elbow angles (the shoulder is shown for reference),
   because AI Bike Fit reads them as one thing with one cause. When the saddle needs changing first, this area reads
   **After the saddle**, because moving the saddle changes your reach too. It is **Needs attention**
   only when it has a change of its own (raise the bars). Angles outside their targets without that
   change read **Fair**, "That is fine to ride.", with the step "Fine to ride. I will compare it on
-  your next check.": a design choice, since a bars change needs two signs to agree. The Check tab
-  says "Nothing to change" when no area has a step.
+  your next check.": a design choice, since a bars change needs two signs to agree. Inside their
+  targets (Good, or Fair near an edge) the step is "No change needed for this hand position." (round
+  5: the film sees the hands where the voice put them, never in the drops or on the tops), said once;
+  Say It Again says the angles "look good for this hand position", and the Check tab's card, when it is
+  Good, has the same step. The Check tab says "Nothing to change" when no area has a step.
 - **More numbers**, folded away: the hip angle, for reference only.
 
 There is no "Excellent": **Good** already means a reading inside its target by more than the app's
@@ -479,7 +501,7 @@ uses the same words.
   the wall, then stop pedalling.", unless you have stopped already. With a Yes to the pain question
   the pedalling instruction there also says "On rollers, put your hand on the wall first."
 - **Holding still, if you get off to rest**, the first line is "Take your time. Get back on when you
-  are ready. I will wait." The 45 seconds after which it goes on without a still reading count only
+  are ready." (Round 5: no "I will wait", since 14 s later it says "I have lost you".) The 45 seconds after which it goes on without a still reading count only
   the time you are in view. With a friend, or anyone else seen, getting back on somewhere else in
   the picture sends it back to getting on the bike (see "Two people in the picture").
 
@@ -497,7 +519,12 @@ the question waits for another ride; also when the knee is in range now, with th
 and no "Check again whenever you change..." (never a win while that answer stands). After two: **Put the Saddle Back** (the arrow points the way
 back), recorded as undone, and that same change is
 never suggested again ("Leave the Saddle at Your Tape Mark", "A bike fitter can look at why.");
-another change can be. Copy Results says how the last change felt. In range after the change, the
+another change can be. Round 5: the Put the Saddle Back screen is the end of that check, with its steps
+in three rows and **I Put It Back**, which opens the Check tab and starts no film; until a check is
+filmed after it, the Check tab says "Saddle back at your tape mark. A fitter can look at why." and the
+saddle card's step is "Leave it at your tape mark." (`ui.undoneSince`), not the last check's "ride it
+once more". The red Needs attention on a later film of the same reading stays until Alex rules on a
+grey status word (FOR-ALEX decision 2). Copy Results says how the last change felt. In range after the change, the
 win below is unchanged.
 
 One change of the saddle moves the knee reading only a little: at about 3 to 4 mm per degree (AI
@@ -519,13 +546,18 @@ says what the change should have done and what it did:
   change should do plus 3. The next step follows as usual.
 - **Too small for the camera to see**: the knee moved less than 3 degrees and is still out of range.
   "A 10 mm raise should change it by about 3°, about the smallest change this camera can see, so I
-  cannot tell yet whether the saddle moved. Check the tape mark, then film once more."
+  cannot tell yet whether the saddle moved. Check the tape mark, then film once more." The title line
+  says the same, "I cannot tell yet what your last change did." (round 5: it said "Your last change did
+  not do what it should have." above that box), and the next morning the Check tab says "Your last
+  check asked for one more film." (it said "could not measure" over the reading its card showed). How
+  a 10 mm retest is judged is unchanged: that is Alex's call (FOR-ALEX decision 4).
 - **It moved the other way**, **less than the change should do** or **more than it should do**, out
   of range: the app suggests no new change and asks you to film once more. The change stays
   waiting, so that next film is compared with the reading from before the change. This way a second
   change is not piled on a first one that has not shown up yet.
 - **The second film still does not fit**: the app goes by what that film shows and gives the next
-  step as usual. It asks for "once more" only once, so you are never stuck filming again and again.
+  step as usual ("That does not fit the change, so I go by this reading."; round 5: not "still", since
+  the film before may have said "I cannot tell yet"). It asks for "once more" only once, so you are never stuck filming again and again.
   This is our own design choice, not a published rule. The same once-only rule holds a handlebar
   change back when the saddle is in range but its move did not fit: "Film once more before you
   change the handlebars."
@@ -655,14 +687,17 @@ line, "Camera: front, 1280 by 720, 30 frames a second.", so a phone test can rep
 Round 4: short clips of the next moves, in `assets/demo/`. **They are drawn placeholders**, stand-ins
 drawn on a computer (no real people), with "Drawn demo" in the corner, until realistic clips replace
 them. The design review's rule is that a demo plays before a move, never during it, so they play only
-on the first check of a setup on this phone (day one), while you are still at the phone and can see
-the screen, whichever way it faces:
+on the first check of a setup on this phone (day one), while you can see the screen:
 
 - while the voice says where the phone goes, the placement clip (a man standing the phone on the box)
   loops in the drawing's box on the placement screen;
-- from the get-on line, before you walk to the bike: getting on and holding still, then pedalling
-  the way your setup pedals (forwards on a trainer, backwards against a wall or with a friend), about
-  15 seconds in all, over the camera view, under the caption.
+- from the get-on line, with the screen towards you only: getting on and holding still, then
+  pedalling the way your setup pedals (forwards on a trainer, backwards against a wall or with a
+  friend), about 15 seconds in all, over the camera view, under the caption. Round 5: with the screen
+  away you walk to the bike as that line starts and cannot see it, so it does not play then (moving
+  it to before the walk is Alex's call, FOR-ALEX decision 10).
+- With Reduce Motion on, neither plays by itself; the drawing stays, and Learn's rows still play one
+  on a tap.
 
 They are muted, because the app's own voice is speaking, add no time (the step waits for its
 instruction to be heard anyway), and a tap anywhere on one skips it (**Tap to Skip**). They never play
@@ -702,7 +737,11 @@ both times; about 4 degrees apart means the sign is the wrong way round.
 
 ## Pain or numbness
 
-A Yes puts a note first in the results and first in what the voice says, with no numbers: "You said
+A Yes puts a note first in the results, with no numbers. The voice says the screen's short line first,
+"Pain that keeps coming back: see a doctor or physio, and a bike fitter.", then the result, then "Get
+medical help now if your knee is badly swollen, has changed shape, or cannot take your weight." (round
+5: the whole note, 88 words, came before the rider heard what to do). Say It Again says the short line
+first and the whole note after the result. The whole note, under **More** on the screen: "You said
 pain or numbness keeps coming back. Try this one change first. If it is no better within a few
 weeks, or it gets worse, see a doctor or physio, and a professional bike fitter. Get medical help now
 if your knee is badly swollen, has changed shape, or cannot take your weight. This is not medical
@@ -735,6 +774,12 @@ camera at the side cannot see movement towards or away from it).
 - "A few minutes": a real first session has not been timed yet. With real speech, one picture
   correction made a tester's session over two minutes.
 - Not medical advice.
+- Learn's **How Exact It Is** says what Good and Fair mean from the code's own error (`ui.exactLine`,
+  from `fit.U_KNEE`): "Good means more than 3 degrees inside the target. Fair means within 3 degrees of
+  an edge, or a reading I cannot act on alone." Round 5: it said "within 2.5 degrees of a target count as
+  in range" while the code used 3; then, for a round, only "within 3 degrees of an edge", which two Fair
+  pills far outside their band contradicted (a knee held still with no pedalling reading, and an angle
+  at the front with no bars change). Copy Results says the same.
 
 ## Not included, and why
 
@@ -828,7 +873,12 @@ about 2.2 s for each second of speech. With nothing to record, a run takes a few
 Round 4's measuring rules (new knee band, steps of 3, 5 and 10 mm, the Fair lines, the win line):
 38 new clips, 65 removed, 657 in all (13.2 MB; 257 precached, 6.0 MB). Round 4's flow (the fitter,
 feel, warm-up, kit and effort lines, and the results that wait): 33 new clips, 2 removed, 688 in all
-(13.8 MB; 288 precached, 6.65 MB), in 54 s with three workers.
+(13.8 MB; 288 precached, 6.65 MB), in 54 s with three workers. Round 5 (the placement in six short
+lines, the warm-up and kit lines, the revert steps, the short pain line): 11 new clips, 4 removed, 704
+in all (13.86 MB; 304 precached, 6.71 MB), in 69 s with three workers. The placement is the same 13 s
+of speech as before, now six clips of 1.4 to 3.1 s. The round 5 fixer (no "I will wait" while holding
+still, the doctor or physio on the put-back screen, "for this hand position" in Say It Again, no "still"
+on the second look): 6 new clips, 6 removed, 704 in all (13.89 MB; 304 precached, 6.73 MB), in 28 s.
 
 ## Development
 
@@ -853,6 +903,9 @@ feel, warm-up, kit and effort lines, and the results that wait): 33 new clips, 2
   Ridden Yet), and `kit=no` taps Different Shoes or Shorts on a retest's Getting Ready. The fixer:
   `repeat=<n>` taps Check Again n more times, `homes=<n>` starts n more checks from the Check tab,
   and `made=yes` taps Save and Start on "Before you start: did you ...?"; those checks print as `more`.
+  Round 5: `reduce` turns Reduce Motion on, and `flipfitter` taps Learn's bike fitter row after the
+  first check (printed as `fitterRow`, with the Check tab's line and cards before and after the tap). A walk that ends on the revert screen's I Put It Back prints
+  what the Check tab said then (`afterRevert`) and starts the next check from there.
   Each check also prints `views`: what the camera view showed (`ui.liveView`: the step, the layer,
   the word, the line under it, the field's word, the frosted card), each time it changed.
 - Add `?sim` to the address to walk the whole flow with a made-up rider and no camera.
@@ -955,7 +1008,7 @@ feel, warm-up, kit and effort lines, and the results that wait): 33 new clips, 2
 | `assets/voice/` | The coach's recorded voice: one `.m4a` clip per line or sentence, and `manifest.json` (see "The voice") |
 | `assets/demo/` | The drawn demos, drawn placeholders: the placement loop, and getting on and holding still and pedalling for each setup, muted, with their posters (see "The drawn demos") |
 | `tools/voice/` | The voice build: `build-voice.mjs` (the one command), `catalog.mjs` (every line the app can say, from the code), `jsread.mjs` (reads app.js for it, no library needed), `render.py` (Kokoro) |
-| `test/` | Tests, and the made-up rider and helper they use (`setups.test.mjs`: the three setups, picking the rider, and checks on what app.js says; `flow.test.mjs`: whole simulated sessions, run by `flow-runner.mjs`; `ui.test.mjs`: the screens' words and shapes; `screens.test.mjs`: what the tabs, the check flow and the results sheet are built from; `roll.test.mjs`: the phone's roll taken out, for both cameras and both sideways positions; `live.test.mjs`: the camera view's states, the camera choice and the placement step; `cx.test.mjs`: the customer research's changes, the calendar file and its times, the win's words, the bike guide and the tape tip, the permission screen and the new spoken lines; `voice.test.mjs`: every line has a recorded clip, every clip is real audio, the one shared audio element, the service worker's voice cache; `simple.test.mjs`: the simplicity pass, no long line on a main-path screen, one primary button per step, details one tap away, short spoken sentences and clips; `sound.test.mjs`: the sound on an iPhone, Tap to Hear Me and the setup guide; `feel.test.mjs`: round 4's flow rules, better, the same or worse, one change per ride, a change put back, a fitter's bike, other shoes or shorts; `demo.test.mjs`: the drawn demos, shown on day one, never on a returning run, skipped by a tap, the files muted and small; `access.test.mjs`: contrast of the buttons, and large text on the question screens and the results bar) |
+| `test/` | Tests, and the made-up rider and helper they use (`setups.test.mjs`: the three setups, picking the rider, and checks on what app.js says; `flow.test.mjs`: whole simulated sessions, run by `flow-runner.mjs`; `ui.test.mjs`: the screens' words and shapes; `screens.test.mjs`: what the tabs, the check flow and the results sheet are built from; `roll.test.mjs`: the phone's roll taken out, for both cameras and both sideways positions; `live.test.mjs`: the camera view's states, the camera choice and the placement step; `cx.test.mjs`: the customer research's changes, the calendar file and its times, the win's words, the bike guide and the tape tip, the permission screen and the new spoken lines; `voice.test.mjs`: every line has a recorded clip, every clip is real audio, the one shared audio element, the service worker's voice cache; `simple.test.mjs`: the simplicity pass, no long line on a main-path screen, one primary button per step, details one tap away, short spoken sentences and clips; `sound.test.mjs`: the sound on an iPhone, Tap to Hear Me and the setup guide; `feel.test.mjs`: round 4's flow rules, better, the same or worse, one change per ride, a change put back, a fitter's bike, other shoes or shorts; `demo.test.mjs`: the drawn demos, shown on day one, never on a returning run, skipped by a tap, the files muted and small; `access.test.mjs`: contrast of the buttons, and large text on the question screens and the results bar; `honest.test.mjs`: round 5, each result screen says one true thing, a change put back ends on a calm next step, the short pain line, Learn's error from the constant, Reach and Bars from one hand position, Start a Check first, and the fitter row in Learn) |
 
 ## Credits
 

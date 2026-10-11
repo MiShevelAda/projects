@@ -190,13 +190,26 @@ test('the live screen is built to the design review: 14 pt border, 120 pt words,
 
 test('the placement step and its spoken line: the exact details in short sentences, and never which way to tilt', async () => {
   const app = await read('app.js'), html = await read('index.html');
-  const line = app.match(/const PLACE_LINE = '([^']+)';/)[1];
   // Round 3, builder E: one idea a sentence. The drawing and Learn's Every Detail carry the rest
-  // (the 60 to 80 cm, the front edge of the box).
-  for (const s of ['Stand the phone sideways and upright', 'on a box on a chair', 'Turn the chair back away from the bike',
-    'Keep the lens level with the top of the tyres', 'about 3 metres away', 'opposite the pedals and facing them']) assert.ok(line.includes(s), s);
-  for (const sentence of `${line}, with the screen facing the bike.`.split(/(?<=\.) /)) assert.ok(sentence.split(' ').length <= 20, sentence);
-  assert.match(app, /Voice\.say\(PLACE_LINE \+ \(frontMode\(\) \? ', with the screen facing the bike\.' : '\.'\)\);/);
+  // (the 60 to 80 cm, the front edge of the box). Round 5 (the UX review, item 6): the 43-word line,
+  // five instructions in one breath, is six short lines of 10 words at most, each its own clip and
+  // caption, in the order the hands do it.
+  const block = app.slice(app.indexOf('const PLACE = {'), app.indexOf('};', app.indexOf('const PLACE = {')));
+  const place = Object.fromEntries([...block.matchAll(/(\w+): '([^']+)'/g)].map(m => [m[1], m[2]]));
+  assert.deepEqual(Object.keys(place), ['chair', 'back', 'box', 'phone', 'lens', 'face', 'faceFront']);
+  assert.equal(place.chair, 'Put the chair opposite the pedals, about 3 metres away.');
+  assert.equal(place.back, 'Turn the chair back away from the bike.');
+  assert.equal(place.box, 'Put the box on the chair.');
+  assert.equal(place.phone, 'Stand the phone on it, sideways and upright.');
+  assert.equal(place.lens, 'Keep the lens level with the top of the tyres.');
+  assert.equal(place.face, 'Point the back of the phone at the pedals.');
+  assert.equal(place.faceFront, 'Point the screen at the pedals.');
+  for (const l of Object.values(place)) {
+    assert.equal(l.split(/(?<=\.) /).length, 1, `one sentence: ${l}`);
+    assert.ok(l.split(' ').length <= 10, `short: ${l}`);
+  }
+  assert.doesNotMatch(app, /\bPLACE_LINE\b/, 'the long line is gone');
+  assert.match(app, /Voice\.say\(PLACE\.chair\);\s*Voice\.say\(PLACE\.back\);\s*Voice\.say\(PLACE\.box\);\s*Voice\.say\(PLACE\.phone\);\s*Voice\.say\(PLACE\.lens\);\s*Voice\.say\(frontMode\(\) \? PLACE\.faceFront : PLACE\.face\);/);
   assert.match(html, /<h1 id="placeH">Stand Your iPhone Sideways on the Chair<\/h1>/);
   assert.match(css(html), /\.placeText h1 \{ font-size: clamp\(28px, 4\.8vw, 40px\);/, 'about 40 pt');
   const kf = html.slice(html.indexOf('<div class="keyframe">'), html.indexOf('<div class="placeText">'));
