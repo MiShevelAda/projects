@@ -349,7 +349,7 @@ test('the setup changes which way to pedal and for how long, in every line that 
   const none = (s) => fit.saddleStep(fit.advise(null, { strokes: 2, strokesSeen: 2, kneeFlex: NaN }, s));
   assert.equal(none('trainer'), 'Film again and pedal forwards for the full 30 seconds.');
   assert.equal(none('wall'), 'Film again and pedal backwards for the full 20 seconds.');
-  assert.equal(fit.saddleStep(fit.advise(null, undefined, 'trainer')), 'Film again and pedal forwards at an easy effort until I say stop.');
+  assert.equal(fit.saddleStep(fit.advise(null, undefined, 'trainer')), 'Film again and pedal forwards at the effort of a long ride until I say stop.');
   const stillOnly = fit.advise({ kneeFlex: 30, torso: 45, elbow: 22, shoulder: 88 }, undefined, 'trainer');
   assert.match(fit.headline(stillOnly).why, /pedal forwards to be sure/);
   const rows = fit.measures(stillOnly, undefined);
@@ -385,7 +385,7 @@ test('a change made after a film on the wall is only checked by another film on 
   // A trainer film in between neither checks it nor uses it up.
   const onTrainer = { at: 'B', setup: 'trainer', knee: 44, src: 'pedalling' };
   assert.equal(fit.pendingChange([onTrainer, made]), made);
-  const r = fit.advise(null, pedal(44), 'trainer');
+  const r = fit.advise(null, pedal(47), 'trainer'); // 47: past 43 + u, so a step (44 is within u now)
   const j = fit.judgeChange(fit.pendingChange([made]), { knee: r.knee, src: r.kneeSource, setup: 'trainer' });
   assert.equal(j.verdict, 'other-setup');
   assert.equal(j.text, 'Not compared with the film before raising the saddle: the bike was leaning on a wall, and this time it was on a trainer or rollers. To see what the change did, film again with the bike leaning on a wall.');
@@ -411,7 +411,7 @@ test('the app asks for two poses, stores the setup with each session and compare
   assert.match(src, /numPoses: 2/);
   assert.match(src, /fit\.pickRider\(poses, track, t, W, H/);
   assert.match(src, /h\.unshift\(\{[^}]*setup: r\.setup/);
-  assert.match(src, /fit\.advise\(session\.still, session\.pedal, session\.setup\)/);
+  assert.match(src, /fit\.advise\(session\.still, session\.pedal, session\.setup, \{ pain, before: fit\.edgeBefore\(history, session\.setup\) \}\)/);
   assert.match(src, /setup: session\.setup, values:/); // the retest is told how this film was set up
   assert.match(src, /fit\.lastWith\(history, x\.key, lastResult\?\.setup\)/);
   assert.match(src, /localStorage\.setItem\(SKEY, id\)/); // the last choice is remembered on this phone
@@ -668,11 +668,13 @@ test('rider words: no "hood" or "crank" outside brackets, and "with the pedal at
 });
 
 test('"minutes" only as "A few minutes", until a real first session has been timed', async () => {
+  // Round 4: the warm-up on Getting Ready ("Ride easily for 5 minutes first", SPEC 5.0) is an
+  // instruction, not a claim about how long the check takes, so it is the one other use allowed.
   for (const f of ['index.html', 'fit.js']) {
     const src = await read(f);
     const all = src.match(/.{0,6}minutes/g) || [];
     assert.ok(all.length >= 1, f);
-    for (const m of all) assert.match(m, /A few minutes/, `${f}: ${m}`);
+    for (const m of all) assert.match(m, /A few minutes|^for 5 minutes$/, `${f}: ${m}`);
   }
 });
 

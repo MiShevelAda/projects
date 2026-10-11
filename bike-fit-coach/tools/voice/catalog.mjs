@@ -185,9 +185,11 @@ export function appLines(src = readFileSync(here('app.js'), 'utf8')) {
 // ── the spoken result, from fit.js itself ─────────────────────────────────────────────────────
 const range = (a, b, step = 1) => { const out = []; for (let x = a; x <= b + 1e-9; x += step) out.push(+x.toFixed(4)); return out; };
 const SETUP_IDS = [...Object.keys(fit.SETUPS), null];
-// Upper-body readings, one for each grade on each side of each target (fit.TARGETS): red low, amber
-// low, in range, amber high, red high. Torso 60 also gives "You sit quite upright".
-const UPPER = { torso: [30, 36, 45, 54, 60], elbow: [5, 9, 22, 36, 45], shoulder: [65, 74, 88, 102, 110] };
+// Upper-body readings, one for each zone on each side of each target (fit.zone, u = 3): Needs
+// attention low, Fair just outside, Fair just inside, Good, and the same on the high side. Torso 60
+// also gives "You sit quite upright"; elbow 5 is locked straight; shoulder 99 and 110 reach far
+// forward (the shoulder is for reference only, so only its sign for the bars changes the words).
+const UPPER = { torso: [30, 38, 42, 45, 48, 52, 60], elbow: [5, 13, 17, 22, 28, 32, 45], shoulder: [65, 88, 99, 110] };
 const BASE = { torso: 45, elbow: 22, shoulder: 88 };
 const pedal = (knee, up = BASE, extra = {}) => ({ strokes: 12, strokesSeen: 12, kneeFlex: knee, ...up, ...extra });
 
@@ -199,16 +201,23 @@ function* results() {
   for (const setup of SETUP_IDS) {
     // The pedalling reading alone, across the range: a change, nothing to do, or the long reasons.
     for (const k of knees) yield fit.advise(null, pedal(k), setup);
+    // With pain (the step is at most 5 mm), and the film straight after one close to the edge, whose
+    // average decides (opts.before; the same value twice gives that average).
+    for (const k of knees) yield fit.advise(null, pedal(k), setup, { pain: true });
+    for (const k of knees) yield fit.advise(null, pedal(k), setup, { before: k });
+    // The knee at its straightest pointing the other way from the bottom of the stroke.
+    for (const k of [20, 50]) yield fit.advise(null, pedal(k, BASE, { kneeMax: k > 40 ? 20 : 50 }), setup);
     // With a held-still reading that agrees, disagrees, or is out of range on its own.
     for (const s of [15, 30, 45]) for (const k of [20, 35, 50]) yield fit.advise({ kneeFlex: s }, pedal(k), setup);
     // Held still only, or nothing, with the pedalling seen too fast, too short, or not at all.
-    for (const s of [null, 20, 30, 45]) {
+    // Held still: Needs attention low, Fair just outside and just inside, Good, Fair and Needs attention high.
+    for (const s of [null, 20, 23, 27, 30, 37, 45]) {
       const still = s == null ? null : { kneeFlex: s };
       for (const p of [null, { strokes: 0, strokesSeen: 0 }, { strokes: 2, strokesSeen: 8 }, { strokes: 0, strokesSeen: 0, turnsSeen: 8, framesPerTurn: 6 },
         ...[1, 2, 3, 4].map(n => ({ strokes: n, strokesSeen: n }))]) yield fit.advise(still, p, setup);
     }
     // Every upper-body combination with the saddle right: the angle lists, a handlebar change.
-    for (const torso of UPPER.torso) for (const elbow of UPPER.elbow) for (const shoulder of UPPER.shoulder) yield fit.advise(null, pedal(35, { torso, elbow, shoulder }), setup);
+    for (const torso of UPPER.torso) for (const elbow of UPPER.elbow) for (const shoulder of UPPER.shoulder) yield fit.advise(null, pedal(38, { torso, elbow, shoulder }), setup);
   }
 }
 
@@ -244,6 +253,11 @@ function* retests() {
       const up = { torso: was.torso + dt, elbow: was.elbow + de, shoulder: was.shoulder + ds };
       yield after(fit.advise(null, pedal(36, up), setup), { made: { kind: 'bars' }, knee: 36, src: 'pedalling', setup, values: { kneePedal: 36, ...was } });
     }
+    // Round 4: filmed in other shoes or shorts than last time (the retest's kit question): not compared.
+    for (const made of [{ kind: 'bars' }, { kind: 'saddle', dir: 1, mm: 10 }, { kind: 'saddle', dir: -1, mm: 10 }]) {
+      const r = fit.advise(null, pedal(36), setup);
+      yield fit.withRetest(r, fit.judgeChange({ made, knee: 36, src: 'pedalling', setup, values: { kneePedal: 36, ...was } }, { knee: 36, src: 'pedalling', setup, values: was, kit: 'diff' }));
+    }
     // Made with the bike held another way.
     for (const other of SETUP_IDS) {
       if (other === setup) continue;
@@ -252,6 +266,32 @@ function* retests() {
       }
     }
   }
+}
+
+// Round 4: a change fit.withFeel holds back (ride the last one first; the same change put back after
+// two "worse" answers; a bike a fitter set up, report only) and a change on a fitter's bike with pain
+// ("Tell your bike fitter too"), across the knee range, for a handlebar change, and after each retest.
+function* feelResults() {
+  const at = '2026-10-01T10:00:00.000Z';
+  const made = (kind, dir, more = {}) => [{ at, made: { kind, dir, mm: 5, at, ...more } }];
+  const back = (kind, dir) => made(kind, dir, { feel: [{ said: 'worse', at }, { said: 'worse', at }], undone: at });
+  // Ride it first after a raise and after a lowering (the knee "still" low or high, or past it), and
+  // ride it once more after one "worse" (the fixer, round 4).
+  const once = (kind, dir) => made(kind, dir, { feel: [{ said: 'worse', at }] });
+  const held = (r) => [fit.withFeel(r, made('saddle', 1)), fit.withFeel(r, made('saddle', -1)), fit.withFeel(r, once('saddle', 1)),
+    fit.withFeel(r, back('saddle', 1)), fit.withFeel(r, back('saddle', -1)), fit.withFeel(r, back('bars')), fit.withFeel(r, [], { fitter: true })];
+  for (const setup of SETUP_IDS) {
+    for (const k of range(KNEE_SPOKEN[0], KNEE_SPOKEN[1], 0.25)) {
+      yield* held(fit.advise(null, pedal(k), setup));
+      yield fit.withFeel(fit.advise(null, pedal(k), setup, { pain: true }), [], { fitter: true, pain: true });
+    }
+    const bars = fit.advise(null, pedal(38, { torso: 30, elbow: 5, shoulder: 110 }), setup);
+    yield* held(bars);
+    yield fit.withFeel(bars, [], { fitter: true, pain: true });
+  }
+  for (const r of retests()) yield fit.withFeel(r, made('saddle', 1));
+  // A retest in range after one "worse" (the second fixer): what the film showed, then ride it once more.
+  for (const r of retests()) yield fit.withFeel(r, once('saddle', 1));
 }
 
 // Every spoken result the grid gives, as the app says it (app.js finish: the come-back line after a
@@ -270,6 +310,7 @@ export function summaryLines() {
   // The held-still reading out of range twice running ("once more" is not asked again).
   for (const setup of SETUP_IDS) add(fit.withStillHistory(fit.advise({ kneeFlex: 45 }, pedal(35), setup), [{ setup, stillOut: true }]));
   for (const r of retests()) add(r);
+  for (const r of feelResults()) add(r);
   return [...out].filter(Boolean);
 }
 
@@ -305,21 +346,30 @@ export function catalog() {
   };
 }
 
-// The numbers in a sentence that vary: the target ranges and fixed limits said in words ("30 to
-// 40", "within 2.5 degrees", "15 millimetres is the most", "at least 5") are not counted.
+// The numbers in a sentence that vary: the target ranges and fixed limits said in words ("33 to
+// 43", "within 3 degrees of", "5 millimetres is the most", "more than 10 mm", "at least 5") are not
+// counted. The ranges and limits come from fit.js, so a changed target is still recognised.
+const [KLO, KHI] = fit.TARGETS.kneeDynamic;
+const esc = (x) => String(x).replace(/\./g, '\\.');
+const FIXED = [
+  ...Object.values(fit.TARGETS).map(([lo, hi]) => new RegExp(`\\b${esc(lo)} to ${esc(hi)}\\b`, 'g')),
+  ...[...new Set(Object.values(fit.U))].map(u => new RegExp(`\\bwithin ${esc(u)} degrees? of\\b`, 'g')),
+  new RegExp(`\\b${fit.PAIN_STEP_MAX} (millimetres|mm)(?= is the most)`, 'g'),
+  new RegExp(`more than ${fit.MADE_STEP_MAX} mm, the most\\b`, 'g'),
+  /at least 5\b/g,
+];
 export function variables(text) {
-  const rest = text.replace(/\b30 to 40\b/g, '').replace(/\b2\.5 degrees\b/g, '').replace(/\b15 (millimetres|mm)(?= is the most|, the most)/g, '')
-    .replace(/more than 15 mm\b/g, '').replace(/at least 5\b/g, '');
+  const rest = FIXED.reduce((t, re) => t.replace(re, ''), text);
   return (rest.match(/\d+(\.\d+)?/g) || []).map(Number);
 }
 // Lower is recorded first: 0 every app.js line, 1 a sentence with no varying number (these two are
-// precached for a first check offline), then the numbered ones, the nearer the knee range (30 to 40)
+// precached for a first check offline), then the numbered ones, the nearer the knee range (33 to 43)
 // and the stepper's 10 millimetres, the sooner. A design choice for when a build is stopped partway.
 function rank(text, whole) {
   if (whole) return 0;
   const nums = variables(text);
   if (!nums.length) return 1;
-  const d = Math.min(...nums.map(n => (/millimetre|mm\b/.test(text) ? Math.abs(n - 10) : Math.min(Math.abs(n - 30), Math.abs(n - 40)))));
+  const d = Math.min(...nums.map(n => (/millimetre|mm\b/.test(text) ? Math.abs(n - 10) : Math.min(Math.abs(n - KLO), Math.abs(n - KHI)))));
   return 2 + d;
 }
 

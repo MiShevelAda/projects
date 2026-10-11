@@ -4,9 +4,11 @@
 // computed in PIXELS (x * width, y * height): normalised coordinates stretch a landscape
 // frame and would bend every angle.
 //
-// Target ranges follow the AI Bike Fit tool (github.com/guzlz/ai-bike-fit), which grades
-// against published research: dynamic knee flexion at the bottom of the stroke 30-40 deg,
-// the static (Holmes) knee range 25-35 deg, and the same tolerance and amber bands.
+// Target ranges: the pedalling knee is graded on the closest published band to what the app reads
+// (Millour, Duc, Puel and Bertucci 2019: 33 to 43 degrees at the bottom of the stroke, 2D video, own
+// bikes), the held-still knee on Holmes' 25 to 35, and the back and elbow on AI Bike Fit's ranges
+// (github.com/guzlz/ai-bike-fit). Good, Fair and Needs attention follow the app's own uncertainty, u
+// (pro-standard SPEC, 4.3), not a fixed tolerance.
 
 export const LM = {
   nose: 0,
@@ -16,27 +18,60 @@ export const LM = {
 };
 const JOINTS = ['shoulder', 'elbow', 'wrist', 'hip', 'knee', 'ankle', 'heel', 'toe'];
 
-// (green_lo, green_hi, amber_pad). Outside green +/- pad is red.
+// [lo, hi] of each target, in degrees.
 export const TARGETS = {
-  kneeDynamic: [30, 40, 5],     // knee flexion at the bottom, pedalling
-  kneeStatic: [25, 35, 5],      // knee flexion at the bottom, holding still (Holmes)
-  torso: [40, 50, 6],           // hip-to-shoulder line, degrees above horizontal
-  elbow: [15, 30, 8],           // elbow flexion
-  shoulder: [80, 95, 10],       // angle between torso and upper arm
+  // Knee flexion with the ankle at its lowest, pedalling: Millour 2019's band for bottom dead centre,
+  // the closest published one to this reading. Not the same definition: the app's hip point is a pose
+  // model's guess at a joint centre, and its bottom is the ankle's lowest point (the paper's may be a
+  // crank angle). The app's offset from it is not measured yet (the studio study, SPEC Phase 6).
+  kneeDynamic: [33, 43],
+  // Knee flexion at its straightest in each stroke, pedalling (summarisePedal kneeMax): the 30 to 40
+  // that "other authors advocate ... during maximum knee extension" (Millour 2019). For the report,
+  // and as a cross-check: it asks for one more film when it points the other way from kneeDynamic.
+  kneeMax: [30, 40],
+  kneeStatic: [25, 35],         // knee flexion at the bottom, holding still (Holmes)
+  torso: [40, 50],              // hip-to-shoulder line, degrees above horizontal
+  elbow: [15, 30],              // elbow flexion
+  // Hip-shoulder-elbow. Reference only: no study gives a band for it with these landmarks (a 2021
+  // review lists the shoulder as "None to date"; a Retul-based table says 60 to 70, fitters about 80 to
+  // 90). 80 to 95 is AI Bike Fit's convention, kept only for where a stretched rider's sign starts
+  // (FRONT_SIGNS), which is above every convention found.
+  shoulder: [80, 95],
   // AI Bike Fit names this hip_angle_top, but its code measures it over the bottom-of-stroke
   // frames (analyze_bikefit.py measure()), so the range belongs to the open hip at the bottom.
-  hipBottom: [85, 110, null],   // hip angle at the bottom of the stroke, report only
+  hipBottom: [85, 110],         // hip angle at the bottom of the stroke, report only
 };
-// A phone video resolves joints to a few degrees, so a hard band edge is false precision.
-export const GREEN_TOL = 2.5;
+// Shown for reference, with no status colour: never Good, Fair or Needs attention.
+export const REFERENCE = ['shoulder', 'hipBottom'];
 
-export function grade(name, v) {
-  if (v == null || !Number.isFinite(v)) return 'na';
-  const [lo, hi, pad] = TARGETS[name];
-  if (lo - GREEN_TOL <= v && v <= hi + GREEN_TOL) return 'green';
-  if (pad == null) return 'info';
-  if (lo - pad <= v && v <= hi + pad) return 'amber';
-  return 'red';
+// u: the app's 95% uncertainty for one check of each measure, in degrees. PROVISIONAL, before any data
+// (a design choice, SPEC 4.3: optimistic, given the 3 to 9 degree errors of markerless pose models).
+// Phase 2 measures it (1.96 times the upper 95% bound of the standard error of one check, with the
+// phone picked up and placed again); Phase 6 widens it to the limits of agreement with 3D if those are
+// wider. Each measure has its own, so one can be changed without the others.
+export const U_KNEE = 3;
+export const U_BACK = 3;
+export const U_ELBOW = 3;
+export const U_SHOULDER = 3;
+export const U = { kneeDynamic: U_KNEE, kneeMax: U_KNEE, kneeStatic: U_KNEE, torso: U_BACK, elbow: U_ELBOW, shoulder: U_SHOULDER };
+
+// Where a reading sits (SPEC 4.3): Good ('green') only inside the band by more than u; Fair ('amber')
+// within u of an edge, inside the band (fair: 'in', nothing to change) or just outside it (fair: 'out',
+// film once more); Needs attention ('red') outside by more than u. side: which side of the band itself
+// ('in', 'low', 'high'). A reference measure is 'info' whatever it reads; a missing one 'na'.
+// At u = 5 on the knee's 10 degree band nothing is Good, which is the point: the worse the app
+// measures, the fewer riders hear "Good".
+export function zone(name, v, u = U[name]) {
+  if (v == null || !Number.isFinite(v)) return { grade: 'na', side: 'na', fair: null };
+  const [lo, hi] = TARGETS[name];
+  const side = v < lo ? 'low' : v > hi ? 'high' : 'in';
+  if (REFERENCE.includes(name)) return { grade: 'info', side, fair: null };
+  if (v > lo + u && v < hi - u) return { grade: 'green', side, fair: null };
+  if (v >= lo - u && v <= hi + u) return { grade: 'amber', side, fair: side === 'in' ? 'in' : 'out' };
+  return { grade: 'red', side, fair: null };
+}
+export function grade(name, v, u = U[name]) {
+  return zone(name, v, u).grade;
 }
 
 const px = (lm, W, H) => [lm.x * W, lm.y * H];
@@ -581,6 +616,24 @@ export function atBottom(samples, i, key) {
   return off >= 0 ? b[key] + off * (c[key] - b[key]) : b[key] + -off * (a[key] - b[key]);
 }
 
+// The knee at its straightest near the bottom of one stroke (the maximum extension, SPEC 4.1): the
+// frame with the least knee bend within half frames of the bottom frame i, and the vertex of the
+// parabola through it and its two neighbours, the measurement teammate's method. The straightest
+// point falls between frames, about 15 degrees of crank before the ankle's lowest point on the
+// teammate's leg model, so the lowest frame alone reads it a little bent. NaN with no reading.
+function straightest(samples, i, half) {
+  let j = -1;
+  for (let k = Math.max(1, i - half); k <= Math.min(samples.length - 2, i + half); k++) {
+    const v = samples[k].kneeFlex;
+    if (Number.isFinite(v) && (j < 0 || v < samples[j].kneeFlex)) j = k;
+  }
+  if (j < 0) return NaN;
+  const a = samples[j - 1].kneeFlex, b = samples[j].kneeFlex, c = samples[j + 1].kneeFlex;
+  const den = a - 2 * b + c;
+  // b is the least of the three, so the vertex lies within half a frame of it.
+  return Number.isFinite(a) && Number.isFinite(c) && den > 0 ? b - ((a - c) ** 2) / (8 * den) : b;
+}
+
 // Design choice from the synthetic rider (scratchpad probe): at 12 frames per turn the
 // bottom-of-stroke estimate is within about 1 degree on average; below that the error grows fast.
 // Not a published number.
@@ -695,8 +748,11 @@ export function summarisePedal(samples) {
     const [a, b] = k >= 1 ? [bottoms[k - 1], bottoms[k]] : [bottoms[0], bottoms[1]];
     return b != null && cr.filter(i => i > a && i <= b).length === 2;
   };
-  const kept = bottoms.filter((_, k) => gap(k) >= MIN_FRAMES_PER_STROKE && oneTurn(k));
+  const keptK = bottoms.map((_, k) => k).filter(k => gap(k) >= MIN_FRAMES_PER_STROKE && oneTurn(k));
+  const kept = keptK.map(k => bottoms[k]);
   const knees = kept.map(i => atBottom(samples, i, 'kneeFlex'));
+  // The knee at its straightest in each stroke, within a quarter turn of the bottom (straightest()).
+  const maxes = keptK.map(k => straightest(samples, bottoms[k], Math.max(2, Math.round(gap(k) / 4))));
   const ys = samples.map(s => s.ankleY);
   return {
     strokes: kept.length,
@@ -709,6 +765,7 @@ export function summarisePedal(samples) {
     direction: pedalDirection(samples), // +1 forwards, -1 backwards, 0 not known
     kneeFlex: median(knees),
     kneeFlexSpread: knees.length > 2 ? quantile(knees, 0.9) - quantile(knees, 0.1) : NaN,
+    kneeMax: median(maxes),
     hipBottom: median(kept.map(i => atBottom(samples, i, 'hip'))),
     // Interpolated to the true bottom like the knee: at 12 frames per turn the lowest frame can sit
     // up to 15 degrees of crank away from it, the same way on every stroke.
@@ -738,7 +795,7 @@ export const STILL_CRANK_MAX = 10;
 
 // ── how the bike stays up ──────────────────────────────────────────────────────────────────
 // Three ways to keep the bike up while the phone films it (Alex, 2026-10-10). On a trainer or rollers
-// the rider pedals forwards against the resistance, which is how the dynamic 30 to 40 range was
+// the rider pedals forwards against the resistance, which is how pedalling knee ranges are
 // measured: Bini and Hume (2016) filmed 30 cyclists on their own bikes on a stationary trainer, and
 // AI Bike Fit's filming guide (item 8) says "Trainer is ideal ... Pedal steady 20-30 s at an easy
 // effort and your normal cadence". So that reading is the main one there, and 30 s is the guide's
@@ -760,43 +817,82 @@ const setupId = (id) => (SETUPS[id] ? id : null);
 // existed matches only another one like it.
 export const sameSetup = (a, b) => setupId(a) === setupId(b);
 
+// ── the saddle step ──────────────────────────────────────────────────────────────────────────
+// The smallest change the app is sure of (SPEC 4.4, a design choice): the gap from the reading less u
+// to the band edge, at 2 mm of saddle height per degree of knee bend (the low end of a planar leg's
+// 1.9 to 3.2 mm, so the step errs small; not validated, which the report says), then one of three
+// steps: under 4 mm, 3 mm; 4 to 8 mm, 5 mm; over 8 mm, 10 mm. Never more than 10 mm in one go, and
+// with any pain at most 5 mm. At u = 3 a reading of 46.1 gives 3 mm, 49.5 gives 5 mm, 52 gives 10 mm.
+// raise: the knee is bent too much (the saddle is low).
+export const MM_PER_DEG = 2;
+export const PAIN_STEP_MAX = 5;
+export function stepSize(P, raise, { pain = false, u = U_KNEE } = {}) {
+  const [lo, hi] = TARGETS.kneeDynamic;
+  const mm = MM_PER_DEG * (raise ? P - u - hi : lo - (P + u));
+  const step = mm < 4 ? 3 : mm <= 8 ? 5 : 10;
+  return pain ? Math.min(step, PAIN_STEP_MAX) : step;
+}
+
+// The kill criterion (SPEC 4.4, item 6): if the knee's limits against 3D come out wider than plus or
+// minus 5 degrees for every way of measuring it, the app gives no measured millimetres, only the
+// direction. The words are ready; the switch stays off until the studio study says otherwise.
+export const KILL_SWITCH = false;
+export const DIRECTION_ONLY = {
+  raise: 'Your saddle looks low. Raise it in small steps, about 5 mm at a time, ride, and check again, or see a fitter.',
+  lower: 'Your saddle looks high. Lower it in small steps, about 5 mm at a time, ride, and check again, or see a fitter.',
+};
+
 // ── the verdict ────────────────────────────────────────────────────────────────────────────
 
 const round = (v) => Math.round(v);
 const list = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
+// +1: too bent (the saddle is low), -1: too straight, 0: no sure way. Only a reading outside its band
+// by more than u (Needs attention) points a way; a Fair one may be either side of the edge.
+const way = (z) => (z.grade !== 'red' ? 0 : z.side === 'high' ? 1 : -1);
 
 // One priority change, in the order a fitter works: saddle height first, then the front end.
 //
-// Two knee readings feed the saddle verdict. The pedalling one (P) decides: Bini and Hume (2016)
-// found the held-still angle differs from pedalling by about 8 degrees, and AI Bike Fit's ranges are
-// offset by 5 degrees for the same reason. The held-still one (S) can only stop a change, when it is
-// out of range the opposite way. res.verdict is one of:
-//   'change'    P out of range, S missing, in range or out the same way: a millimetre change from P.
-//   'disagree'  P and S both out of range, opposite ways: no change, film again.
-//   'ok'        P in range: no saddle change (res.stillOut when S is out of range).
+// Three knee readings feed the saddle verdict. The pedalling one at the bottom of the stroke (P)
+// decides: Bini and Hume (2016) found the held-still angle differs from pedalling by about 8 degrees.
+// The held-still one (S) and the pedalling one at the knee's straightest (M, summarisePedal kneeMax)
+// can only stop a change, when they point the other way. res.verdict is one of:
+//   'change'    P out by more than u, S and M missing, in range or out the same way: one saddle step.
+//   'disagree'  P out by more than u and S or M out by more than u the other way: no change, film
+//               again (res.disagreeWith: 'still' or 'max').
+//   'edge'      P just outside its band, within u of the edge: no change, film once more with the phone
+//               where it is (SPEC 4.3). The next film averages the two (opts.before) and decides.
+//   'ok'        P inside its band (Good or Fair), or the average of two films within u of an edge: no
+//               saddle change (res.stillOut when S is out of range).
 //   'stillOnly' no usable P: no millimetres from S alone, only whether it looks in range.
 //   'none'      neither reading.
 // setup: how the bike stayed up (SETUPS), which only changes the words (pedal forwards or backwards).
-export function advise(still, pedal, setup = null) {
+// opts.pain: the rider said pain or numbness keeps coming back, which caps the step at 5 mm.
+// opts.before: the pedalling knee of the film just before, when it was 'edge' (edgeBefore): P is then
+// the average of the two, graded with the same u (no benefit assumed until Phase 2 measures it).
+// opts.directionOnly: the kill criterion's wording instead of measured millimetres (KILL_SWITCH).
+export function advise(still, pedal, setup = null, { pain = false, before = null, directionOnly = KILL_SWITCH } = {}) {
   const pOk = !!pedal && pedal.strokes >= 5 && Number.isFinite(pedal.kneeFlex);
   // A held-still reading taken with the crank off the bottom reads too bent (or too straight), so
   // it is set aside: it cannot block a change or count as out of range.
   const crank = stillCrankAngle(still, pedal);
   const offBottom = crank > STILL_CRANK_MAX;
   const sOk = Number.isFinite(still?.kneeFlex) && !offBottom;
-  const P = pOk ? pedal.kneeFlex : NaN, S = sOk ? still.kneeFlex : NaN;
-  const pGrade = grade('kneeDynamic', P), sGrade = grade('kneeStatic', S);
-  const dir = (g, v, r) => (g === 'green' ? 0 : v > r[1] ? 1 : -1); // +1: too bent, the saddle is low
-  const dirP = pOk ? dir(pGrade, P, TARGETS.kneeDynamic) : null;
-  const dirS = sOk ? dir(sGrade, S, TARGETS.kneeStatic) : null;
+  const two = pOk && Number.isFinite(before);
+  const P = pOk ? (two ? (before + pedal.kneeFlex) / 2 : pedal.kneeFlex) : NaN, S = sOk ? still.kneeFlex : NaN;
+  const M = pOk && Number.isFinite(pedal.kneeMax) ? pedal.kneeMax : NaN;
+  const zP = zone('kneeDynamic', P), zS = zone('kneeStatic', S), zM = zone('kneeMax', M);
+  const dirP = pOk ? way(zP) : null;
+  const dirS = sOk ? way(zS) : null;
+  const dirM = way(zM);
+  const against = dirP ? (sOk && dirS && dirS !== dirP ? 'still' : dirM && dirM !== dirP ? 'max' : null) : null;
   const verdict = pOk
-    ? (dirP === 0 ? 'ok' : sOk && dirS !== 0 && dirS !== dirP ? 'disagree' : 'change')
+    ? (dirP === 0 ? (zP.fair === 'out' && !two ? 'edge' : 'ok') : against ? 'disagree' : 'change')
     : sOk ? 'stillOnly' : 'none';
 
   const upper = pOk ? pedal : still ?? pedal;
   const res = {
     verdict,
-    knee: pOk ? P : S, kneeSource: pOk ? 'pedalling' : sOk ? 'still' : null, kneeGrade: pOk ? pGrade : sGrade,
+    knee: pOk ? P : S, kneeSource: pOk ? 'pedalling' : sOk ? 'still' : null, kneeGrade: pOk ? zP.grade : zS.grade,
     staticKnee: still?.kneeFlex, staticGrade: grade('kneeStatic', still?.kneeFlex),
     torso: upper?.torso, torsoGrade: grade('torso', upper?.torso),
     elbow: upper?.elbow, elbowGrade: grade('elbow', upper?.elbow),
@@ -816,36 +912,47 @@ export function advise(still, pedal, setup = null) {
   };
   if (!res.stillOut) delete res.stillOut;
   if (offBottom) res.stillOffBottom = round(crank);
+  if (Number.isFinite(M)) res.kneeMax = M;
+  if (against) res.disagreeWith = against;
+  if (two) res.averaged = [before, pedal.kneeFlex];
+  // Within u of an edge: 'in' inside the band (nothing to change), 'out' just outside it.
+  if (pOk && zP.fair) res.kneeFair = zP.fair;
 
   if (verdict === 'change') {
     const [lo, hi] = TARGETS.kneeDynamic;
-    const over = P > hi ? P - hi : lo - P;
-    const a = Math.min(15, round(over * 3)), b = Math.min(15, round(over * 4));
-    const mm = a === b ? `${a}` : `${a} to ${b}`;
     const raise = P > hi;
+    const step = stepSize(P, raise, { pain });
+    const full = stepSize(P, raise);
+    const painCapped = step < full;
     const verb = raise ? 'Raise' : 'Lower';
+    // The words follow how far out the knee is, the step it would get without pain: "a little" for 3
+    // and 5 mm, "too" for 10. Pain caps the step, never the words (QA round 4: "a little" at 57).
+    const how = full < 10 ? 'a little' : 'too';
     res.change = {
-      kind: 'saddle', raise, mm: [a, b], capped: over * 4 > 15,
-      headline: `${verb} the saddle about ${mm} mm`,
-      spoken: `${verb} the saddle about ${mm} millimetres, then film again.`,
+      kind: 'saddle', raise, mm: [step, step], how, ...(painCapped ? { painCapped: true } : {}),
+      headline: `${verb} the saddle about ${step} mm`,
+      spoken: `${verb} the saddle about ${step} millimetres, then film again.`,
       // For the screen, with ° and mm like every other line there. The spoken summary builds its own.
       why: (raise
-        ? `Your knee is still bent ${round(P)}° with the pedal at its lowest point. The target is ${lo} to ${hi}, so the saddle is ${pGrade === 'red' ? 'too low' : 'a little low'}.`
-        : `Your knee is only bent ${round(P)}° with the pedal at its lowest point. The target is ${lo} to ${hi}, so the saddle is ${pGrade === 'red' ? 'too high' : 'a little high'}.`)
-        + (over * 4 > 15 ? ' 15 mm is the most to change in one go.' : ''),
+        ? `Your knee is still bent ${round(P)}° with the pedal at its lowest point. The target is ${lo} to ${hi}, so the saddle is ${how} low.`
+        : `Your knee is only bent ${round(P)}° with the pedal at its lowest point. The target is ${lo} to ${hi}, so the saddle is ${how} high.`)
+        + (painCapped ? ` With pain, ${PAIN_STEP_MAX} mm is the most to change in one go.` : ''),
     };
+    if (directionOnly) {
+      Object.assign(res.change, { directionOnly: true, mm: [5, 5], how: 'a little', headline: `${verb} the saddle in small steps`, spoken: DIRECTION_ONLY[raise ? 'raise' : 'lower'] });
+    }
   } else if (verdict === 'ok') {
     // Front end, only once the saddle height is right. A deliberate difference from AI Bike Fit's
     // rule 4 (fit-rules.md), which also counts a closed shoulder (under 80) and bent elbows (over 30)
     // as signs of a long, low front end. Both usually mean the bars are close, not far: the shoulder
     // angle opens as the hands go further forward, and bent elbows mean the bars are in easy reach.
     // So this counts only the tool's own thresholds that do point to a long, low front: a back
-    // under 40, a shoulder over 95 and elbows forced straight (under 8), each only when the screen
-    // shows that angle as out of range (FRONT_SIGNS).
+    // under 40, a shoulder over 95 and elbows forced straight (under 8), each only past its own u
+    // (FRONT_SIGNS).
     const t = round(upper?.torso), sh = round(upper?.shoulder), e = round(upper?.elbow);
     const flags = [];
     if (FRONT_SIGNS.torso(upper?.torso)) flags.push(['torso', `your back is low (${t}°, target 40 to 50)`, 'your back is low']);
-    if (FRONT_SIGNS.shoulder(upper?.shoulder)) flags.push(['shoulder', `your arms reach far forward (shoulder ${sh}°, target 80 to 95)`, 'your arms reach far forward']);
+    if (FRONT_SIGNS.shoulder(upper?.shoulder)) flags.push(['shoulder', `your arms reach far forward (shoulder ${sh}°)`, 'your arms reach far forward']);
     if (FRONT_SIGNS.elbow(upper?.elbow)) flags.push(['elbow', `your elbows are locked straight (${e}°, target 15 to 30)`, 'your elbows are locked straight']);
     if (flags.length >= 2) {
       const cap = (x) => x[0].toUpperCase() + x.slice(1);
@@ -863,44 +970,72 @@ export function advise(still, pedal, setup = null) {
     }
   }
 
-  const graded = [res.kneeGrade, res.torsoGrade, res.elbowGrade, res.shoulderGrade];
+  // The shoulder is for reference only, so it never sets the overall status.
+  const graded = [res.kneeGrade, res.torsoGrade, res.elbowGrade];
   const worst = graded.includes('red') ? 'red' : graded.includes('amber') ? 'amber' : 'green';
   if (verdict === 'none' || graded.every(g => g === 'na')) res.overall = 'na';
-  else if (verdict === 'disagree') res.overall = 'amber';
+  else if (verdict === 'disagree' || verdict === 'edge') res.overall = 'amber';
   // The held-still reading alone is only a cross-check (it differs from pedalling by about 8 degrees,
   // Bini and Hume 2016), so it never makes the saddle Good on its own.
   else if (verdict === 'stillOnly') res.overall = 'amber';
-  else if (res.change?.kind === 'saddle') res.overall = pGrade; // amber or red: the knee decides it
-  else if (res.change) res.overall = 'red'; // a bars change: "Reach and bar height" needs attention
+  else if (res.change) res.overall = 'red'; // a saddle step or a bars change: Needs attention
   else res.overall = worst === 'green' ? 'green' : 'amber';
   return res;
 }
 
+// The pedalling knee of the film just before, for advise's opts.before, when that film was 'edge'
+// (saved with edge: its reading to one decimal) and this one follows it: the newest in the history,
+// the bike held the same way, nothing marked as changed since, and filmed at most EDGE_WITHIN seconds
+// ago (half an hour), while the phone can still be where it was (a design choice). Otherwise null.
+export const EDGE_WITHIN = 1800;
+// What a film leaves for the next one to average with (saved as edge): its own pedalling knee to one
+// decimal, when that was just outside the band by less than u, whether or not it was itself averaged
+// with the film before. So two films near the edge always pair: the average of two is final, and a
+// third film near the edge is averaged with the second instead of asking for "once more" again (QA
+// round 4 found the old rule, edge films only, alternating for ever). null otherwise.
+export function edgeReading(r) {
+  if (r?.kneeSource !== 'pedalling') return null;
+  const own = r.averaged ? r.averaged[1] : r.knee;
+  return Number.isFinite(own) && zone('kneeDynamic', own).fair === 'out' ? Math.round(own * 10) / 10 : null;
+}
+export function edgeBefore(history, setup = null, now = new Date()) {
+  const s = history?.[0];
+  if (!s || !Number.isFinite(s.edge) || !sameSetup(s.setup, setup) || s.made) return null;
+  const age = (now - new Date(s.at)) / 1000;
+  return age >= 0 && age <= EDGE_WITHIN ? s.edge : null;
+}
+
 const NAMES = { torso: 'back angle', elbow: 'elbow bend', shoulder: 'shoulder angle' };
+// The graded upper-body angles. The shoulder is for reference only (SPEC 4.2): no study gives a band
+// for it with these landmarks, so it is never called in or out of range.
+const UPPER = ['torso', 'elbow'];
 // The three signs of a long, low front end that advise() counts (its thresholds, from fit-rules.md),
-// each only past GREEN_TOL: within 2.5 degrees of a target the screen calls a reading in range, so a
-// back at 38 or a shoulder at 97 is not a sign there either (grade(), measures()). Locked elbows,
-// under 8, are already more than 2.5 below the 15 to 30 target.
+// each only in its own Needs attention zone, past its own u (SPEC 4.3): a back under 40 less u, a
+// shoulder over 95 plus u (above every trunk-to-upper-arm convention found, so only a clearly
+// stretched rider), and locked elbows under 8, already more than u below the 15 to 30 target.
 const FRONT_SIGNS = {
-  torso: (v) => v < TARGETS.torso[0] - GREEN_TOL,
-  shoulder: (v) => v > TARGETS.shoulder[1] + GREEN_TOL,
+  torso: (v) => v < TARGETS.torso[0] - U.torso,
+  shoulder: (v) => v > TARGETS.shoulder[1] + U.shoulder,
   elbow: (v) => v < 8,
 };
 
-// "inside the 30 to 40 target", or, for a reading inside the 2.5 degree tolerance but outside the
-// range itself, "within 2.5 degrees of the 30 to 40 target". Never call 41 "inside" 30 to 40.
-function inTarget(v, [lo, hi], unit) {
-  return v >= lo && v <= hi ? `inside the ${lo} to ${hi} target` : `within 2.5${unit} of the ${lo} to ${hi} target`;
+// Where a reading sits, in words: "inside the 33 to 43 target", "inside the 33 to 43 target, near its
+// edge" (Fair, within u of an edge), or, just outside, "within 3 degrees of the 33 to 43 target".
+// Never call 44 "inside" 33 to 43.
+function inTarget(v, name, unit) {
+  const [lo, hi] = TARGETS[name], z = zone(name, v);
+  if (z.side === 'in') return z.fair ? `inside the ${lo} to ${hi} target, near its edge` : `inside the ${lo} to ${hi} target`;
+  return `within ${U[name]}${unit} of the ${lo} to ${hi} target`;
 }
 
-// The upper-body angles that are outside their target, by name ("shoulder angle").
+// The graded upper-body angles that are outside their target band, by name ("back angle").
+const outside = (r, k) => ['low', 'high'].includes(zone(k, r[k]).side);
 function offAngles(r) {
-  return ['torso', 'elbow', 'shoulder'].filter(k => !['green', 'na'].includes(r[k + 'Grade'])).map(k => NAMES[k]);
+  return UPPER.filter(k => outside(r, k)).map(k => NAMES[k]);
 }
-// "a little outside" when every angle that is out is only just out (amber), else "outside".
+// "a little outside" when every angle that is out is only just out (within u), else "outside".
 function offWords(r) {
-  const ks = ['torso', 'elbow', 'shoulder'].filter(k => !['green', 'na'].includes(r[k + 'Grade']));
-  return ks.every(k => r[k + 'Grade'] === 'amber') ? 'a little outside' : 'outside';
+  return UPPER.filter(k => outside(r, k)).every(k => grade(k, r[k]) === 'amber') ? 'a little outside' : 'outside';
 }
 
 // A retest that did not fit what the last change should have done holds the next change back
@@ -922,23 +1057,30 @@ function noneCause(r) {
 // Rider words, not bike words (Alex: plain English, said across a room): "with the pedal at its
 // lowest point", not "at the bottom of the stroke".
 const LOWEST = 'with the pedal at its lowest point';
+const TWO_FILMS = 'That is the average of two films.';
 
 // The "Saddle height" area's reason: the readings behind it, for the screen (unit '°') or for speech
 // (' degrees'). The results headline gives the decision in words and this gives the numbers, so the
 // two say the same thing without repeating each other word for word.
 export function saddleWhy(r, unit = '°') {
   const d = (v) => `${round(v)}${unit}`;
-  const [dlo, dhi] = TARGETS.kneeDynamic, [slo, shi] = TARGETS.kneeStatic;
+  const [dlo, dhi] = TARGETS.kneeDynamic, [slo, shi] = TARGETS.kneeStatic, [mlo, mhi] = TARGETS.kneeMax;
   if (r.change?.kind === 'saddle') return unit === '°' ? r.change.why : spokenSaddleReason(r);
+  if (r.verdict === 'disagree' && r.disagreeWith === 'max') {
+    return `At its straightest, your knee bends ${d(r.kneeMax)}, ${r.kneeMax > mhi ? 'over' : 'under'} the ${mlo} to ${mhi} target. `
+      + `With the pedal at its lowest point, it bends ${d(r.knee)}, ${r.knee > dhi ? 'over' : 'under'} the ${dlo} to ${dhi} target.`;
+  }
   if (r.verdict === 'disagree') {
     return `Held still, your knee bends ${d(r.staticKnee)}, ${r.staticKnee > shi ? 'over' : 'under'} the ${slo} to ${shi} target. `
       + `Pedalling, it bends ${d(r.knee)}, ${r.knee > dhi ? 'over' : 'under'} the ${dlo} to ${dhi} target.`;
   }
   if (r.verdict === 'stillOnly') {
-    return `Held still, your knee bends ${d(r.knee)}, ${r.kneeGrade !== 'green' ? `outside the ${slo} to ${shi} target` : inTarget(r.knee, TARGETS.kneeStatic, unit)}. `
+    return `Held still, your knee bends ${d(r.knee)}, ${r.kneeGrade === 'red' ? `outside the ${slo} to ${shi} target` : inTarget(r.knee, 'kneeStatic', unit)}. `
       + `On its own that is only a cross-check, because it differs from pedalling by about 8${unit} on average.`;
   }
-  if (r.verdict === 'ok') return `Your knee bends ${d(r.knee)} ${LOWEST}, ${inTarget(r.knee, TARGETS.kneeDynamic, unit)}.`;
+  if (r.verdict === 'ok' || r.verdict === 'edge') {
+    return `Your knee bends ${d(r.knee)} ${LOWEST}, ${inTarget(r.knee, 'kneeDynamic', unit)}.${r.averaged ? ` ${TWO_FILMS}` : ''}`;
+  }
   // Out of range, but a retest held the change back (withRetest).
   if (r.verdict === 'change') return `Your knee bends ${d(r.knee)} ${LOWEST}, outside the ${dlo} to ${dhi} target.`;
   return 'Neither knee reading worked this time.';
@@ -947,14 +1089,16 @@ export function saddleWhy(r, unit = '°') {
 // The "Saddle height" area's one step.
 export function saddleStep(r) {
   if (r.change?.kind === 'saddle') return `${r.change.headline}.`;
+  if (r.wait && r.would?.kind === 'saddle') return waitStep(r);
   if (heldSaddle(r)) return 'Film once more before you change anything.';
   if (r.verdict === 'disagree') return 'Film again: your two knee readings point different ways.';
+  if (r.verdict === 'edge') return 'Film once more. Leave the phone where it is.';
   const { dir, secs } = setupOf(r.setup);
   if (r.tooFast && (r.verdict === 'stillOnly' || r.verdict === 'none')) return `Film again and pedal ${dir} more slowly.`;
   if (r.verdict === 'stillOnly') return `Film again and pedal ${dir} for the full ${secs} seconds.`;
   if (r.verdict === 'none') {
     return r.strokesSeen >= 1 ? `Film again and pedal ${dir} for the full ${secs} seconds.`
-      : dir === 'forwards' ? 'Film again and pedal forwards at an easy effort until I say stop.'
+      : dir === 'forwards' ? 'Film again and pedal forwards at the effort of a long ride until I say stop.'
       : 'Film again and pedal backwards, smooth and steady, until I say stop.';
   }
   return 'Leave the saddle height as it is.';
@@ -967,8 +1111,7 @@ const spokenKnee = (v) => `Your knee bends ${degrees(v)} ${LOWEST}.`;
 function degrees(v) { const n = round(v); return `${n} ${n === 1 ? 'degree' : 'degrees'}`; }
 function spokenSaddleReason(r) {
   const [lo, hi] = TARGETS.kneeDynamic, c = r.change;
-  const how = r.kneeGrade === 'red' ? 'too' : 'a little';
-  return `${spokenKnee(r.knee)} The target is ${lo} to ${hi}, so the saddle is ${how} ${c.raise ? 'low' : 'high'}.`;
+  return `${spokenKnee(r.knee)} The target is ${lo} to ${hi}, so the saddle is ${c.how} ${c.raise ? 'low' : 'high'}.`;
 }
 
 // The headline and the reason under it, for the screen (unit '°') or for speech (' degrees'). The
@@ -978,7 +1121,11 @@ function spokenSaddleReason(r) {
 // report (Copy Results).
 const shortCause = (r) => (r.tooFast ? 'You pedalled too fast for this phone to measure.'
   : r.strokesSeen >= 1 && r.strokesSeen < 5 ? 'I saw too few pedal strokes to measure.' : 'I could not see the pedals turning.');
+// The saddle with nothing to change, in words: Good; Fair inside the band; or two films whose average
+// is within u of an edge, outside it (SPEC 4.3: the average decides, and it is too close to call).
+const kneeOkWords = (r) => (r.kneeGrade === 'green' ? null : r.kneeFair === 'out' ? 'at the edge of its range, too close to call' : 'in range, near the edge');
 export function headline(r, unit = '°') {
+  if (r.wait) return waitHeadline(r);
   if (r.heldBars) {
     return { what: 'Film once more before you change the handlebars', short: 'Your last saddle change moved your knee less than expected.',
       why: 'Your saddle height looks right now. Your last saddle change did not move your knee as much as expected, so one more film first, to be sure, before you change anything else.' };
@@ -989,40 +1136,73 @@ export function headline(r, unit = '°') {
   }
   const c = r.change;
   if (c?.kind === 'saddle') {
-    const red = r.kneeGrade === 'red';
+    const too = c.how === 'too';
     const gist = c.raise
-      ? `Your knee bends ${red ? 'too much' : 'a little too much'} ${LOWEST}, so the saddle is ${red ? 'too low' : 'a little low'}.`
-      : `Your knee does not bend ${red ? 'enough' : 'quite enough'} ${LOWEST}, so the saddle is ${red ? 'too high' : 'a little high'}.`;
-    const short = c.raise ? `Your knee bends ${red ? 'too much' : 'a little too much'} ${LOWEST}.`
-      : `Your knee does not bend ${red ? 'enough' : 'quite enough'} ${LOWEST}.`;
-    return { what: c.headline, short, why: `${gist} Change only this for now: moving the saddle changes your reach too.` };
+      ? `Your knee bends ${too ? 'too much' : 'a little too much'} ${LOWEST}, so the saddle is ${c.how} low.`
+      : `Your knee does not bend ${too ? 'enough' : 'quite enough'} ${LOWEST}, so the saddle is ${c.how} high.`;
+    const short = c.raise ? `Your knee bends ${too ? 'too much' : 'a little too much'} ${LOWEST}.`
+      : `Your knee does not bend ${too ? 'enough' : 'quite enough'} ${LOWEST}.`;
+    return { what: c.headline, short: c.tellFitter ? FITTER_SHORT : short, why: `${gist} Change only this for now: moving the saddle changes your reach too.${c.tellFitter ? ` ${TELL_FITTER}` : ''}` };
   }
-  if (c?.kind === 'bars') return { what: c.headline, short: 'The front of your bike is long and low.', why: `${c.reasonSpoken} If one spacer is not enough, a shorter stem is the next step.` };
+  if (c?.kind === 'bars') {
+    return { what: c.headline, short: c.tellFitter ? FITTER_SHORT : 'The front of your bike is long and low.',
+      why: `${c.reasonSpoken} If one spacer is not enough, a shorter stem is the next step.${c.tellFitter ? ` ${TELL_FITTER}` : ''}` };
+  }
   if (r.verdict === 'disagree') return { what: 'Film again', short: 'Your two knee readings point different ways.', why: 'Your two knee readings point different ways, so I will not suggest a change yet.' };
+  if (r.verdict === 'edge') {
+    return { what: 'Film once more', short: 'Close to the edge of the range.',
+      why: 'Your knee is close to the edge of its range, closer than this camera can tell apart. Leave the phone where it is and film once more: the average of the two films decides.' };
+  }
   if (r.verdict === 'stillOnly') {
     const lead = r.tooFast ? 'You pedalled faster than this phone can measure each stroke.' : 'I could not measure you pedalling.';
     const short = r.tooFast ? 'You pedalled too fast for this phone to measure.' : 'I could not measure you pedalling.';
     const slow = r.tooFast ? ' more slowly' : '';
     const dir = setupOf(r.setup).dir;
-    return r.kneeGrade !== 'green'
+    const inside = zone('kneeStatic', r.knee).side === 'in';
+    return r.kneeGrade === 'red'
       ? { what: 'Film again before you move the saddle', short, why: `${lead} Held still, your knee is outside its range, but that reading alone cannot say how far to move the saddle. Film again and pedal ${dir}${slow}.` }
-      : { what: 'Saddle height looks right, held still', short, why: `${lead} Held still, your knee is in range, but that reading is only a cross-check. Film again and pedal ${dir}${slow} to be sure.` };
+      : { what: 'Saddle height looks right, held still', short, why: `${lead} Held still, your knee is ${inside ? 'in range' : 'close to its range'}, but that reading is only a cross-check. Film again and pedal ${dir}${slow} to be sure.` };
   }
   if (r.verdict === 'ok') {
     const off = offAngles(r);
-    const allIn = ['torso', 'elbow', 'shoulder'].every(k => r[k + 'Grade'] === 'green');
-    return { what: 'Nothing to change today',
-      short: off.length ? 'Your saddle height looks right. Fine to ride.' : 'Your saddle height looks right.',
-      why: 'Your saddle height looks right.'
-        + (off.length ? ` Your ${list(off)} ${off.length > 1 ? 'are' : 'is'} ${offWords(r)} the target. That is fine to ride.`
-          : allIn ? ' Your back, elbow and shoulder angles are in range too.' : '') };
+    const allIn = UPPER.every(k => r[k + 'Grade'] === 'green');
+    const knee = kneeOkWords(r);
+    const lead = knee ? `Your knee is ${knee}.` : 'Your saddle height looks right.';
+    const upper = off.length ? ` Your ${list(off)} ${off.length > 1 ? 'are' : 'is'} ${offWords(r)} the target. That is fine to ride.`
+      : allIn ? ' Your back and elbow angles are in range too.' : '';
+    const short = knee ? `${knee[0].toUpperCase()}${knee.slice(1)}.` : 'Your saddle height looks right.';
+    return { what: 'Nothing to change today', short: off.length ? `${short} Fine to ride.` : short,
+      why: `${lead}${r.averaged ? ` ${TWO_FILMS}` : ''}${upper}` };
   }
   return { what: 'Not enough to measure', short: shortCause(r), why: noneCause(r) };
 }
 
 // Nothing to do after this session: no change, nothing held back, and the saddle height looks right.
-// The home screen then says "Nothing to change" beside the area pills.
-export const nothingToDo = (r) => r?.verdict === 'ok' && !r.change && !r.held;
+// The home screen then says "Nothing to change" beside the area pills. A change held for a ride, a
+// fitter or a change put back (withFeel) is not nothing to do.
+export const nothingToDo = (r) => r?.verdict === 'ok' && !r.change && !r.held && !r.wait;
+
+// The headline for a change withFeel held: ride the last one first, a fitter's bike (report only), or
+// the same change put back after two "worse" answers.
+const FITTER_SHORT = 'A fitter set up this bike: tell them about this change.';
+function waitHeadline(r) {
+  const c = r.would;
+  // The title says where the knee is and the rule, in one line (QA round 4: "Ride It First" alone,
+  // under a red Needs attention, never said whether he is in range).
+  if (r.wait === 'ride') {
+    const z = heldZone(r), said = heldSaid(r);
+    return { what: z ? `${z[0].toUpperCase()}${z.slice(1)}. Ride it first` : 'Ride it first', short: 'One change per ride. Next time, tell me how it felt.',
+      why: `${said ? `${said} ` : ''}One change per ride. Ride your last change first. Next time, tell me how it felt, and then I check what to change next.` };
+  }
+  if (r.wait === 'worse') {
+    return { what: 'It felt worse. Ride it once more', short: 'If it is still worse, I will tell you to put it back.', why: WORSE_SAID };
+  }
+  if (r.wait === 'fitter') {
+    return { what: wouldLooks(c), short: 'A fitter set up this bike, so I only report.', why: `${FITTER_SAID} ${c.kind === 'saddle' ? c.why : c.reason} If it bothers you, ask your fitter.` };
+  }
+  return { what: c.kind === 'saddle' ? 'Leave the saddle at your tape mark' : 'Leave the handlebars as they are',
+    short: 'It felt worse when you changed it. A fitter can look at why.', why: UNDONE_SAID };
+}
 
 // The words the app says at the end. Short sentences: they are spoken across a room, so the action
 // comes first. opts.pain: the rider said on the home screen that riding gives them pain or numbness
@@ -1032,44 +1212,67 @@ export const nothingToDo = (r) => r?.verdict === 'ok' && !r.change && !r.held;
 // recorded voice lines few (design-spec.md). opts.long: the longer version that "Say it again"
 // speaks, with the reason and the other angles too. opts.win: this retest's saddle change worked
 // (ui.retestWin: the knee moved the right way into range, with nothing new to change). Then the short
-// version is only the win and when to check again, the customer research's lines; the long one says
-// the before and after as well.
-export const WIN_LINE = 'That worked. Your saddle is done.';
+// version is only the win, which already says when to check again; the long one says the before and
+// after as well.
+// Never "done" (SPEC 4.4, item 7): one angle with a 4 degree error cannot carry it.
+export const WIN_LINE = 'That worked. Your knee is in range now. Ride it, and check again after a few rides.';
 export const COME_BACK = 'Check again whenever you change the saddle, stem, shoes or cleats.';
 export function spokenSummary(r, { pain = false, long = false, win = false } = {}) {
   const out = [];
   const c = r.change;
   if (pain) out.push(painNote(r));
-  if (win && !long) return [...out, WIN_LINE, COME_BACK].join(' ');
+  if (win && !long) return [...out, WIN_LINE].join(' ');
   if (win) out.push(WIN_LINE);
   if (r.retest) out.push(r.retest.spoken);
-  if (r.heldBars) {
+  if (r.wait === 'ride') {
+    // Where the knee is, then the rule: the retest line before it says "I only check whether you are
+    // in range now", so this says it.
+    out.push(...[heldSaid(r), RIDE_SAID].filter(Boolean));
+  } else if (r.wait === 'worse') {
+    out.push(WORSE_SAID);
+  } else if (r.wait === 'fitter') {
+    // No millimetres (SPEC 4.4, item 8): what it looks like, and who to ask.
+    out.push(FITTER_SAID, `${wouldLooks(r.would)}.`, 'If it bothers you, ask your fitter.');
+    if (long && r.would.kind === 'saddle') out.push(spokenKnee(r.knee));
+  } else if (r.wait === 'undone') {
+    out.push(UNDONE_SAID);
+  } else if (r.heldBars) {
     out.push('Film once more before you change the handlebars.');
   } else if (heldSaddle(r)) {
     // The retest line just said what to do ("film once more"), so only what it means for the advice.
     out.push(r.retest ? 'I will not suggest another change until then.' : headline(r, ' degrees').why);
+  } else if (c?.kind === 'saddle' && c.directionOnly) {
+    out.push(c.spoken);
+    if (c.tellFitter) out.push(TELL_FITTER);
   } else if (c?.kind === 'saddle') {
-    const mm = c.mm[0] === c.mm[1] ? `${c.mm[0]}` : `${c.mm[0]} to ${c.mm[1]}`;
     // "tell me how far": the results card asks how many millimetres it moved, which is the only way
     // the next film can say what the change did.
-    out.push(`${c.raise ? 'Raise' : 'Lower'} the saddle about ${mm} millimetres. Change only that. When you have moved it, tell me how far.`);
+    out.push(`${c.raise ? 'Raise' : 'Lower'} the saddle about ${c.mm[0]} millimetres. Change only that. When you have moved it, tell me how far.`);
+    if (c.tellFitter) out.push(TELL_FITTER);
     if (long) {
       out.push(spokenSaddleReason(r));
-      if (c.capped) out.push('15 millimetres is the most to change in one go.');
+      if (c.painCapped) out.push(`With pain, ${PAIN_STEP_MAX} millimetres is the most to change in one go.`);
     }
   } else if (c?.kind === 'bars') {
-    out.push('Raise the handlebars: move one spacer from above the stem to below it. Change only that. When you have done it, tap I made this change.');
+    out.push('Raise the handlebars: move one spacer from above the stem to below it. Change only that. Then tap I made this change.');
+    if (c.tellFitter) out.push(TELL_FITTER);
     if (long) out.push(c.reasonSpoken || c.why);
+  } else if (r.verdict === 'edge') {
+    // SPEC 4.3: within u of the edge, just outside: one more film, the phone where it is.
+    out.push('Close to the edge. Let me film once more.');
+    if (long) out.push(`${spokenKnee(r.knee)} That is ${inTarget(r.knee, 'kneeDynamic', ' degrees')}.`);
   } else if (r.verdict === 'ok') {
     // "looks right", as on the screen: a phone camera is off by a few degrees, so not "is right".
-    out.push('Nothing to change today. Your saddle height looks right.');
+    const knee = kneeOkWords(r);
+    out.push(`Nothing to change today. ${knee ? `Your knee is ${knee}.` : 'Your saddle height looks right.'}`);
     // The held-still reading asks for one more film: said short too, since the result starts with
     // "Leave the phone where it is." for that film (round 3, the customer research's item 1).
     if (!long && r.stillOut && !r.stillOutAgain) out.push('Film once more to be sure.');
     if (long) {
-      out.push(`${spokenKnee(r.knee)} That is ${inTarget(r.knee, TARGETS.kneeDynamic, ' degrees')}.`);
+      out.push(`${spokenKnee(r.knee)} That is ${inTarget(r.knee, 'kneeDynamic', ' degrees')}.`);
+      if (r.averaged) out.push(TWO_FILMS);
       if (r.stillOut && !r.stillOutAgain) out.push('Your held-still reading was outside its range. Film once more to be sure.');
-      const ok = ['torso', 'elbow', 'shoulder'].filter(k => r[k + 'Grade'] === 'green').map(k => NAMES[k]);
+      const ok = UPPER.filter(k => r[k + 'Grade'] === 'green').map(k => NAMES[k]);
       const off = offAngles(r);
       if (ok.length) out.push(`Your ${list(ok)} ${ok.length > 1 ? 'look' : 'looks'} good.`);
       if (off.length) out.push(`Your ${list(off)} ${off.length > 1 ? 'are' : 'is'} ${offWords(r)} the target. That is fine to ride.`);
@@ -1085,6 +1288,26 @@ export function spokenSummary(r, { pain = false, long = false, win = false } = {
   return out.join(' ');
 }
 
+// For Copy Results, the report a rider can hand a fitter (SPEC 4.1 item 5, 4.2 item 3, 4.4 item 2):
+// what each knee reading is and which published band it is set against, what Good means here, the
+// shoulder with its landmarks named, and where the millimetres come from. None of it is on the
+// results screen or said out loud: the rider view stays one headline and one change.
+export function reportLines(r) {
+  const out = [];
+  const [lo, hi] = TARGETS.kneeDynamic, [mlo, mhi] = TARGETS.kneeMax;
+  if (r?.kneeSource === 'pedalling' && Number.isFinite(r.knee)) {
+    out.push(`Knee bend with the pedal at its lowest point, pedalling: ${round(r.knee)}°. Target ${lo} to ${hi}, the closest published band (Millour 2019); the app's offset from it is not yet measured.`);
+    if (r.averaged) out.push(`That is the average of two films: ${round(r.averaged[0])}° and ${round(r.averaged[1])}°.`);
+  }
+  if (Number.isFinite(r?.kneeMax)) out.push(`Knee at its straightest in each pedal turn: ${round(r.kneeMax)}°. Target ${mlo} to ${mhi}, the band studies give for maximum extension.`);
+  if (r?.kneeSource) out.push(`Good: inside the target by more than ${U_KNEE}°, the app's provisional error for one check. Fair: within ${U_KNEE}° of an edge.`);
+  if (Number.isFinite(r?.shoulder)) out.push(`Shoulder angle, between the hip, shoulder and elbow points: ${round(r.shoulder)}°. For reference: no study gives a target for it.`);
+  if (r?.change?.kind === 'saddle' && !r.change.directionOnly) {
+    out.push(`Millimetres from a rule of thumb, not yet measured for you. About ${MM_PER_DEG} mm of saddle height per degree of knee bend, in steps of 3, 5 or 10 mm.`);
+  }
+  return out;
+}
+
 // ── compared with last time ──────────────────────────────────────────────────────────────────
 // Design choice, from the plus or minus 2-3 degree per-reading tolerance in
 // bikefit-research-ranges.md. Not a published number.
@@ -1096,8 +1319,7 @@ export const TARGET_OF = { kneePedal: 'kneeDynamic', kneeStill: 'kneeStatic', to
 // "About the same as last time (45°)", "Up 6° since 3 Oct", "Down 4° since 3 Oct", or '' when
 // either number is missing. A difference smaller than SAME_TOL is inside the camera's error.
 // target ([lo, hi]): then the difference also says whether it is better or worse: "now inside the
-// target" when it crossed into the range itself, "now in range" when into the 2.5 degree tolerance
-// only (never "inside" for that, as everywhere else), else "closer to" or "further from the target".
+// target" when it crossed into the range itself, else "closer to" or "further from the target".
 export function compareLast(now, was, label, target = null) {
   if (!Number.isFinite(now) || !Number.isFinite(was)) return '';
   const a = Math.round(now), b = Math.round(was), d = a - b;
@@ -1106,9 +1328,7 @@ export function compareLast(now, was, label, target = null) {
   if (!target) return base;
   const [lo, hi] = target;
   const off = (v) => (v < lo ? lo - v : v > hi ? v - hi : 0);
-  const near = (v) => off(v) <= GREEN_TOL;
   if (off(a) === 0 && off(b) > 0) return `${base}, now inside the target`;
-  if (near(a) && !near(b)) return `${base}, now in range`;
   if (off(a) < off(b)) return `${base}, closer to the target`;
   if (off(a) > off(b)) return `${base}, further from the target`;
   return base;
@@ -1184,10 +1404,10 @@ export function expectedKneeChange(mm) {
 // The change the rider says he made, as stored in history. raise and drop are +1 and -1; the
 // millimetres are what he said, a whole number from 1 to MADE_MAX, and never the suggestion in its
 // place: the retest compares the knee with what was really done. null with no usable number.
-// MADE_MAX is the input's own limit, a design choice; 15 mm is rule 2's most for one change, so more
-// than that is saved too, but the check is rougher (madeNote).
+// MADE_MAX is the input's own limit, a design choice; 10 mm is the biggest step the app gives (SPEC
+// 4.4 and 7.1, item 11), so more than that is saved too, but the check is rougher (madeNote).
 export const MADE_MAX = 50;
-export const MADE_STEP_MAX = 15;
+export const MADE_STEP_MAX = 10;
 export function madeChange(change, mm, at) {
   if (change?.kind === 'saddle') {
     if (mm == null || String(mm).trim() === '') return null;
@@ -1208,24 +1428,35 @@ export function madeChange(change, mm, at) {
 // again, so the app cannot ask for "once more" for ever.
 // Sessions with the bike held another way than for the change's session (sameSetup) are passed over
 // too: they cannot say what the change did, so the change keeps waiting for a film set up the same way.
+// A change put back after two "worse" answers (recordFeel, made.undone) waits for nothing: the saddle
+// is back at the tape mark. A film in other shoes or shorts (kit: 'diff', the retest's kit question)
+// is passed over like one with the bike held another way (SPEC 5.0: "treated like a different setup").
 export function pendingChange(history) {
   const h = history || [];
   const i = h.findIndex(s => s?.made);
   if (i < 0) return null;
   const m = h[i];
+  if (m.made.undone) return null;
   let passed = false;
   for (const s of h.slice(0, i)) {
-    if (!sameSetup(s?.setup, m.setup)) continue;
+    if (!sameSetup(s?.setup, m.setup) || s?.kit === 'diff') continue;
     if (s?.held && !passed) { passed = true; continue; }
     if (s?.src === 'pedalling' && Number.isFinite(s.knee)) return null;
   }
   return passed ? { ...m, recheck: true } : m;
 }
 
+// A change smaller than this camera can see (SPEC 4.4, item 4): the most it should move the knee is
+// under SAME_TOL, about the smallest change one reading can show. Every 3 and 5 mm step is one; a 10
+// mm step is not. The retest then says so and judges only where the knee is now.
+export const tooSmallToSee = (mm) => expectedKneeChange(mm)[1] < SAME_TOL;
+export const TOO_SMALL_LINE = 'That change is too small for me to measure. Your tape mark shows it moved. I only check whether you are in range now.';
+
 // Compares this session's knee reading with the one before a saddle change.
 // prev: a history entry { made: { kind, dir, mm }, knee, src }. now: { knee, src }.
 // Returns null when there is nothing fair to compare, or { verdict, text, spoken, inRange, ... }.
-// verdict, from how far the knee moved the way the change should move it (moved, in degrees):
+// verdict, 'too-small' for a change the camera cannot see (tooSmallToSee); else from how far the
+// knee moved the way the change should move it (moved, in degrees):
 //   'other-way'   moved more than SAME_TOL the wrong way.
 //   'unseen'      moved less than SAME_TOL either way: about the smallest change this camera can see
 //                 (one reading is off by 2 to 3 degrees, bikefit-research-ranges.md), so it cannot
@@ -1234,26 +1465,33 @@ export function pendingChange(history) {
 //   'too-much'    more than the change should do, by more than SAME_TOL.
 //   'consistent'  at least SAME_TOL the right way and no more than the expected most plus SAME_TOL:
 //                 the only verdict that says "That fits".
-// inRange: the knee is in range now. Then the saddle is left where it is, whatever the verdict, and
+// inRange: the knee is inside its target band now (Good, or Fair inside: nothing to change). Then the
+// saddle is left where it is, whatever the verdict, and
 // nothing is held back for it (withRetest): what counts is where the knee is now. Out of range, a
 // verdict other than 'consistent' holds the next change back for one more film.
 // prev.recheck (from pendingChange): this is the second film after the change, so a reading that
 // still does not fit is taken as it is (recheck: true in the result, and withRetest does not hold
 // back again). prev.setup and now.setup: how the bike was held each time. Held another way, nothing
 // is judged: the result says so and the change keeps waiting (verdict 'other-setup', see pendingChange).
+// now.kit: 'diff' when the rider said this film is in other shoes or shorts than last time: kept, not
+// compared (verdict 'other-kit'), and the change keeps waiting (pendingChange).
 export function judgeChange(prev, now) {
   const m = prev?.made;
   if ((m?.kind === 'bars' || m?.kind === 'saddle') && !sameSetup(prev.setup, now?.setup)) return otherSetup(prev, now);
+  if ((m?.kind === 'bars' || m?.kind === 'saddle') && now?.kit === 'diff') return otherKit(prev);
   if (m?.kind === 'bars') return barsBeforeAfter(prev, now);
   if (m?.kind !== 'saddle' || !prev.src || prev.src !== now?.src || !Number.isFinite(prev.knee) || !Number.isFinite(now.knee)) return null;
   if (!(m.dir === 1 || m.dir === -1) || !(m.mm > 0)) return null;
+  const recheck = !!prev.recheck;
+  const inRange = zone(now.src === 'pedalling' ? 'kneeDynamic' : 'kneeStatic', now.knee).side === 'in';
+  if (tooSmallToSee(m.mm)) {
+    return { verdict: 'too-small', before: prev.knee, now: now.knee, mm: m.mm, dir: m.dir, inRange, recheck, text: TOO_SMALL_LINE, spoken: TOO_SMALL_LINE };
+  }
   const delta = now.knee - prev.knee;
   const moved = -m.dir * delta; // positive: the expected way (raising the saddle takes knee bend off)
   const [lo, hi] = expectedKneeChange(m.mm);
   const verdict = moved < -SAME_TOL ? 'other-way' : moved < SAME_TOL ? 'unseen'
     : moved < lo - SAME_TOL ? 'too-little' : moved > hi + SAME_TOL ? 'too-much' : 'consistent';
-  const recheck = !!prev.recheck;
-  const inRange = grade(now.src === 'pedalling' ? 'kneeDynamic' : 'kneeStatic', now.knee) === 'green';
   // Spoken "1 degree", not "1 degrees".
   const one = (unit) => (unit === ' degrees' ? ' degree' : unit);
   const by = (unit) => (round(hi) < 1 ? `less than 1${one(unit)}` : round(lo) === round(hi) ? `about ${round(lo)}${round(lo) === 1 ? one(unit) : unit}` : `about ${round(lo)} to ${round(hi)}${unit}`);
@@ -1327,6 +1565,14 @@ function otherSetup(prev, now) {
   return { verdict: 'other-setup', kind: prev.made.kind, text, spoken };
 }
 
+// The change was made, and this film is in other shoes or shorts (SPEC 5.0: shoe stack and padding
+// change how high the rider sits). The same words on the screen and out loud: no numbers.
+function otherKit(prev) {
+  const what = prev.made.kind === 'bars' ? 'raising the handlebars' : `${prev.made.dir > 0 ? 'raising' : 'lowering'} the saddle`;
+  const text = `Not compared with the film before ${what}: other shoes or shorts this time. To see what the change did, film again in the same ones.`;
+  return { verdict: 'other-kit', kind: prev.made.kind, text, spoken: text };
+}
+
 // After raising the handlebars: the back, shoulder and elbow angles before and now. Only the numbers:
 // we found no source for how much one spacer should change them, so there is no "that fits" and the
 // next change is never held back. now.values: this session's upper-body angles.
@@ -1364,7 +1610,9 @@ function barsBeforeAfter(prev, now) {
 // what it should have.
 export function withRetest(r, judged) {
   if (!judged) return r;
-  if (['consistent', 'shown', 'other-setup'].includes(judged.verdict) || judged.recheck) return { ...r, retest: judged };
+  // A change too small to see is never held against: only where the knee is now counts. With no next
+  // step (close to the edge: film once more), the retest does not point to one (QA round 4).
+  if (['consistent', 'too-small', 'shown', 'other-setup', 'other-kit'].includes(judged.verdict) || judged.recheck) return { ...r, retest: r.change ? judged : noNextStep(judged) };
   if (judged.inRange) {
     if (r.change?.kind === 'bars') return { ...r, retest: judged, change: null, heldBars: r.change, held: true, overall: 'amber' };
     return { ...r, retest: judged };
@@ -1372,10 +1620,117 @@ export function withRetest(r, judged) {
   return { ...r, retest: judged, change: null, overall: 'amber', held: true };
 }
 
+// ── "Better, the same, or worse?" (SPEC 4.4, item 3) ─────────────────────────────────────────
+// After a change: film to check the position (as now), ride it, then "Better, the same, or worse?".
+// The next step comes only after that answer: one change per ride (SPEC 7.1, item 8). Two "worse"
+// answers on the same change put it back to the tape mark, recorded as undone, and the app does not
+// suggest that change again. The answers are stored with the change (made.feel) in its history entry.
+export const FEELS = ['better', 'same', 'worse'];
+// Seconds after a change is saved before the question is asked: a ride takes longer than this, and
+// the film straight after the change (Check It Now) or a check started straight back from the results
+// has not been ridden. A design choice; the question also has a way out, "Not Ridden Yet" (app.js).
+export const RIDE_AFTER = 1800;
+// The newest entry with a change he said he made, or null.
+export const lastMade = (history) => (history || []).find(s => s?.made) || null;
+// Better or the same: the change is settled, and the next step may come.
+export const feelSettled = (made) => !!made?.feel?.some(f => f.said === 'better' || f.said === 'same');
+// The entry whose change the question is about, when it is due now: the newest change made, not put
+// back, not settled, saved at least RIDE_AFTER ago, and answered (if at all) at least RIDE_AFTER ago:
+// one answer per ride, so a second "worse" given soon after the first (a new check, or Stop and start
+// again) cannot put the saddle back after one ride (QA round 4). Else null.
+export function feelDue(history, now = new Date()) {
+  const e = lastMade(history), m = e?.made;
+  if (!m || m.undone || feelSettled(m)) return null;
+  const ridden = (at) => { const age = (now - new Date(at)) / 1000; return Number.isFinite(age) && age >= RIDE_AFTER; };
+  const answered = m.feel?.length ? m.feel[m.feel.length - 1].at : null;
+  return ridden(m.at) && (answered == null || ridden(answered)) ? e : null;
+}
+// Stores one answer with the change of the entry at. Returns { history, revert, entry } (a new history;
+// the one passed in is not changed), revert true on the second "worse" (made.undone: when), or null
+// for anything but one of the three answers on an entry with a change.
+export function recordFeel(history, at, said, when = new Date().toISOString()) {
+  if (!FEELS.includes(said)) return null;
+  const h = JSON.parse(JSON.stringify(history || []));
+  const entry = h.find(s => s?.at === at);
+  if (!entry?.made) return null;
+  entry.made.feel = [...(entry.made.feel || []), { said, at: when }];
+  const revert = !feelSettled(entry.made) && entry.made.feel.filter(f => f.said === 'worse').length >= 2;
+  if (revert) entry.made.undone = when;
+  return { history: h, revert, entry };
+}
+// The retest's pointer to the next step, taken off when there is no next step: held (withFeel), or none
+// given (withRetest). The same object when it has no pointer.
+const NEXT_TEXT = / The next step is below\.$/, NEXT_SAID = / Here is the next step\.$/;
+const noNextStep = (t) => (t && (NEXT_TEXT.test(t.text) || NEXT_SAID.test(t.spoken))
+  ? { ...t, text: t.text.replace(NEXT_TEXT, ''), spoken: t.spoken.replace(NEXT_SAID, '') } : t);
+// The result with the rules above folded in, and a bike a fitter set up (SPEC 4.4, item 8). history:
+// the sessions before this one. r.wait says why a change was not given, and r.would is that change:
+//   'fitter'  a bike fitter set this bike up and he reports no pain: report only, no millimetres.
+//   'undone'  the same change felt worse twice and was put back: never suggested again.
+//   'ride'    the last change has not been ridden and said to feel better or the same yet.
+//   'worse'   it was ridden and felt worse once: ride it once more; a second "worse" puts it back. Also
+//             with nothing to change (oneWorseInRange), with no would: the areas stay as measured.
+// r.sameWay: the held change goes the same way as the last one (the knee is "still" low or high).
+// With a fitter's bike and pain, the change stands (pain already caps the saddle step at 5 mm), with
+// change.tellFitter: "Tell your bike fitter too."
+export function withFeel(r, history, { fitter = false, pain = false } = {}) {
+  const c = r?.change;
+  if (!c) return oneWorseInRange(r, history) ? { ...r, wait: 'worse' } : r;
+  if (fitter && !pain) return { ...r, change: null, would: c, wait: 'fitter' };
+  const m = lastMade(history)?.made;
+  const same = !!m && m.kind === c.kind && (c.kind !== 'saddle' || (m.dir > 0) === !!c.raise);
+  if (m?.undone && same) return { ...r, change: null, would: c, wait: 'undone', overall: 'amber' };
+  if (m && !m.undone && !feelSettled(m)) {
+    const wait = m.feel?.some(f => f.said === 'worse') ? 'worse' : 'ride';
+    return { ...r, change: null, would: c, wait, overall: 'amber', retest: noNextStep(r.retest), ...(same ? { sameWay: true } : {}) };
+  }
+  if (fitter) return { ...r, change: { ...c, tellFitter: true } };
+  return r;
+}
+// One "worse" on the newest change (not settled, not put back) and a film with nothing to change: the
+// knee is in range now. Then it is 'worse' too, with nothing held (no would), so the areas keep what was
+// measured, and the words are the one-worse words, never "Nothing to change today ... check again
+// whenever you change the saddle" (re-test finding 2: that ignored his answer, and the second "worse"
+// then put back a saddle the app had called right). A film that asks for one more (close to the edge,
+// the held-still reading, a change held for one more film) or measured nothing says that first.
+function oneWorseInRange(r, history) {
+  const m = lastMade(history)?.made;
+  return !!m && !m.undone && !feelSettled(m) && (m.feel || []).filter(f => f.said === 'worse').length === 1
+    && r?.verdict === 'ok' && !r.held && !r.heldBars && !(r.stillOut && !r.stillOutAgain);
+}
+// For Copy Results, the report a rider can hand a fitter: how the newest change felt, in order.
+export function feelReport(history) {
+  const m = lastMade(history)?.made;
+  if (!m?.feel?.length) return '';
+  const what = m.kind === 'saddle' ? `${m.dir > 0 ? 'raised' : 'lowered'} the saddle ${m.mm} mm` : 'raised the handlebars';
+  const words = { better: 'better', same: 'the same', worse: 'worse' };
+  return `How the last change felt (${what}): ${m.feel.map(f => words[f.said]).join(', then ')}.${m.undone ? ' Put back to the tape mark.' : ''}`;
+}
+const RIDE_SAID = 'One change per ride. Ride it first. Next time, tell me how it felt.';
+// After one "worse" (QA round 4: "Next time, tell me how it felt" answered an answer just given).
+const WORSE_SAID = 'It felt worse. Ride it once more, then tell me how it felt. If it is still worse, I will tell you to put it back.';
+// The waits for a ride, whose area reads After a ride (STATUS.ride), not Needs attention: the advice is
+// to change nothing today.
+const RIDE_WAITS = ['ride', 'worse'];
+// Where the knee is, for a saddle change held for a ride: "still a little low", "low", "a little high".
+// "still" only when the held change goes the same way as the one he made (r.sameWay).
+const heldZone = (r) => (r.would?.kind === 'saddle'
+  ? `${r.sameWay ? 'still ' : ''}${r.would.how === 'too' ? '' : 'a little '}${r.would.raise ? 'low' : 'high'}` : null);
+const heldSaid = (r) => (heldZone(r) ? `Your saddle ${r.sameWay ? 'still ' : ''}looks ${r.would.how === 'too' ? '' : 'a little '}${r.would.raise ? 'low' : 'high'}.` : null);
+const FITTER_SAID = 'A bike fitter set up this bike, so I only report.';
+const UNDONE_SAID = 'It felt worse twice when you made this change, so I will not suggest it again. A bike fitter can look at why.';
+const TELL_FITTER = 'Tell your bike fitter too.';
+const wouldLooks = (c) => (c?.kind === 'saddle' ? `Your saddle looks ${c.raise ? 'low' : 'high'}` : 'The front of your bike looks long and low');
+// The step for the area the held change was about.
+const WAIT_STEP = { ride: 'Ride it first, then check again.', worse: 'Ride it once more, then check again.', fitter: 'Ask your fitter before you change it.' };
+export const waitStep = (r) => WAIT_STEP[r.wait] || (r.would?.kind === 'saddle' ? 'Leave it at your tape mark.' : 'Leave the handlebars as they are.');
+
 // What a session suggested, stored in its history entry, so the app can still ask "did you make this
 // change?" after the results screen has gone: the rider usually makes the change after leaving it.
+// how: "a little" or "too", so the Check tab says what the results said (with pain the step is capped
+// at 5 mm, the words are not).
 export function suggestedChange(change) {
-  if (change?.kind === 'saddle') return { kind: 'saddle', raise: !!change.raise, mm: [change.mm[0], change.mm[1]] };
+  if (change?.kind === 'saddle') return { kind: 'saddle', raise: !!change.raise, mm: [change.mm[0], change.mm[1]], ...(change.how ? { how: change.how } : {}) };
   if (change?.kind === 'bars') return { kind: 'bars' };
   return null;
 }
@@ -1397,9 +1752,8 @@ export function suggestionText(sug) {
   return '';
 }
 
-// The millimetre buttons on the change card. 15 is rule 2's most for one change (fit-rules.md); 5
-// and 10 are a design choice, so smaller steps are one tap too. "Other" opens a number field.
-export const MADE_CHOICES = [5, 10, 15];
+// The millimetre steps the app gives (stepSize): 3, 5 and 10 mm.
+export const MADE_CHOICES = [3, 5, 10];
 export const LATER = 'Not Yet';
 
 // The words of the change card. where: 'results' or 'home'. mode: 'ask' (first time), 'later' (he
@@ -1495,6 +1849,7 @@ export function historyWords(s) {
   else if (m?.kind === 'bars') out.push('raised the handlebars');
   else if (sug?.kind === 'saddle') { const [a, b] = sug.mm; out.push(`suggested: ${sug.raise ? 'raise' : 'lower'} about ${a === b ? a : `${a} to ${b}`} mm`); }
   else if (sug?.kind === 'bars') out.push('suggested: raise the handlebars');
+  else if (s?.wait) out.push({ ride: 'ride it first', worse: 'ride it once more', fitter: 'report only', undone: 'left as it was' }[s.wait] || 'no change');
   else out.push(s?.change ? s.change.toLowerCase() : 'no change');
   if (Number.isFinite(s?.values?.kneePedal)) out.push(`knee ${s.values.kneePedal}°`);
   return out;
@@ -1502,9 +1857,12 @@ export function historyWords(s) {
 
 // The held-still reading was out of range while the pedalling one was in range (stillOut). When the
 // last session filmed the same way said so too, asking for "once more" again would never end: the
-// pedalling reading counts for more. Returns r with stillOutAgain set in that case.
+// pedalling reading counts for more. Returns r with stillOutAgain set in that case. The average of two
+// films near the edge (r.averaged) is final too: it already is the "once more" (QA round 4: the film
+// between, 'edge', never stored stillOut, so the two kinds of "once more" took turns for ever).
 export function withStillHistory(r, history) {
   if (!r?.stillOut) return r;
+  if (r.averaged) return { ...r, stillOutAgain: true };
   const last = (history || []).find(s => sameSetup(s?.setup, r.setup));
   return last?.stillOut ? { ...r, stillOutAgain: true } : r;
 }
@@ -1534,22 +1892,27 @@ export const PAIN_SHORT = 'Pain that keeps coming back: see a doctor or physio, 
 
 // ── the result list, one row per measurement ─────────────────────────────────────────────────
 // Statuses in the style of Apple's movement evaluations, with one difference on purpose: there is
-// no "Excellent". A phone camera cannot tell the middle of a range from its edge, so a grade finer
-// than "in range" would be made-up precision. The middle tier is "Fair", Apple's word for it
+// no "Excellent". "Good" already means a reading inside its target by more than the app's error (zone,
+// SPEC 4.3), so no fourth word is needed. The middle tier is "Fair", Apple's word for it
 // (design-spec.md, Alex 2026-10-10: the design follows Apple's Health app).
-export const STATUS = { green: 'Good', amber: 'Fair', red: 'Needs attention', info: 'For reference', after: 'After the saddle', na: 'No reading' };
+// ride: an area whose change waits for a ride (withFeel): nothing to change today, so not Needs attention.
+export const STATUS = { green: 'Good', amber: 'Fair', red: 'Needs attention', info: 'For reference', after: 'After the saddle', ride: 'After a ride', na: 'No reading' };
 
 // Each row: { key, name, value, target, grade, status, why, step }. Exactly one step per row.
 export function measures(r, pedal) {
   const deg = (v) => `${round(v)}°`;
-  // 'na' for a missing reading, so it is never described as a number or as in range.
-  const side = (v, [lo, hi]) => (!Number.isFinite(v) ? 'na' : v > hi + GREEN_TOL ? 'high' : v < lo - GREEN_TOL ? 'low' : 'in');
   const NOT_MEASURED = 'Not measured this time.';
   const FILM_WHOLE = 'Film again, with your whole body and bike in the picture.';
-  // In range, said honestly: a reading inside the 2.5 degree tolerance but outside the range itself
-  // is not "inside the target".
-  const inWhy = (phrase, v, [lo, hi]) => (v >= lo && v <= hi ? `${phrase}, inside the target.`
-    : `${phrase}, within 2.5° of the ${lo} to ${hi} target. A phone camera cannot tell that apart, so it counts as in range.`);
+  // A reading not in Needs attention, said honestly (SPEC 4.3): inside by more than u, inside but near
+  // an edge, or just outside, closer to the edge than a phone camera can tell apart. Never "inside the
+  // target" for a reading outside it.
+  const inWhy = (phrase, v, name) => {
+    const [lo, hi] = TARGETS[name], z = zone(name, v);
+    return z.grade === 'green' ? `${phrase}, inside the target.`
+      : z.side === 'in' ? `${phrase}, inside the target, near its edge.`
+      : `${phrase}, within ${U[name]}° of the ${lo} to ${hi} target: closer than a phone camera can tell apart.`;
+  };
+  const target = (name) => `Target ${TARGETS[name][0]} to ${TARGETS[name][1]}`;
   const bars = r.change?.kind === 'bars';
   const saddleFirst = r.change?.kind === 'saddle';
   // One change at a time, saddle first: raising or lowering it also changes the reach.
@@ -1562,63 +1925,69 @@ export function measures(r, pedal) {
   const rows = [];
 
   const { dir, secs } = setupOf(r.setup);
-  const kp = pedal?.strokes >= 5 ? pedal.kneeFlex : NaN;
-  const sp = side(kp, TARGETS.kneeDynamic);
+  // Two films averaged (advise opts.before): the row shows the average, which is what decided.
+  const kp = r.averaged ? r.knee : pedal?.strokes >= 5 ? pedal.kneeFlex : NaN;
+  const zp = zone('kneeDynamic', kp);
+  // Which way a reading points: out of range by more than u, or not.
+  const wayOf = (z) => (z.grade === 'red' ? z.side : 'in');
   {
     const tooFast = !!r.tooFast; // advise() decides it, so the row and the areas agree
-    rows.push(row('kneePedal', `Knee bend with the pedal at its lowest, pedalling ${r.pedalDir || dir}`, kp, 'Target 30 to 40', grade('kneeDynamic', kp),
+    const bent = r.averaged ? `Bent ${deg(kp)} on average over two films, with the pedal at its lowest point` : `Bent ${deg(kp)} each time the pedal was at its lowest point`;
+    rows.push(row('kneePedal', `Knee bend with the pedal at its lowest, pedalling ${r.pedalDir || dir}`, kp, target('kneeDynamic'), zp.grade,
       tooFast ? 'You pedalled faster than this phone can measure each stroke.'
         : !Number.isFinite(kp) ? 'There were not enough pedal strokes to measure.'
-        : sp === 'in' ? inWhy(`Bent ${deg(kp)} each time the pedal was at its lowest point`, kp, TARGETS.kneeDynamic)
-        : sp === 'high' ? `Still bent ${deg(kp)} with the pedal at its lowest point, more than the target, so the saddle is probably low.`
+        : zp.grade !== 'red' ? inWhy(bent, kp, 'kneeDynamic')
+        : zp.side === 'high' ? `Still bent ${deg(kp)} with the pedal at its lowest point, more than the target, so the saddle is probably low.`
         : `Only bent ${deg(kp)} with the pedal at its lowest point, less than the target, so the saddle is probably high.`,
       tooFast ? 'Film again and pedal more slowly.'
         : !Number.isFinite(kp) ? `Film again and pedal ${dir} for the full ${secs} seconds.`
-        : saddleFirst ? `${r.change.headline}.` : sp === 'in' ? 'Leave the saddle height as it is.' : 'Film again to confirm before you change anything.'));
+        : saddleFirst ? `${r.change.headline}.` : r.verdict === 'edge' ? 'Film once more. Leave the phone where it is.'
+        : zp.grade !== 'red' ? 'Leave the saddle height as it is.' : 'Film again to confirm before you change anything.'));
   }
   {
     const off = Number.isFinite(r.stillOffBottom);
-    const v = off ? NaN : r.staticKnee, s = side(v, TARGETS.kneeStatic);
-    rows.push(row('kneeStill', 'Knee bend with the pedal at its lowest, held still', v, 'Target 25 to 35', grade('kneeStatic', v),
+    const v = off ? NaN : r.staticKnee, s = zone('kneeStatic', v);
+    rows.push(row('kneeStill', 'Knee bend with the pedal at its lowest, held still', v, target('kneeStatic'), s.grade,
       // "may not have been": the crank check is close to its own noise (a foot that sits differently when
       // you stop pedalling moves the ankle too), and it has not been checked on a real rider yet.
       off ? `The pedal may not have been at its lowest point when you held still (it looked about ${r.stillOffBottom}° off), so I did not use this reading.`
         : !Number.isFinite(v) ? 'The still part was not measured.'
-        : s === 'in' ? inWhy(`Bent ${deg(v)} with the pedal held at its lowest point`, v, TARGETS.kneeStatic)
-        : `Bent ${deg(v)} with the pedal held at its lowest point, ${s === 'high' ? 'more' : 'less'} than the target.`,
+        : s.grade !== 'red' ? inWhy(`Bent ${deg(v)} with the pedal held at its lowest point`, v, 'kneeStatic')
+        : `Bent ${deg(v)} with the pedal held at its lowest point, ${s.side === 'high' ? 'more' : 'less'} than the target.`,
       off ? 'Next time, hold the pedal arm pointing straight down.'
         : !Number.isFinite(v) ? 'Next time, hold the pedal at its lowest point until you hear "got it".'
-        : r.disagree ? 'Film again: this and the pedalling reading point different ways.'
+        : r.disagreeWith === 'still' ? 'Film again: this and the pedalling reading point different ways.'
         // Out of range twice running while pedalling was in range: no third "once more" (withStillHistory).
         : r.stillOut && r.stillOutAgain ? 'Nothing extra to do: the pedalling reading counts for more.'
         : r.stillOut ? 'Film once more to be sure. The pedalling reading counts for more.'
-        : r.verdict === 'stillOnly' ? (s === 'in' ? `Film again and pedal ${dir} to be sure.` : `Film again and pedal ${dir} before you move the saddle.`)
-        : s === sp ? 'Nothing extra to do: it agrees with the pedalling reading.'
+        : r.verdict === 'stillOnly' ? (s.grade !== 'red' ? `Film again and pedal ${dir} to be sure.` : `Film again and pedal ${dir} before you move the saddle.`)
+        : wayOf(s) === wayOf(zp) ? 'Nothing extra to do: it agrees with the pedalling reading.'
         : 'Nothing extra to do: the pedalling reading counts for more.'));
   }
   {
-    const v = r.torso, s = side(v, TARGETS.torso);
-    rows.push(row('torso', 'Back angle, from horizontal', v, 'Target 40 to 50', upperGrade(grade('torso', v)),
-      s === 'na' ? NOT_MEASURED : s === 'in' ? inWhy(`Your back is ${deg(v)} above horizontal`, v, TARGETS.torso)
-        : s === 'low' ? `Your back is ${deg(v)} above horizontal: a long, low position.` : `Your back is ${deg(v)} above horizontal: quite upright.`,
-      s === 'na' ? FILM_WHOLE : s === 'in' ? 'No change needed.' : upperStep('torso', s === 'low' ? 'If your back or neck aches, raise the bars a little.'
+    const v = r.torso, s = zone('torso', v);
+    rows.push(row('torso', 'Back angle, from horizontal', v, target('torso'), upperGrade(s.grade),
+      s.grade === 'na' ? NOT_MEASURED : s.grade !== 'red' ? inWhy(`Your back is ${deg(v)} above horizontal`, v, 'torso')
+        : s.side === 'low' ? `Your back is ${deg(v)} above horizontal: a long, low position.` : `Your back is ${deg(v)} above horizontal: quite upright.`,
+      s.grade === 'na' ? FILM_WHOLE : s.grade !== 'red' ? 'No change needed.' : upperStep('torso', s.side === 'low' ? 'If your back or neck aches, raise the bars a little.'
         : 'Fine for most riding. Lower the bars only if you want a faster position.')));
   }
   {
-    const v = r.elbow, s = side(v, TARGETS.elbow);
-    rows.push(row('elbow', 'Elbow bend', v, 'Target 15 to 30', upperGrade(grade('elbow', v)),
-      s === 'na' ? NOT_MEASURED : s === 'in' ? inWhy(`Bent ${deg(v)}`, v, TARGETS.elbow) : s === 'low' ? `Only bent ${deg(v)}: your arms are close to straight.` : `Bent ${deg(v)}, more than the target.`,
-      s === 'na' ? FILM_WHOLE : s === 'in' ? 'No change needed.' : upperStep('elbow', s === 'low' ? 'Ride with soft elbows. If you cannot, the bars may be too far away.'
+    const v = r.elbow, s = zone('elbow', v);
+    rows.push(row('elbow', 'Elbow bend', v, target('elbow'), upperGrade(s.grade),
+      s.grade === 'na' ? NOT_MEASURED : s.grade !== 'red' ? inWhy(`Bent ${deg(v)}`, v, 'elbow') : s.side === 'low' ? `Only bent ${deg(v)}: your arms are close to straight.` : `Bent ${deg(v)}, more than the target.`,
+      s.grade === 'na' ? FILM_WHOLE : s.grade !== 'red' ? 'No change needed.' : upperStep('elbow', s.side === 'low' ? 'Ride with soft elbows. If you cannot, the bars may be too far away.'
         : 'No change needed on its own.')));
   }
   {
-    const v = r.shoulder, s = side(v, TARGETS.shoulder);
-    rows.push(row('shoulder', 'Shoulder angle, torso to arm', v, 'Target 80 to 95', upperGrade(grade('shoulder', v)),
-      s === 'na' ? NOT_MEASURED : s === 'in' ? inWhy(`${deg(v)} between your torso and upper arm`, v, TARGETS.shoulder)
-        : s === 'low' ? `${deg(v)} between your torso and upper arm: a closed position.`
-        : `${deg(v)} between your torso and upper arm: your arms reach far forward.`,
-      s === 'na' ? FILM_WHOLE : s === 'in' ? 'No change needed.' : upperStep('shoulder', s === 'low' ? 'No change on its own. If you feel cramped on the bike, a bike fitter can check your stem length.'
-        : 'If you feel stretched, a shorter stem is the usual fix.')));
+    // For reference, like the hip (SPEC 4.2): no study gives a target for this angle, so it has no
+    // status colour. Only a clearly stretched reading (FRONT_SIGNS) is said to reach far forward.
+    const v = r.shoulder, seen = Number.isFinite(v), far = seen && FRONT_SIGNS.shoulder(v);
+    rows.push(row('shoulder', 'Shoulder angle, torso to arm', v, 'No agreed target', 'info',
+      !seen ? NOT_MEASURED : far ? `${deg(v)} between your torso and upper arm: your arms reach far forward.`
+        : `${deg(v)} between your torso and upper arm. No study gives a target for it, so it is for reference.`,
+      !seen ? FILM_WHOLE : bars && r.change.flags?.includes('shoulder') ? 'Part of the main change: raise the handlebars.'
+        : far && !saddleFirst ? 'If you feel stretched, a shorter stem is the usual fix.' : 'Nothing to do. It is for reference only.'));
   }
   // A new key on purpose: old sessions measured the hip at the top of the stroke, and those
   // numbers are never compared with this one.
@@ -1633,7 +2002,8 @@ export function measures(r, pedal) {
 // ── results by area ──────────────────────────────────────────────────────────────────────────
 // Apple's movement evaluations rate each area once, with why you got it and one step. Here there
 // are two areas you can act on, plus the extra numbers. fit-rules.md rule 4 reads the back, shoulder
-// and elbow together because they share one cause, so they are graded as one area, not three.
+// and elbow together because they share one cause, so they are graded as one area, not three; the
+// shoulder is for reference only (SPEC 4.2), so the back and elbow set the area's status.
 // rows: the output of measures(). Each area: { key, name, grade, status, why, step, rows }.
 export function areas(r, rows) {
   const by = Object.fromEntries((rows || []).map(x => [x.key, x]));
@@ -1642,42 +2012,50 @@ export function areas(r, rows) {
   // Saddle height: the pedalling reading decides, the held-still one can only hold a change back.
   // Held still alone is Fair whatever it reads: no millimetres from it, and it is only a
   // cross-check, so it cannot make the saddle Good (Bini and Hume 2016: about 8 degrees from pedalling).
+  // A saddle change held for a ride (withFeel): After a ride, neutral, since nothing is to change today.
   const sGrade = r.verdict === 'none' ? 'na' : r.verdict === 'disagree' || r.verdict === 'stillOnly' ? 'amber'
+    : RIDE_WAITS.includes(r.wait) && r.would?.kind === 'saddle' ? 'ride'
     : r.kneeGrade;
   const saddle = area('saddle', 'Saddle height', sGrade, saddleWhy(r), saddleStep(r), pick('kneePedal', 'kneeStill'));
 
   // Reach and bar height.
-  const U = ['torso', 'elbow', 'shoulder'];
-  const g = Object.fromEntries(U.map(k => [k, r[k + 'Grade']]));
-  const seen = U.filter(k => g[k] !== 'na');
+  const g = Object.fromEntries(UPPER.map(k => [k, r[k + 'Grade']]));
+  const seen = UPPER.filter(k => g[k] !== 'na');
   const off = offAngles(r);
   const urows = pick('torso', 'elbow', 'shoulder');
   let reach;
-  if (r.change?.kind === 'saddle' || r.verdict === 'change') {
-    // Also when a retest held a saddle change back: the saddle is still not right.
+  if (r.change?.kind === 'saddle' || r.verdict === 'change' || r.verdict === 'edge') {
+    // Also when a retest held a saddle change back, or the knee is close to the edge and one more film
+    // decides: the saddle is still not settled.
     reach = area('reach', 'Reach and bar height', 'after', 'Moving the saddle changes your reach too, so this waits until the saddle is right.', 'Nothing to do yet.', urows);
+  } else if (r.would?.kind === 'bars') {
+    // A handlebar change withFeel held: a fitter's bike (report only, Needs attention), a ride first, or
+    // the same change put back after two "worse" answers.
+    reach = area('reach', 'Reach and bar height', r.wait === 'fitter' ? 'red' : RIDE_WAITS.includes(r.wait) ? 'ride' : 'amber', r.would.reason || r.would.why, waitStep(r), urows);
   } else if (r.heldBars) {
     // A handlebar change waits for one more film (withRetest): Fair, never Good, with that one step.
     reach = area('reach', 'Reach and bar height', 'amber', r.heldBars.reason || r.heldBars.why, 'Film once more before you change the handlebars.', urows);
   } else if (r.change?.kind === 'bars') {
     reach = area('reach', 'Reach and bar height', 'red', r.change.reason || r.change.why, 'Raise the handlebars: move one spacer from above the stem to below it.', urows);
   } else if (!seen.length) {
-    reach = area('reach', 'Reach and bar height', 'na', 'I could not measure your back, elbow and shoulder this time.', 'Film again, with your whole body and bike in the picture.', urows);
+    reach = area('reach', 'Reach and bar height', 'na', 'I could not measure your back and elbow this time.', 'Film again, with your whole body and bike in the picture.', urows);
   } else if (!off.length) {
-    const inside = seen.every(k => { const [lo, hi] = TARGETS[k]; return r[k] >= lo && r[k] <= hi; });
-    const who = seen.length === 3 ? 'back, elbow and shoulder angles are' : `${list(seen.map(k => NAMES[k]))} ${seen.length > 1 ? 'are' : 'is'}`;
-    // Honest wording: within 2.5 degrees of a target counts as in range, but is not "inside" it.
-    reach = area('reach', 'Reach and bar height', 'green',
-      inside ? `Your ${who} all inside their targets.`.replace(' is all inside their targets', ' is inside its target')
-        : `Your ${who} all in range, each inside its target or within 2.5° of it.`.replace(' is all in range, each', ' is in range,'),
-      'No change needed.', urows);
+    // Every graded angle inside its band: Good when each is inside by more than its u, else Fair,
+    // with the ones near an edge named. Nothing to change either way.
+    const near = seen.filter(k => g[k] !== 'green').map(k => NAMES[k]);
+    const who = seen.length === 2 ? 'back and elbow angles are' : `${NAMES[seen[0]]} is`;
+    reach = near.length
+      ? area('reach', 'Reach and bar height', 'amber',
+        `Your ${who} inside ${seen.length === 2 ? 'their targets' : 'its target'}. Your ${list(near)} ${near.length > 1 ? 'are' : 'is'} near the edge. That is fine to ride.`,
+        'No change needed.', urows)
+      : area('reach', 'Reach and bar height', 'green', `Your ${who} inside ${seen.length === 2 ? 'their targets' : 'its target'}.`, 'No change needed.', urows);
   } else {
     // Fair, not Needs attention, for angles outside their range without a bars change. A design
     // choice: fit-rules.md rule 4 needs two signs before a change, and a red pill with "nothing to
     // change" under it would pull against one change at a time. Fine to ride, and compared next time.
-    // Only a low back, a shoulder over 95 and locked elbows are signs of a long, low front end (see
-    // advise()); a closed shoulder or bent elbows are not, so they are not called half of a bars change.
-    const signs = Object.entries(FRONT_SIGNS).filter(([k, test]) => off.includes(NAMES[k]) && test(r[k])).length;
+    // Only a low back, a shoulder over 95 plus u and locked elbows are signs of a long, low front end
+    // (see advise()); a closed shoulder or bent elbows are not, so they are not called half of a bars change.
+    const signs = Object.entries(FRONT_SIGNS).filter(([k, test]) => Number.isFinite(r[k]) && test(r[k])).length;
     const tail = r.verdict !== 'ok' ? ' Bar changes wait until the saddle height is settled.'
       : signs ? ' That is one sign of a long, low front end, but the handlebars only need to move when two signs point the same way. That is fine to ride.'
       : ' That is fine to ride.';

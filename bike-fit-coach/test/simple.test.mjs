@@ -22,10 +22,14 @@ const blocks = (html) => html.replace(/<details[\s\S]*?<\/details>/g, ' ').repla
   .replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>/g, ' ')
   .split(/<[^>]+>/).map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean);
 const between = (html, a, b) => { const i = html.indexOf(a); assert.ok(i >= 0, a); const j = html.indexOf(b, i); assert.ok(j > i, b); return html.slice(i, j); };
+// Round 4: the fitter question, the feel question and the revert screen are flow screens too.
 const SCREENS = {
   'How Will Your Bike Stay Up?': ['id="flowSetup"', 'id="flowScreen"'],
-  'Where Will the Screen Face?': ['id="flowScreen"', 'id="flowPain"'],
-  'Pain or Numbness That Keeps Coming Back When You Ride?': ['id="flowPain"', 'id="flowReady"'],
+  'Where Will the Screen Face?': ['id="flowScreen"', 'id="flowFitter"'],
+  'Has a Bike Fitter Set This Bike Up for You?': ['id="flowFitter"', 'id="flowPain"'],
+  'Pain or Numbness That Keeps Coming Back When You Ride?': ['id="flowPain"', 'id="flowFeel"'],
+  'Better, the Same, or Worse?': ['id="flowFeel"', 'id="flowRevert"'],
+  'Put the Saddle Back': ['id="flowRevert"', 'id="flowReady"'],
   'Getting Ready': ['id="flowReady"', 'id="flowAllow"'],
   'Allow Camera and Motion': ['id="flowAllow"', 'id="flowWhere"'],
   'Is the Phone Where It Was?': ['id="flowWhere"', '<!-- ── the three tabs'],
@@ -49,7 +53,7 @@ test('no paragraph on a main-path screen: every line a rider sees without a tap 
 
 test('one primary button on each step of the check, at the bottom where the thumb is', async () => {
   const html = await read('index.html');
-  for (const [name, [a, b]] of Object.entries(SCREENS).slice(0, 6)) {
+  for (const [name, [a, b]] of Object.entries(SCREENS).slice(0, 9)) {
     const s = between(html, a, b);
     assert.equal((s.match(/class="fprimary"/g) || []).length, 1, name);
     // Inside the bottom bar.

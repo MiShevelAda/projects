@@ -45,7 +45,11 @@ const el = Object.fromEntries(['home', 'flow', 'flowSetup', 'flowScreen', 'flowP
   'assessCard', 'latestHead', 'latestSub', 'latestCards', 'showAll', 'progCard', 'segSaddle', 'segReach', 'changes', 'changesH',
   'flowAllow', 'allowStart', 'allowStatus', 'allowBack', 'allowClose', 'hearMe', 'flowWhere', 'whereYes', 'whereNo', 'whereClose',
   'rWhen', 'whenTonight', 'whenWeekend', 'whenPick', 'whenPickRow', 'whenDate', 'whenAdd', 'whenSkip', 'rWhenDone', 'rMadeHint', 'fixTape',
-  'inApp', 'copyLink', 'copyDone', 'hearHint']
+  'inApp', 'copyLink', 'copyDone', 'hearHint',
+  'flowFitter', 'fitterQ', 'fitterCard', 'fitterErr', 'fitterNo', 'fitterYes', 'fitterNext', 'fitterBack', 'fitterClose',
+  'flowFeel', 'feelQ', 'feelSub', 'feelCard', 'feelErr', 'feelNext', 'feelLater', 'feelBack', 'feelClose',
+  'flowRevert', 'revertH', 'revertSub', 'revertNext', 'revertClose', 'kitRow', 'warmRow', 'kitDiff',
+  'demo', 'demoVideo', 'placeVideo', 'learnDemo', 'learnVideo', 'learnTrainer', 'learnWall', 'learnFriend']
   .map(id => [id, $(id)]));
 const now = () => performance.now() / 1000;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -454,7 +458,10 @@ const debug = { phase: () => phase, setup: () => setup, screen: () => screen, se
   // The recorded voice: how many clips the manifest lists, each clip as it starts playing, any part
   // said in the phone's voice because its clip failed (fallback) or has none (missing), and manifest
   // errors.
-  voice: { clips: 0, played: [], fallback: [], missing: [], errors: [] } };
+  voice: { clips: 0, played: [], fallback: [], missing: [], errors: [] },
+  // The drawn demos (Demo): each one shown, its clips, the step and the line it began in, and when, in
+  // which step and why it ended (ended, skipped, left with its step, failed, stalled).
+  demos: [] };
 window.__bfc = debug;
 function log(kind, msg) { if (kind === 'say') debug.said.push(msg); }
 
@@ -536,6 +543,7 @@ const S = () => fit.setupOf(session?.setup);
 
 const STEP_ORDER = ['phone', 'mount', 'frame', 'still', 'pedal'];
 function go(name, t, reason) {
+  Demo.stopLive('left'); // a demo never plays into the next step
   phase = name;
   phaseT0 = t;
   ph = {};
@@ -553,12 +561,16 @@ function go(name, t, reason) {
 // Seconds since the step began and everything queued has been spoken: step clocks start when the
 // instruction has been heard, not when it was queued. Never quiet while a line is still playing.
 const quiet = (t) => (Voice.busy() ? -Infinity : t - Math.max(phaseT0, Voice.lastEnd));
+// The words of the line queued last (or playing, when nothing waits behind it).
+const lastQueued = () => (Voice.q[Voice.q.length - 1] || Voice.cur)?.text ?? null;
 
 // The screens: the three tabs ('home'), the check flow before the camera ('flow': Setup, then Getting
 // Ready), the camera view ('run'), and the results ('results'), a sheet in place of the tabs: no tab
 // bar, a glass close button, and the dimmed colour behind its top edge. One at a time, each scrolling
 // as the page. The status bar colour follows: the flow and the camera view are dark in both modes.
 function show(name) {
+  if (name !== 'run') Demo.stopLive('left');
+  if (name !== 'home') Demo.stop('left');
   for (const s of ['home', 'flow', 'run', 'results']) el[s].hidden = s !== name;
   document.body.classList.toggle('in-flow', name === 'flow');
   document.body.classList.toggle('in-sheet', name === 'results');
@@ -567,11 +579,14 @@ function show(name) {
   }
   if (name !== 'flow') pauseHowTo();
   window.scrollTo(0, 0);
+  if (name === 'results') fitBar(); // measured once the sheet is shown
 }
 
 // The check flow, one question a screen as in Apple's "Choose How to Measure": 'setup' (how the bike
-// stays up), 'screen' (which way the screen faces), 'pain' (the pain question), then 'ready' (Getting
-// Ready: the clip, what you need), then, before the first check in a page view, 'allow' (why the
+// stays up), 'screen' (which way the screen faces), 'fitter' (the first time on this phone: has a bike
+// fitter set this bike up?), 'pain' (the pain question), 'feel' (after a change he has ridden: better,
+// the same, or worse?) and 'revert' (the second "worse": put it back), then 'ready' (Getting Ready: the
+// clip, what you need, the warm-up), then, before the first check in a page view, 'allow' (why the
 // iPhone asks for the camera and motion, a sound check, and Start). 'where' asks "Is the phone where
 // it was?" when Check It Now cannot tell from the motion sensor. A new question screen puts
 // VoiceOver on its title.
@@ -581,22 +596,61 @@ function showFlow(step) {
   flowStep = step;
   el.flowSetup.hidden = step !== 'setup';
   el.flowScreen.hidden = step !== 'screen';
+  el.flowFitter.hidden = step !== 'fitter';
   el.flowPain.hidden = step !== 'pain';
+  el.flowFeel.hidden = step !== 'feel';
+  el.flowRevert.hidden = step !== 'revert';
   el.flowReady.hidden = step !== 'ready';
   el.flowAllow.hidden = step !== 'allow';
   el.flowWhere.hidden = step !== 'where';
   if (step !== 'ready') pauseHowTo();
   show('flow');
-  if (moved) ({ setup: el.setupQ, screen: el.screenQ, pain: el.painQ })[step]?.focus?.({ preventScroll: true });
+  roomForBar();
+  if (moved) ({ setup: el.setupQ, screen: el.screenQ, fitter: el.fitterQ, pain: el.painQ, feel: el.feelQ, revert: el.revertH })[step]?.focus?.({ preventScroll: true });
+  if (moved) answersInView();
+}
+
+// Large text on a short screen put a question's first answer under the fixed Next bar (round 3's QA:
+// 28 px text at 375 x 667). The picture at the top gives way first; if the answer is still under the
+// bar, the page scrolls just enough to show it. The question is said aloud, so a title that scrolls
+// up a little is still heard. Measured, since the sizes follow the iPhone's text size.
+const FIRST_ANSWER = { setup: ['setupTrainer', 'flowNext'], screen: ['screenAway', 'screenNext'], fitter: ['fitterNo', 'fitterNext'],
+  pain: ['painNo', 'painNext'], feel: ['feelBetter', 'feelNext'] };
+function answersInView() {
+  const ids = FIRST_ANSWER[flowStep];
+  const sec = { setup: el.flowSetup, screen: el.flowScreen, fitter: el.flowFitter, pain: el.flowPain, feel: el.flowFeel }[flowStep];
+  if (!ids || !sec) return;
+  const [answer, next] = ids.map($);
+  // The gap kept between the answer and the bar (a design choice).
+  const under = () => {
+    const a = answer.getBoundingClientRect?.(), b = next.getBoundingClientRect?.();
+    return a && b ? a.bottom - (b.top - 12) : 0;
+  };
+  sec.classList.remove('compact');
+  if (under() <= 0) return;
+  sec.classList.add('compact');
+  const more = under();
+  if (more > 0) window.scrollTo(0, Math.ceil((window.scrollY || 0) + more));
 }
 
 window.addEventListener?.('scroll', () => el.flow.classList.toggle('scrolled', !el.flow.hidden && window.scrollY > 120), { passive: true });
+// The bottom bar is fixed over the screen, so the screen leaves room under its last line for all of
+// the bar, at any text size: large text makes the bar taller, and a retest's Getting Ready has a
+// second button in it (Different Shoes or Shorts). Measured, since the bar's height follows the text.
+function roomForBar() {
+  const sec = { setup: el.flowSetup, screen: el.flowScreen, fitter: el.flowFitter, pain: el.flowPain, feel: el.flowFeel, revert: el.flowRevert,
+    ready: el.flowReady, allow: el.flowAllow, where: el.flowWhere }[flowStep];
+  const h = sec?.querySelector?.('.fbar')?.getBoundingClientRect?.().height;
+  if (h) sec.style.paddingBottom = `${Math.ceil(h) + 16}px`;
+}
+window.addEventListener?.('resize', () => { if (!el.flow.hidden) { roomForBar(); answersInView(); } if (!el.results.hidden) fitBar(); }, { passive: true });
 
 // The three tabs. ?tab=progress or ?tab=learn opens on that tab, for testing.
 const TABS = { check: 'tabCheck', progress: 'tabProgress', learn: 'tabLearn' };
 let tab = 'check';
 function selectTab(name) {
   if (!TABS[name]) return;
+  if (name !== 'learn') Demo.stop('left'); // Learn's demo, if it plays
   tab = name;
   for (const [k, id] of Object.entries(TABS)) {
     el[id].hidden = k !== name;
@@ -632,6 +686,16 @@ const WHEN_LINE = 'When will you move it?';
 const HEAR_LINE = 'Hello. You can hear me, so the sound is working.';
 // The pain question's Next tapped before an answer.
 const PAIN_ASK = 'First, tap No or Yes.';
+// Round 4, Phase 0 (pro-standard SPEC 5.0 and 4.4): the lines as the SPEC words them.
+const FITTER_LINE = 'Has a bike fitter set this bike up for you?';
+const FEEL_LINE = 'You rode it. Better, the same, or worse?';
+const FEEL_ASK = 'First, tap how it felt.';
+const REVERT_LINE = { saddle: 'It felt worse twice. Put the saddle back to your tape mark.', bars: 'It felt worse twice. Put the handlebars back as they were.' };
+const REVERT_PAIN = 'With pain, see a bike fitter.';
+const WARM_LINE = { trainer: 'Before I film, ride easily for five minutes. I will wait.', wall: 'If you can, go for a ten-minute ride first.', friend: 'If you can, go for a ten-minute ride first.' };
+const KIT_LINE = 'Are your cycling shoes and padded shorts on? They change how high you sit.';
+const RETEST_KIT_LINE = 'Same shoes and shorts as last time?';
+const EFFORT_LINE = 'Now pedal at the effort of a long ride, where you could still talk.';
 // A rider who has checked on this phone before gets the short run (the customer research, item 7):
 // under 60 spoken words before "Hold it", with "You chose: ..." and the lines that keep him safe (the
 // friend holding the bike, the wall on rollers, the front brake) kept. "As last time" stands in for the
@@ -683,6 +747,8 @@ const HANDLERS = {
       const back = session.returning;
       if (session.setup === 'trainer') Voice.say(back ? RETURN.bikeLevel : 'First, check the bike is level. Both wheel centres should be the same height off the floor. If the front is lower, put a thick book under the front wheel.');
       if (back) { Voice.say(returnPlace()); return; }
+      // Day one: the drawn placement clip loops in the drawing's box while these lines are said (Demo).
+      Demo.play('place', el.placeVideo, el.placeVideo, ['place'], { loop: true, shown: placeShown });
       // The filming guide puts the lens 60 to 80 cm off the floor; a phone on a bare chair seat sits
       // lower. The placement details of Learn's "Where the Phone Goes": opposite the pedals (along the
       // bike is the largest error the app cannot see, camera panel), the chair back away from the bike
@@ -817,6 +883,7 @@ const HANDLERS = {
       // is left to them: no source says where, and a crouch would make them look like a rider.
       if (session.setup === 'friend') {
         Voice.say('Friend: stand on the far side, away from the phone, next to the saddle. Stand up straight and hold the bike still.');
+        ph.demoLine = lastQueued();
         Voice.say('Rider: get on in your normal riding position.');
         return;
       }
@@ -824,8 +891,15 @@ const HANDLERS = {
         trainer: 'Now get on the bike and sit as you ride, hands on top of the brake levers. On rollers, hold the wall with the hand away from the phone. I will tell you when to let go.',
         wall: 'Now get on the bike. Let it lean only a little on the wall, with the bars straight. Rest the hand nearest the phone on top of the brake lever. Squeeze the front brake gently to hold the bike still.',
       }[session.setup] || 'Now get on the bike and sit as you ride, hands on top of the brake levers. Lean on the wall, or have a helper hold the bike from the far side.');
+      ph.demoLine = lastQueued();
     },
     tick({ t, rider }) {
+      // Day one: the drawn demo of the moves begins with the get-on line, while he is still at the
+      // phone (Demo); it ends by itself, at a tap, or when this step ends.
+      if (ph.demoLine && Voice.cur?.text === ph.demoLine && Voice.cur.t0 != null) {
+        ph.demoLine = null;
+        Demo.play('moves', el.demo, el.demoVideo, demoMoves(session.setup));
+      }
       // A rider on aero bars: named once in place of the nags, then the way out.
       if (ph.aeroSince != null && t - ph.aeroSince >= 3 && !session.aeroSaid && quiet(t) > 0.5) {
         session.aeroSaid = true;
@@ -1004,10 +1078,13 @@ const HANDLERS = {
       // turning, and goes back on it before the pedals stop: British Cycling, "How to ride rollers"
       // (https://www.britishcycling.org.uk/knowledge/article/izn20141126-How-to-ride-the-rollers-0),
       // and Train Right, "Step-by-Step Instructions on How to Ride Rollers" (https://trainright.com/?p=8165).
+      // On a trainer the effort is set first (SPEC 5.0, before.effort): load and cadence change knee
+      // and ankle motion. Backwards on the floor drives nothing, so no effort is asked there.
       const roll = S().dir === 'forwards';
       const line = roll
-        ? 'Now pedal forwards at an easy, normal speed. On rollers, start pedalling with your hand on the wall, and let go once you are rolling steadily. Keep going until I say stop.'
+        ? 'On rollers, start pedalling with your hand on the wall, and let go once you are rolling steadily. Keep going until I say stop.'
         : 'Now pedal backwards, smooth and steady. Keep going until I say stop.';
+      if (roll) Voice.say(EFFORT_LINE);
       // Short lines, one after the other (DECISIONS.md, 2026-10-10: one idea a sentence): the way to
       // pedal; with pain or numbness that keeps coming back, when to stop (on rollers, the wall first);
       // and with the screen towards him, eyes ahead while pedalling too, the countdown is spoken.
@@ -1100,7 +1177,8 @@ const HANDLERS = {
       if (t >= ph.checkAt) {
         ph.checkAt = t + 2;
         const s = fit.slowerTurn(since(), t);
-        if (s != null) Voice.say(`Slower, please. About one turn every ${s} seconds.`, { key: 'slower', every: 8, max: 2 });
+        // On a trainer, slower in a harder gear, so the effort stays that of a long ride (SPEC 5.0).
+        if (s != null) Voice.say(`Slower, please. About one turn every ${s} seconds.${session.setup === 'trainer' ? ' Shift to a harder gear to keep the effort.' : ''}`, { key: 'slower', every: 8, max: 2 });
       }
       // The ring and its countdown (renderLive) read these.
       ph.left = secs - e;
@@ -1136,7 +1214,7 @@ function endPedal(summary, stopped = false) {
   if (summary.strokes < 5 && (summary.strokesSeen > summary.strokes || summary.framesPerTurn < fit.MIN_FRAMES_PER_STROKE)) warnings.add('fast');
   session.pedal = summary;
   Beep.chime();
-  const end = summary.strokes >= 5 && !warnings.has('fast') ? 'Stop. Well done, you can relax.' : 'Stop. You can relax.';
+  const end = summary.strokes >= 5 && !warnings.has('fast') ? 'Stop. Nice work, you can relax.' : 'Stop. You can relax.';
   if (session.setup === 'trainer' && !stopped) {
     Voice.say('On rollers, put your hand back on the wall, then stop pedalling.', { interrupt: true });
     Voice.say(end);
@@ -1355,7 +1433,7 @@ function darkness(t) {
   return lumaOk ? null : { key: 'dark', say: 'It is quite dark. Turn on more lights if you can.' };
 }
 
-// ok: true (✓), false (•) or null (?, not known). VoiceOver reads "Level, done", not "check mark
+// ok: true (✓), false (•) or null (?, not known). VoiceOver reads "Level, checked", not "check mark
 // Level" (the design review, item 12).
 function chips(map) {
   el.chips.replaceChildren(...Object.entries(map).map(([k, ok]) => {
@@ -1363,7 +1441,7 @@ function chips(map) {
     c.className = 'chip ' + (ok == null ? '' : ok ? 'ok' : 'bad');
     c.textContent = (ok == null ? '? ' : ok ? '✓ ' : '• ') + k;
     c.setAttribute('role', 'img');
-    c.setAttribute('aria-label', `${k}, ${ok == null ? 'not known yet' : ok ? 'done' : 'not yet'}`);
+    c.setAttribute('aria-label', `${k}, ${ok == null ? 'not known yet' : ok ? 'checked' : 'not yet'}`);
     return c;
   }));
 }
@@ -1727,6 +1805,85 @@ function draw(raw, W, H, side, others = []) {
   drawFigure(g, raw, side, (i) => [ox + raw[i].x * W * s, oy + raw[i].y * H * s], unit, TONE[curView.tone] || TONE.white);
 }
 
+// ── the drawn demos ──────────────────────────────────────────────────────────────────────────
+// Short drawn clips of the next moves (assets/demo/), placeholders until realistic clips replace them
+// (README, "The drawn demos"). The design review's rule: a demo plays before a move, never during it.
+// So they play on the first check of a setup on this phone (day one, not session.returning) while the
+// rider is still at the phone and can see the screen, whichever way it faces: the placement loop in
+// the drawing's box while the phone is placed, then getting on and holding still, and pedalling the
+// way this setup pedals, from the get-on line on, before he walks to the bike. Muted: the app's own
+// voice speaks. A tap anywhere on one skips it. A rider who wants to see it again taps his setup's
+// row in Learn. A clip that cannot play (offline, Low Power Mode, a browser without H.264) is let go
+// of at once and the check goes on as without it.
+const DEMO_DIR = 'assets/demo/';
+// Each clip's length in seconds (ffprobe), for the guard that ends one that never says it ended.
+const DEMO_SECS = { place: 7.5, 'hold-trainer': 7, 'hold-wall': 8, 'hold-friend': 7, 'pedal-trainer': 7, 'pedal-wall': 6, 'pedal-friend': 6 };
+const demoMoves = (s) => [`hold-${s}`, `pedal-${s}`];
+const Demo = {
+  cur: null,
+  // box: what shows and takes the tap; video: its <video>; files: played one after another, or with
+  // loop the one file over and over until it is stopped; shown: the box's own look while it plays.
+  play(kind, box, video, files, { loop = false, shown = null } = {}) {
+    this.stop('replaced');
+    const d = { kind, box, video, files, loop, shown, i: 0, timer: null,
+      log: { kind, files, t: +now().toFixed(2), phase, line: Voice.cur?.text ?? null, end: null } };
+    debug.demos.push(d.log);
+    this.cur = d;
+    vis(box, true);
+    shown?.(true);
+    this.clip(d);
+  },
+  clip(d) {
+    const f = d.files[d.i], v = d.video, secs = DEMO_SECS[f] || 8;
+    v.muted = true;
+    v.loop = d.loop;
+    v.poster = `${DEMO_DIR}${f}.jpg`;
+    v.src = `${DEMO_DIR}${f}.mp4`;
+    clearTimeout(d.timer);
+    // Not playing within 5 s of its length (a slow connection): let go of.
+    d.timer = setTimeout(() => { if (this.cur === d) this.stop('stalled'); }, (secs + 5) * 1000);
+    let p;
+    try { p = v.play?.(); } catch (e) { p = Promise.reject(e); }
+    Promise.resolve(p).then(() => {
+      if (this.cur !== d || d.files[d.i] !== f) return;
+      clearTimeout(d.timer);
+      if (!d.loop) d.timer = setTimeout(() => this.next(d), (secs + 0.5) * 1000); // in case 'ended' never comes
+    }, () => { if (this.cur === d) this.stop('failed'); });
+  },
+  next(d) {
+    if (this.cur !== d) return;
+    if (++d.i < d.files.length) this.clip(d); else this.stop('ended');
+  },
+  stop(why = 'stopped') {
+    const d = this.cur;
+    if (!d) return;
+    this.cur = null;
+    clearTimeout(d.timer);
+    d.log.end = { t: +now().toFixed(2), phase, why };
+    vis(d.box, false);
+    d.shown?.(false);
+    try { d.video.pause?.(); } catch { /* not playing */ }
+    d.video.removeAttribute?.('src');
+    try { d.video.load?.(); } catch { /* nothing loaded */ }
+  },
+  // The live screen's demos end with their step; Learn's ends when the tab or the screen changes.
+  stopLive(why) { if (this.cur && this.cur.kind !== 'learn') this.stop(why); },
+};
+for (const v of [el.demoVideo, el.placeVideo, el.learnVideo]) {
+  v.addEventListener('ended', () => { if (Demo.cur?.video === v) Demo.next(Demo.cur); });
+  v.addEventListener('error', () => { if (Demo.cur?.video === v) Demo.stop('failed'); });
+}
+const placeShown = (on) => el.placeVideo.parentElement?.classList.toggle('playing', on); // the drawing's box takes the clip's shape
+el.demo.addEventListener('click', () => { if (Demo.cur?.box === el.demo) Demo.stop('skipped'); });
+el.placeVideo.addEventListener('click', () => { if (Demo.cur?.box === el.placeVideo) Demo.stop('skipped'); });
+el.learnDemo.addEventListener('click', () => { if (Demo.cur?.box === el.learnDemo) Demo.stop('skipped'); });
+for (const [id, s] of [['learnTrainer', 'trainer'], ['learnWall', 'wall'], ['learnFriend', 'friend']]) {
+  el[id].addEventListener('click', () => {
+    Demo.play('learn', el.learnDemo, el.learnVideo, demoMoves(s));
+    el.learnDemo.scrollIntoView?.({ block: 'nearest', behavior: reduceMotion() ? 'auto' : 'smooth' });
+  });
+}
+
 // ── the live screen ──────────────────────────────────────────────────────────────────────────
 // What the camera view shows, state by state (ui.liveView, from the design review's state table).
 // Gathered here from the steps' own state each frame; the DOM changes only when the view does,
@@ -1801,6 +1958,8 @@ const BORDER = { blue: ['#0091FF', 'none'], yellow: ['#FFD600', '26 20'], green:
 function renderLive(t) {
   const v = ui.liveView(liveInput(t));
   curView = v;
+  // The placement loop goes with the placement screen.
+  if (Demo.cur?.kind === 'place' && v.layer !== 'place') Demo.stop('left');
   if (v.ring) setRing(v.ring.frac);
   if (v.level) el.bubble.style.transform = `translateX(${(v.level.bubble * 145).toFixed(1)}px)`;
   const key = JSON.stringify([v.layer, v.step, v.border, v.tone, v.word, v.sub, v.icon, v.arrow, v.ghost, v.figure, v.caption, v.clear, v.bikeGuide,
@@ -1884,7 +2043,7 @@ function renderField(f) {
 // He is still on the bike, 3 m away; the results sheet is for when he walks to the phone.
 function resultOnRun() {
   const win = ui.retestWin(lastResult), focus = ui.focusArea(lastResult, lastAreas);
-  const res = ui.resultField(lastResult, { win, grade: win ? 'green' : focus?.grade || 'na', nothing: fit.nothingToDo(lastResult), what: fit.headline(lastResult).what,
+  const res = ui.resultField(lastResult, { win, grade: win ? ui.winGrade(lastResult, lastAreas) : focus?.grade || 'na', nothing: fit.nothingToDo(lastResult), what: fit.headline(lastResult).what,
     once: ui.onceMore(lastResult) });
   const at = (f, step, button) => {
     viewKey = '';
@@ -1899,7 +2058,7 @@ function resultOnRun() {
     el.stop.hidden = true; // nothing to stop: the check is saved
     if (button) el.seeWhat.focus?.({ preventScroll: true });
   };
-  at({ tone: 'green', icon: 'check', word: 'Done', sub: 'You can stop pedalling' }, 'Step 5 of 5', false);
+  at({ tone: 'green', icon: 'check', word: 'Stop', sub: 'You can relax' }, 'Step 5 of 5', false);
   clearTimeout(doneTimer);
   doneTimer = setTimeout(() => { doneTimer = null; if (!el.run.hidden) at(res, 'Result', true); }, DONE_SECS * 1000);
 }
@@ -2091,7 +2250,9 @@ async function start({ quick = false, answered = false } = {}) {
   }
   // tries: frame corrections said so far, by check; screen: which way the screen faces; camera: the
   // camera that films (startCamera).
-  session = { at: new Date(), tries: {}, setup, screen, camera };
+  // kit: 'diff' when he said on Getting Ready that this film is in other shoes or shorts (a retest).
+  session = { at: new Date(), tries: {}, setup, screen, camera, kit: kitChoice };
+  kitChoice = null;
   // A rider who has checked this setup on this phone before hears the short run (RETURN); a new
   // setup is explained in full. tapeKnown: a check has asked for the tape marks already. lastScreen:
   // which way the screen faced last time with this setup.
@@ -2167,9 +2328,14 @@ function stop() {
 // retest of a change made last time (fit.judgeChange) and a held-still reading out of range twice
 // running (fit.withStillHistory).
 function computeResult(history) {
-  const advice = fit.withStillHistory(fit.advise(session.still, session.pedal, session.setup), history);
-  lastResult = fit.withRetest(advice, fit.judgeChange(fit.pendingChange(history),
-    { knee: advice.knee, src: advice.kneeSource, setup: session.setup, values: { torso: advice.torso, shoulder: advice.shoulder, elbow: advice.elbow } }));
+  // pain caps the saddle step at 5 mm; before: the film just before, when it was close to the edge
+  // (fit.edgeBefore), so the two films' average decides.
+  const advice = fit.withStillHistory(fit.advise(session.still, session.pedal, session.setup, { pain, before: fit.edgeBefore(history, session.setup) }), history);
+  // Then the retest of a change, and the flow's own rules (fit.withFeel): one change per ride, a change
+  // put back after it felt worse twice, and a bike a fitter set up.
+  lastResult = fit.withFeel(fit.withRetest(advice, fit.judgeChange(fit.pendingChange(history),
+    { knee: advice.knee, src: advice.kneeSource, setup: session.setup, values: { torso: advice.torso, shoulder: advice.shoulder, elbow: advice.elbow }, kit: session.kit })),
+    history, { fitter: fitter === 'yes', pain });
   lastRows = fit.measures(lastResult, session.pedal);
   lastAreas = fit.areas(lastResult, lastRows);
 }
@@ -2198,7 +2364,8 @@ async function finish() {
   // Before the result, so the next check can start where this one ended (the customer research, item 1).
   if (!done) Voice.say(LEAVE_LINE);
   // The win is said as the win, with a chime; a check with nothing to change says when to check again.
-  const spoken = fit.spokenSummary(lastResult, { pain, win }) + (!win && done ? ` ${fit.COME_BACK}` : '');
+  // Not after "Ride it first" or "Ride it once more", which say when to come back themselves.
+  const spoken = fit.spokenSummary(lastResult, { pain, win }) + (!win && done && !['ride', 'worse'].includes(lastResult.wait) ? ` ${fit.COME_BACK}` : '');
   Clips.prefetch(spoken); // its clips load while DONE shows
   summaryTimer = setTimeout(() => { summaryTimer = null; if (win) Beep.chime(); Voice.say(spoken); }, DONE_SECS * 1000);
 }
@@ -2255,6 +2422,24 @@ function renderBar() {
   el.rMadeHint.hidden = !waits || phoneState() === 'moved';
   el.again.className = waits ? 'plain' : lastResult && !ui.checkDone(lastResult) ? 'primary' : 'tinted';
   $('rBar').hidden = when;
+  fitBar();
+}
+// The bar sticks to the bottom of the screen while it is small. At large text on a small phone it
+// covered 27 to 39% of the screen (round 3's QA, 28 px text): taller than BAR_SHARE of the screen
+// (a design choice), it stops sticking and sits right under the change card, where the millimetres
+// are set, and scrolls with the page. Measured, since its height follows the iPhone's text size.
+const BAR_SHARE = 0.2;
+function fitBar() {
+  const bar = $('rBar');
+  if (bar.hidden) return;
+  const flowing = bar.classList.contains('flowing');
+  // Its height where it sticks: as measured there, or, while it flows, plus the padding it has there
+  // (22 px above, 14 below), so it is not moved just to be measured.
+  const h = bar.getBoundingClientRect?.().height;
+  const tall = !el.rMade.hidden && (flowing ? h + 36 : h) > innerHeight * BAR_SHARE;
+  if (tall === flowing) return;
+  bar.classList.toggle('flowing', tall);
+  if (tall) el.rMade.after(bar); else el.results.append(bar);
 }
 
 let lastRows = [], lastAreas = [];
@@ -2282,14 +2467,17 @@ function renderResults(r, rows, history) {
   const h = fit.headline(r);
   const win = ui.retestWin(r);
   const focus = ui.focusArea(r, lastAreas);
-  const grade = win ? 'green' : focus?.grade || 'na';
+  // A win's status is the saddle card's own, Good only when that is Good (ui.winGrade, SPEC 4.3).
+  const grade = win ? ui.winGrade(r, lastAreas) : focus?.grade || 'na';
   el.rStatus.className = 'pill ' + grade;
   el.rStatus.textContent = fit.STATUS[grade];
   el.rStatus.setAttribute('aria-label', `${ui.AREA_TITLE[focus?.key || 'saddle']}: ${fit.STATUS[grade]}`);
   el.rWhat.textContent = ui.titleCase(win ? 'Your saddle change worked' : h.what);
   el.rWhy.textContent = win ? ui.winLine(r) : h.short;
-  // Before and after a change marked last time, with how much it should have moved.
-  el.rCompare.hidden = !r.retest || win;
+  // Before and after a change marked last time, with how much it should have moved. A change too small
+  // to measure says so out loud and one tap away, in the saddle card's details (QA round 4: a 22-word
+  // note under "Ride It First").
+  el.rCompare.hidden = !r.retest || win || r.retest.verdict === 'too-small';
   el.rCompare.textContent = r.retest?.text || '';
   // How the bike stayed up, because sessions are only compared with others filmed the same way.
   const bike = fit.setupOf(r.setup).bike;
@@ -2388,14 +2576,16 @@ function areaCard(a, r, history, { focus, win }) {
     const [lo, hi] = fit.TARGETS[ui.METRIC[k].target];
     card.append(readingBlock('Saddle height', by[k]?.value, ui.METRIC[k].name, [lo, hi], a.status, { prev: win ? r.retest.before : null }));
   } else {
-    minis = ['torso', 'elbow', 'shoulder'].filter(k => by[k]).map(k => readingBlock(ui.METRIC[k].short, by[k].value, ui.METRIC[k].short, fit.TARGETS[k], '', { big: false }));
+    // The shoulder is for reference only: its number is in the details, with no target bar.
+    minis = ['torso', 'elbow'].filter(k => by[k]).map(k => readingBlock(ui.METRIC[k].short, by[k].value, ui.METRIC[k].short, fit.TARGETS[k], '', { big: false }));
     if (focus) { card.append(...minis); minis = []; } else card.append(make('p', 'step', a.step));
   }
   // The reason, the step and, after a saddle change that worked, when to check again (whenever
   // something that moves the fit changes: the customer research's suggestion; there is no set time to
   // wait, README) are one tap away: the headline and the voice already say them.
   const stepShown = a.key !== 'saddle' && !focus;
-  card.append(readings(a, history, [a.why, stepShown ? null : a.step, ui.checkDone(r) && a.key === 'saddle' ? fit.COME_BACK : null, ...(a.key === 'reach' ? r.notes || [] : [])], minis));
+  const tooSmall = a.key === 'saddle' && r.retest?.verdict === 'too-small' ? r.retest.text : null;
+  card.append(readings(a, history, [a.why, stepShown ? null : a.step, tooSmall, ui.checkDone(r) && a.key === 'saddle' && !['ride', 'worse'].includes(r.wait) ? fit.COME_BACK : null, ...(a.key === 'reach' ? r.notes || [] : [])], minis));
   return card;
 }
 
@@ -2586,8 +2776,12 @@ el.whenAdd.addEventListener('click', () => remind('pick'));
 el.whenSkip.addEventListener('click', () => renderMade(lastResult?.change, 'later'));
 
 // Stores the change on the history entry id. Returns { made, saved }, or null without a usable number.
-function markMade(id, change, mm) {
-  const made = fit.madeChange(change, mm, new Date().toISOString());
+// at: when the change counts as made, for "Better, the same, or worse?" (fit.feelDue): now, or, said
+// later on the Check tab, the check that suggested it (he made it some time since, and has usually
+// ridden it; the question has Not Ridden Yet if not). QA round 4: stamped with the tap, a change saved
+// on the Check tab after days of riding got "Ride It First" and the question was never asked.
+function markMade(id, change, mm, at = new Date().toISOString()) {
+  const made = fit.madeChange(change, mm, at);
   if (!made || !id) return null;
   const h = loadHistory(), entry = h.find(s => s.at === id);
   let saved = false;
@@ -2645,7 +2839,7 @@ function renderHomeMade() {
 function madeHome(mm) {
   const e = unanswered(), before = hMadeMode === 'before';
   if (!e) return;
-  const m = markMade(e.at, e.suggested, mm);
+  const m = markMade(e.at, e.suggested, mm, e.at);
   if (!m) { card('h').err.hidden = false; return; }
   if (m.saved && m.made.mm > fit.MADE_STEP_MAX) { setStatus(fit.madeNote(m.made)); unlockSound(); Voice.say(fit.madeNote(m.made)); }
   if (before) newCheck();
@@ -2684,6 +2878,9 @@ function resultText(r) {
       `${a.name}: ${a.status}. ${a.step}`,
       ...a.rows.map(x => `  ${x.name}: ${Number.isFinite(x.value) ? round(x.value) + '°' : 'no reading'} (${x.target})`),
     ]),
+    ...fit.reportLines(r), // what each reading is set against, and where the millimetres come from
+    fitter === 'yes' ? 'A bike fitter set up this bike: the app reports, and suggests a change only with pain, at most 5 mm.' : '',
+    fit.feelReport(lastHistory),
     `Pedal strokes measured: ${session.pedal?.strokes ?? 0}.`,
     cameraLine(),
     w, // the same words as on the screen
@@ -2724,9 +2921,18 @@ function saveHistory(r, rows, areas, replaceAt = null) {
   // browser really filmed with ('front' or 'rear'), which can differ on a device with only one.
   // stillOut: the held-still reading was out of range while pedalling was in range (fit.withStillHistory).
   // nothing: nothing to do after it, for "Nothing to change" at home.
+  // edge: the pedalling knee to one decimal, when it was just outside its range by less than the
+  // app's error, so the film straight after it is averaged with it (fit.edgeBefore); also when this
+  // film was itself averaged (fit.edgeReading), so two films near the edge always pair.
   h.unshift({ at, v: 2, setup: r.setup, screen: session?.screen || null, camera: session?.camera || null, pedalDir: r.pedalDir, knee: round(r.knee), src: r.kneeSource, values, areas: grades, change: r.change ? r.change.headline : null,
     ...(r.change ? { suggested: fit.suggestedChange(r.change) } : {}), warn: [...warnings], ...(r.held ? { held: true } : {}),
     ...(r.stillOut ? { stillOut: true } : {}), ...(fit.nothingToDo(r) ? { nothing: true } : {}),
+    ...(fit.edgeReading(r) != null ? { edge: fit.edgeReading(r) } : {}),
+    // kit: filmed in other shoes or shorts than last time (a retest), so not compared (fit.pendingChange).
+    // wait and would: a change fit.withFeel held (ride it first, a fitter's bike, a change put back), and
+    // that change, for the Check tab's words; never as suggested, so it is never asked as made.
+    ...(session?.kit === 'diff' ? { kit: 'diff' } : {}),
+    ...(r.wait ? { wait: r.wait, would: fit.suggestedChange(r.would) } : {}),
     // tape: day one asked for tape marks on the floor, so the short run can say "on your tape marks".
     ...(session?.tapeSaid || old?.tape ? { tape: true } : {}),
     ...(old?.made && old.made.kind === r.change?.kind ? { made: old.made } : {}) });
@@ -2735,6 +2941,7 @@ function saveHistory(r, rows, areas, replaceAt = null) {
   return at;
 }
 const dayLabel = (iso) => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+debug.history = loadHistory; // for test/flow-runner.mjs, which cannot see a seeded history otherwise
 
 // Everything drawn from the history: the Check tab, Progress, and the setup steps on Getting Ready.
 function renderHistory() {
@@ -2844,7 +3051,7 @@ function renderProgress(h = loadHistory()) {
   const pending = fit.pendingChange(h);
   const c = el.progCard;
   c.className = 'card prog ' + progArea;
-  const keys = progArea === 'saddle' ? ['kneePedal'] : ['torso', 'elbow', 'shoulder'];
+  const keys = progArea === 'saddle' ? ['kneePedal'] : ['torso', 'elbow']; // the shoulder has no target to chart against
   const parts = [];
   let shownSetup = null;
   for (const key of keys) {
@@ -2872,7 +3079,7 @@ function renderProgress(h = loadHistory()) {
   }
   if (!parts.length) {
     c.replaceChildren(make('p', null, progArea === 'saddle' ? 'No knee reading yet. Your checks show here.'
-      : 'No back, elbow or shoulder reading yet. Your checks show here.'));
+      : 'No back or elbow reading yet. Your checks show here.'));
     const go = make('button', 'primary', 'Start a Check');
     go.type = 'button';
     go.addEventListener('click', beginCheck);
@@ -2888,7 +3095,7 @@ function renderProgress(h = loadHistory()) {
   el.changes.replaceChildren(...changes.map(x => {
     const li = make('li');
     const words = make('span');
-    words.append(make('b', null, x.title), make('br'), make('span', 'small', [dayLabel(x.at), x.then].filter(Boolean).join(' · ')));
+    words.append(make('b', null, x.title), make('br'), make('span', 'small', [dayLabel(x.at), x.then, x.felt].filter(Boolean).join(' · ')));
     li.append(words);
     if (x.pending) {
       const b = make('button', 'soft', 'Check It Now');
@@ -2924,6 +3131,7 @@ function setStatus(msg, err = false) {
   el.allowStatus.classList.toggle('err', err);
   el.homeStatus.hidden = !err;
   el.homeStatus.textContent = err ? msg : '';
+  if (!el.flow.hidden) roomForBar(); // a longer line makes the bottom bar taller
 }
 
 async function saveVideo() {
@@ -2948,11 +3156,18 @@ async function saveVideo() {
 // screen, then Getting Ready, whose Start starts the camera. From the results, Check It Now and
 // Check Again start straight away: the phone is already in place.
 function beginCheck() { if (!askFirst('home')) newCheck(); }
-// The Setup screen for a new check: the pain question is asked afresh each time, nothing pressed.
-function newCheck() { clearPain(); showFlow('setup'); }
+// The Setup screen for a new check: the pain question is asked afresh each time, nothing pressed, and
+// so are the fitter and feel questions when they are due.
+function newCheck() {
+  clearPain();
+  fitterPick = null; fitterShown = false; renderFitter();
+  feelPick = null; feelAsked = false; renderFeel();
+  kitChoice = null;
+  showFlow('setup');
+}
 for (const b of [el.newCheck, el.retestStart, el.hMadeStart]) b.addEventListener('click', beginCheck);
 el.flowNext.addEventListener('click', () => { if (!askSetup()) showFlow('screen'); });
-el.screenNext.addEventListener('click', () => showFlow('pain'));
+el.screenNext.addEventListener('click', afterScreen);
 el.screenBack.addEventListener('click', () => showFlow('setup'));
 // The pain question's Next waits for No or Yes: a rider with pain that keeps coming back must not
 // skip it unseen (the advice to see a doctor or physio, and the line to stop pedalling if the knee
@@ -2966,20 +3181,24 @@ el.painNext.addEventListener('click', () => {
     Voice.say(PAIN_ASK);
     return;
   }
-  showFlow('ready');
+  afterPain();
 });
-el.painBack.addEventListener('click', () => showFlow('screen'));
-for (const b of [el.flowClose, el.screenClose, el.painClose]) b.addEventListener('click', () => show('home'));
+el.painBack.addEventListener('click', () => showFlow(fitterShown ? 'fitter' : 'screen'));
+for (const b of [el.flowClose, el.screenClose, el.painClose, el.fitterClose, el.feelClose, el.revertClose]) b.addEventListener('click', () => show('home'));
 el.readyClose.addEventListener('click', () => show('home'));
 el.readyBack.addEventListener('click', () => showFlow('pain'));
 // Getting Ready's button: before the first check in a page view it is Next, to the screen that says
 // why the iPhone asks for the camera and motion (the customer research, item 4); after that, Start.
-el.start.addEventListener('click', () => {
+// On a retest, Different Shoes or Shorts under it does the same, and that film is not compared.
+function readyStart() {
+  if (el.start.disabled) return;
   if (askSetup()) return;
   if (allowDue()) { showFlow('allow'); return; }
   // After a check in this page view, the phone may still be where it was levelled.
   checkNow('ready');
-});
+}
+el.start.addEventListener('click', readyStart);
+el.kitDiff.addEventListener('click', () => { kitChoice = 'diff'; readyStart(); });
 el.allowStart.addEventListener('click', () => { if (askSetup()) return; allowSeen = true; start(); });
 el.allowBack.addEventListener('click', () => showFlow('ready'));
 el.allowClose.addEventListener('click', () => show('home'));
@@ -3022,6 +3241,7 @@ el.howPlay.addEventListener('click', () => {
   if (!v.hidden && !v.paused) { pauseHowTo(); return; }
   v.hidden = false;
   el.howPoster.hidden = true;
+  Voice.stop(); // the warm-up line, if it is still being said, gives way to the guide's own narration
   unlockSound(false);
   v.muted = false;
   playLabel(true);
@@ -3040,6 +3260,137 @@ for (const p of ['r', 'h']) {
   $(p + 'MadeMore').addEventListener('click', () => stepMm(p, 1));
   c.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') (p === 'r' ? madeHere(c.input.value) : madeHome(c.input.value)); });
   if (p === 'r') c.input.addEventListener('input', () => { renderNowLabel(); nudgeCheckNow(); });
+}
+
+// ── has a bike fitter set this bike up? ─────────────────────────────────────────────────────────
+// SPEC 4.4 item 8 and 5.0: asked once on this phone, on its own question screen after the screen
+// question, and remembered ('yes' or 'no'). Yes: the app reports and gives no millimetres, unless he
+// says yes to the pain question; then at most 5 mm, and "tell your bike fitter" (fit.withFeel).
+// Moving a fitter's setup on an unvalidated reading is what would make a fitter score the app low.
+const FITTER_KEY = 'bfc.fitter';
+let fitter = null;
+try { const v = localStorage.getItem(FITTER_KEY); if (v === 'yes' || v === 'no') fitter = v; } catch { /* asked */ }
+// fitterPick: the answer tapped on the screen, saved by Next; fitterShown: asked in this check, so
+// Back from the pain question goes back to it.
+let fitterPick = null, fitterShown = false;
+function renderFitter() {
+  el.fitterYes.setAttribute('aria-checked', String(fitterPick === 'yes'));
+  el.fitterNo.setAttribute('aria-checked', String(fitterPick === 'no'));
+  el.fitterNext.setAttribute('aria-disabled', String(!fitterPick));
+  if (fitterPick) { el.fitterCard.classList.remove('needs'); el.fitterErr.hidden = true; }
+}
+el.fitterYes.addEventListener('click', () => { fitterPick = 'yes'; renderFitter(); });
+el.fitterNo.addEventListener('click', () => { fitterPick = 'no'; renderFitter(); });
+// After the screen question: the fitter question the first time (said too: the tap lets the page
+// speak), else the pain question.
+function afterScreen() {
+  if (fitter != null) { showFlow('pain'); return; }
+  fitterShown = true;
+  showFlow('fitter');
+  unlockSound();
+  Voice.say(FITTER_LINE);
+}
+// Next waits for an answer, as on the pain question.
+el.fitterNext.addEventListener('click', () => {
+  if (!fitterPick) {
+    el.fitterCard.classList.add('needs');
+    el.fitterErr.hidden = false;
+    el.fitterQ.focus?.({ preventScroll: true });
+    unlockSound();
+    Voice.say(PAIN_ASK);
+    return;
+  }
+  fitter = fitterPick;
+  try { localStorage.setItem(FITTER_KEY, fitter); } catch { /* asked again next time */ }
+  showFlow('pain');
+});
+el.fitterBack.addEventListener('click', () => showFlow('screen'));
+
+// ── better, the same, or worse? ─────────────────────────────────────────────────────────────────
+// SPEC 4.4 item 3: after a change he has ridden (fit.feelDue: the newest change, not settled, saved at
+// least fit.RIDE_AFTER ago), asked after the pain question, before Getting Ready, and said. Next waits
+// for an answer, stored with the change (fit.recordFeel). The next step comes only after better or the
+// same (fit.withFeel holds it otherwise). The second "worse" on the same change: put it back (the
+// revert screen), recorded as undone; with pain, see a bike fitter. Not Ridden Yet goes on without an
+// answer, and then no next step is given. Asked at most once a check.
+let feelPick = null, feelAsked = false, feelEntry = null;
+const FEEL_BUTTONS = [['feelBetter', 'better'], ['feelSame', 'same'], ['feelWorse', 'worse']].map(([id, v]) => [$(id), v]);
+function renderFeel() {
+  for (const [b, v] of FEEL_BUTTONS) b.setAttribute('aria-checked', String(v === feelPick));
+  el.feelNext.setAttribute('aria-disabled', String(!feelPick));
+  if (feelPick) { el.feelCard.classList.remove('needs'); el.feelErr.hidden = true; }
+}
+for (const [b, v] of FEEL_BUTTONS) b.addEventListener('click', () => { feelPick = v; renderFeel(); });
+// The change it is about, in one short line: "Since you raised the saddle 5 mm."
+const feelSince = (m) => (m?.kind === 'saddle' ? `Since you ${m.dir > 0 ? 'raised' : 'lowered'} the saddle ${m.mm} mm.` : 'Since you raised the handlebars.');
+function afterPain() {
+  const e = feelAsked ? null : fit.feelDue(loadHistory());
+  if (!e) { toReady(); return; }
+  feelEntry = e;
+  el.feelSub.textContent = feelSince(e.made);
+  renderFeel();
+  showFlow('feel');
+  unlockSound();
+  Voice.say(FEEL_LINE);
+}
+el.feelNext.addEventListener('click', () => {
+  if (!feelPick) {
+    el.feelCard.classList.add('needs');
+    el.feelErr.hidden = false;
+    el.feelQ.focus?.({ preventScroll: true });
+    unlockSound();
+    Voice.say(FEEL_ASK);
+    return;
+  }
+  feelAsked = true;
+  const rec = fit.recordFeel(loadHistory(), feelEntry?.at, feelPick);
+  if (rec) { storeHistory(rec.history); renderHistory(); }
+  if (rec?.revert) { showRevert(rec.entry.made); return; }
+  toReady();
+});
+el.feelLater.addEventListener('click', () => { feelAsked = true; toReady(); });
+el.feelBack.addEventListener('click', () => showFlow('pain'));
+// "Put the saddle back": one title, one line, Next. With pain, the line says to see a bike fitter.
+// The arrow points the way the saddle goes back: up after lowering it, down after raising it (and down
+// for the handlebars, back down after raising them).
+const REVERT_ARROW = { down: 'M244 84v34M232 106l12 13 12-13', up: 'M244 118V84M232 96l12-13 12 13' };
+function showRevert(m) {
+  const bars = m?.kind === 'bars';
+  $('revertArrow').setAttribute('d', REVERT_ARROW[!bars && m?.dir < 0 ? 'up' : 'down']);
+  el.revertH.textContent = bars ? 'Put the Handlebars Back' : 'Put the Saddle Back';
+  el.revertSub.textContent = bars ? (pain ? 'As they were, then see a bike fitter.' : 'As they were. It felt worse twice.')
+    : (pain ? 'To your tape mark, then see a bike fitter.' : 'To your tape mark. It felt worse twice.');
+  showFlow('revert');
+  unlockSound();
+  Voice.say(REVERT_LINE[bars ? 'bars' : 'saddle']);
+  if (pain) Voice.say(REVERT_PAIN);
+}
+el.revertNext.addEventListener('click', () => toReady());
+
+// ── Getting Ready: the warm-up and the kit ──────────────────────────────────────────────────────
+// SPEC 5.0, folded into Getting Ready rather than a screen of their own: a row and a spoken line for
+// the warm-up (five easy minutes on a trainer; a ten-minute ride first, if he can, against a wall or
+// with a friend), and the kit row: cycling shoes and padded shorts, said too on the first check. On
+// a retest (a change waits to be checked) the row and the voice ask "Same shoes and shorts as last
+// time?": Start is yes; Different Shoes or Shorts is no, and that film is kept but not compared
+// (kitChoice, stored as kit: 'diff'; fit.judgeChange, fit.pendingChange).
+let readyKit = null, kitChoice = null;
+function renderReady() {
+  const h = loadHistory();
+  readyKit = !h.length ? 'first' : fit.pendingChange(h) ? 'retest' : null;
+  el.warmRow.textContent = setup === 'trainer' ? 'Ride easily for 5 minutes first' : 'A 10-minute ride first, if you can';
+  el.kitRow.textContent = readyKit === 'retest' ? 'Same shoes and shorts as last time' : 'Your road bike, cycling shoes and padded shorts';
+  el.kitDiff.hidden = readyKit !== 'retest';
+  if (!el.flow.hidden && flowStep === 'ready') roomForBar();
+}
+// Forward to Getting Ready, from the last question: the warm-up said before filming, then the kit.
+function toReady() {
+  renderReady();
+  showFlow('ready');
+  unlockSound();
+  if (WARM_LINE[setup]) Voice.say(WARM_LINE[setup]);
+  if (readyKit === 'first') Voice.say(KIT_LINE);
+  else if (readyKit === 'retest') Voice.say(RETEST_KIT_LINE);
 }
 
 // ── the permission screen and the sound check ───────────────────────────────────────────────────
@@ -3306,6 +3657,12 @@ el.keepVideo.addEventListener('change', () => { try { localStorage.setItem(VKEY,
 //   trend: three checks with the bike leaning on a wall, the saddle raised 5 mm after the first and
 //          10 mm after the last, not checked yet (Check Your Change, the Progress chart).
 //   good: one check with nothing to change.
+//   rode: the saddle raised 5 mm three days ago and filmed straight after (ride it first); not asked
+//         how it felt yet, so the next check asks.
+//   worse: the same, already "worse" once a day ago, so a second "worse" puts it back.
+//   worselow: as worse, for a saddle lowered 5 mm.
+//   unsaid: a check three days ago that suggested raising the saddle 5 mm; he made the change after
+//           closing the results and has not said so yet (the Check tab asks before the next check).
 function seedHistory(name) {
   const day = (n) => new Date(Date.now() - n * 864e5).toISOString();
   const entry = (n, knee, sh, more) => ({ at: day(n), v: 2, setup: 'wall', screen: 'away', pedalDir: 'backwards', knee, src: 'pedalling',
@@ -3315,6 +3672,17 @@ function seedHistory(name) {
   if (name === 'asked') return [entry(7, 47, 79, raise(15, 15, 'red'))];
   if (name === 'trend') return [entry(7, 44, 79, { ...raise(12, 15, 'amber'), ...made(6, 10) }), entry(14, 47, 78, { ...raise(15, 15, 'red'), ...made(13, 5) }), entry(21, 49, 76, raise(15, 15, 'red'))];
   if (name === 'good') return [entry(7, 36, 86, { areas: { saddle: 'green', reach: 'green' }, change: null, nothing: true })];
+  const ride = (n, knee) => entry(n, knee, 80, { areas: { saddle: 'red', reach: 'after' }, change: null, wait: 'ride', would: { kind: 'saddle', raise: true, mm: [5, 5] } });
+  const rode = (feel) => entry(3, 49, 79, { ...raise(5, 5, 'red'), made: { kind: 'saddle', dir: 1, mm: 5, at: day(3), ...(feel ? { feel } : {}) } });
+  if (name === 'rode') return [ride(2.99, 47), rode()];
+  if (name === 'worse') return [ride(1, 47), ride(2.99, 47), rode([{ said: 'worse', at: day(1) }])];
+  if (name === 'unsaid') return [entry(3, 49, 79, raise(5, 5, 'red'))];
+  // worselow: as worse, but the change was lowering the saddle 5 mm.
+  if (name === 'worselow') {
+    const lowered = entry(3, 27, 79, { areas: { saddle: 'red', reach: 'after' }, change: 'Lower the saddle about 5 mm', suggested: { kind: 'saddle', raise: false, mm: [5, 5] },
+      made: { kind: 'saddle', dir: -1, mm: 5, at: day(3), feel: [{ said: 'worse', at: day(1) }] } });
+    return [{ ...ride(1, 29), would: { kind: 'saddle', raise: false, mm: [5, 5] } }, lowered];
+  }
   return [];
 }
 

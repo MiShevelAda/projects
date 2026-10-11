@@ -15,13 +15,15 @@ test('angle helpers', () => {
   assert.equal(fit.median([4, 1, 2, 3]), 2.5);
 });
 
-test('grading follows the tool: 2.5 deg tolerance, then the amber pad', () => {
-  assert.equal(fit.grade('kneeDynamic', 42.5), 'green');
-  assert.equal(fit.grade('kneeDynamic', 43), 'amber');
-  assert.equal(fit.grade('kneeDynamic', 45), 'amber');
-  assert.equal(fit.grade('kneeDynamic', 45.1), 'red');
-  assert.equal(fit.grade('kneeDynamic', 27.5), 'green');
-  assert.equal(fit.grade('kneeStatic', 37.5), 'green');
+// Round 4: Good only inside the band by more than u, Fair within u of an edge, then Needs attention
+// (SPEC 4.3). Was: green to 2.5 degrees past the band, then a fixed amber pad. measure.test.mjs has the rest.
+test('grading: Good inside by more than u, Fair within u of an edge, Needs attention beyond', () => {
+  assert.equal(fit.grade('kneeDynamic', 39.9), 'green');
+  assert.equal(fit.grade('kneeDynamic', 40), 'amber');
+  assert.equal(fit.grade('kneeDynamic', 46), 'amber');
+  assert.equal(fit.grade('kneeDynamic', 46.1), 'red');
+  assert.equal(fit.grade('kneeDynamic', 27.5), 'red'); // was green: on 33 to 43 it is a high saddle
+  assert.equal(fit.grade('kneeStatic', 37.5), 'amber');
   assert.equal(fit.grade('hipBottom', 70), 'info');
   assert.equal(fit.grade('torso', NaN), 'na');
 });
@@ -60,16 +62,17 @@ test('a lower saddle reads as more knee bend and asks to raise it', () => {
   const low = trueKneeFlexBDC([-220, 700]);
   assert.ok(low > trueKneeFlexBDC() + 5);
   const r = fit.advise({ kneeFlex: low - 8, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 15, kneeFlex: 47, torso: 45, elbow: 22, shoulder: 88 });
-  assert.equal(r.change.headline, 'Raise the saddle about 15 mm'); // 7 deg over: 21 to 28 mm, capped at 15
-  assert.match(r.change.why, /most to change in one go/);
+  assert.equal(r.change.headline, 'Raise the saddle about 3 mm'); // 1 degree past 43 + u: the smallest step (was 15 mm)
+  assert.ok(!/most to change in one go/.test(r.change.why)); // the cap is said only with pain
   assert.equal(r.kneeSource, 'pedalling');
 });
 
-test('advice: small overshoot gives a range, in-range knee leaves the saddle alone', () => {
-  const r = fit.advise(null, { strokes: 12, kneeFlex: 43, torso: 45, elbow: 22, shoulder: 88 });
-  assert.equal(r.change.headline, 'Raise the saddle about 9 to 12 mm');
-  assert.equal(r.overall, 'amber');
-  const ok = fit.advise({ kneeFlex: 30, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 88 });
+test('advice: past u gives one step, in-range knee leaves the saddle alone', () => {
+  // Was 43: "about 9 to 12 mm". 43 is now inside the band; 49.5 is 3.5 degrees past 43 + u: 7 mm, so 5.
+  const r = fit.advise(null, { strokes: 12, kneeFlex: 49.5, torso: 45, elbow: 22, shoulder: 88 });
+  assert.equal(r.change.headline, 'Raise the saddle about 5 mm');
+  assert.equal(r.overall, 'red');
+  const ok = fit.advise({ kneeFlex: 30, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 22, shoulder: 88 });
   assert.equal(ok.change, null);
   assert.equal(ok.overall, 'green');
   assert.equal(ok.disagree, false);
@@ -82,7 +85,8 @@ test('advice: falls back to the still reading when pedalling failed, and flags d
   assert.equal(r.verdict, 'stillOnly');
   assert.equal(r.change, null); // no millimetres from the held-still reading alone
   assert.equal(r.overall, 'amber');
-  const d = fit.advise({ kneeFlex: 20, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 12, kneeFlex: 46, torso: 45, elbow: 22, shoulder: 88 });
+  // 47, not 46: 46 is now within u of the edge, which asks for one more film on its own.
+  const d = fit.advise({ kneeFlex: 20, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 12, kneeFlex: 47, torso: 45, elbow: 22, shoulder: 88 });
   assert.equal(d.verdict, 'disagree');
   assert.equal(d.disagree, true);
   assert.equal(d.change, null);
@@ -90,12 +94,13 @@ test('advice: falls back to the still reading when pedalling failed, and flags d
   assert.match(fit.spokenSummary(d), /point different ways/);
 });
 
-test('advice: one reading Good and the other Borderline is not a disagreement', () => {
-  const r = fit.advise({ kneeFlex: 34, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 12, kneeFlex: 43.5, torso: 45, elbow: 22, shoulder: 88 });
+test('advice: one reading Fair and the other out is not a disagreement', () => {
+  // Was 43.5 pedalling, 11 to 14 mm: now inside the band. 47 is past u: the smallest step.
+  const r = fit.advise({ kneeFlex: 34, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 12, kneeFlex: 47, torso: 45, elbow: 22, shoulder: 88 });
   assert.equal(r.verdict, 'change');
   assert.equal(r.disagree, false);
-  assert.equal(r.change.headline, 'Raise the saddle about 11 to 14 mm');
-  assert.deepEqual(r.change.mm, [11, 14]);
+  assert.equal(r.change.headline, 'Raise the saddle about 3 mm');
+  assert.deepEqual(r.change.mm, [3, 3]);
 });
 
 test('advice: nothing measured is never Good', () => {
@@ -120,7 +125,7 @@ test('advice: a long low front end, once the saddle is right', () => {
   assert.match(r.change.why, /back is low/);
   assert.match(r.change.why, /reach far forward/);
   assert.match(r.change.why, /locked straight/);
-  assert.match(r.change.why, /^Your back is low \(34°, target 40 to 50\), your arms reach far forward \(shoulder 100°, target 80 to 95\) and your elbows are locked straight \(5°, target 15 to 30\), so the front of the bike is long and low\./);
+  assert.match(r.change.why, /^Your back is low \(34°, target 40 to 50\), your arms reach far forward \(shoulder 100°\) and your elbows are locked straight \(5°, target 15 to 30\), so the front of the bike is long and low\./);
   assert.deepEqual(r.change.flags, ['torso', 'shoulder', 'elbow']);
 });
 
@@ -162,18 +167,20 @@ test('motion: still is near zero, a moving leg is not', () => {
 });
 
 test('spoken summary grammar', () => {
-  const one = fit.advise(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 60 });
+  // Round 4: the elbow, not the shoulder, which is for reference only now (SPEC 4.2).
+  const one = fit.advise(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 40, shoulder: 60 });
   assert.equal(one.overall, 'amber');
   assert.equal(one.change, null);
   // The other angles are in the longer version that "Say it again" speaks.
   const said = fit.spokenSummary(one, { long: true });
   assert.match(said, /^Nothing to change today\./);
-  assert.match(said, /Your back angle and elbow bend look good\./);
-  assert.match(said, /Your shoulder angle is outside the target\. That is fine to ride\./);
-  const solo = fit.spokenSummary(fit.advise(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 50, shoulder: 60 }), { long: true });
-  assert.match(solo, /Your back angle looks good\./);
-  // Only just outside (amber): "a little outside".
-  assert.match(fit.spokenSummary(fit.advise(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 75 }), { long: true }), /Your shoulder angle is a little outside the target\./);
+  assert.match(said, /Your back angle looks good\./);
+  assert.match(said, /Your elbow bend is outside the target\. That is fine to ride\./);
+  assert.ok(!/shoulder/.test(said), said);
+  const both = fit.spokenSummary(fit.advise(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 22, shoulder: 60 }), { long: true });
+  assert.match(both, /Your back angle and elbow bend look good\./);
+  // Only just outside (within u): "a little outside".
+  assert.match(fit.spokenSummary(fit.advise(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 32, shoulder: 75 }), { long: true }), /Your elbow bend is a little outside the target\./);
 });
 
 test('result rows: a status, a reason and exactly one step each', () => {
@@ -182,16 +189,17 @@ test('result rows: a status, a reason and exactly one step each', () => {
   const rows = fit.measures(r, pedal);
   const by = Object.fromEntries(rows.map(x => [x.key, x]));
   assert.equal(by.kneePedal.status, 'Needs attention');
-  assert.equal(by.kneePedal.step, 'Raise the saddle about 15 mm.');
+  assert.equal(by.kneePedal.step, 'Raise the saddle about 3 mm.');
   assert.match(by.kneePedal.why, /saddle is probably low/);
   assert.equal(by.kneeStill.status, 'Fair');
-  for (const k of ['torso', 'elbow', 'shoulder']) assert.equal(by[k].status, 'After the saddle', k); // they wait for the saddle
+  for (const k of ['torso', 'elbow']) assert.equal(by[k].status, 'After the saddle', k); // they wait for the saddle
+  assert.equal(by.shoulder.status, 'For reference'); // no target to grade it on (SPEC 4.2)
   assert.equal(by.torso.step, 'No change needed.');
   assert.equal(by.hipBottom.status, 'For reference');
   const off = fit.measures(fit.advise(null, { strokes: 12, kneeFlex: 47, torso: 45, elbow: 40, shoulder: 66 }), { strokes: 12, kneeFlex: 47 });
-  assert.match(off.find(x => x.key === 'shoulder').step, /Change the saddle first/);
-  const alone = fit.measures(fit.advise(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 66 }), { strokes: 12, kneeFlex: 36 });
-  assert.equal(alone.find(x => x.key === 'shoulder').step, 'No change on its own. If you feel cramped on the bike, a bike fitter can check your stem length.');
+  assert.match(off.find(x => x.key === 'elbow').step, /Change the saddle first/);
+  const alone = fit.measures(fit.advise(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 22, shoulder: 66 }), { strokes: 12, kneeFlex: 38 });
+  assert.equal(alone.find(x => x.key === 'shoulder').step, 'Nothing to do. It is for reference only.');
   for (const x of rows) { assert.ok(x.why && x.step, x.key); assert.ok(!/Excellent/.test(x.status)); }
 });
 
@@ -344,21 +352,27 @@ test('spoken summary: the action first and short, then stop; the reason is in th
   const low = trueKneeFlexBDC([-220, 700]);
   const r = fit.advise({ kneeFlex: low - 8, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 15, kneeFlex: 47, torso: 45, elbow: 22, shoulder: 88 });
   const said = fit.spokenSummary(r);
-  assert.equal(said, 'Raise the saddle about 15 millimetres. Change only that. When you have moved it, tell me how far.');
+  assert.equal(said, 'Raise the saddle about 3 millimetres. Change only that. When you have moved it, tell me how far.'); // was 15
   const long = fit.spokenSummary(r, { long: true });
   assert.ok(long.startsWith(said), long);
-  assert.match(long, /so the saddle is too low\./);
-  assert.match(long, /15 millimetres is the most to change in one go\./);
-  assert.match(r.change.why, /so the saddle is too low/);
-  const little = fit.advise(null, { strokes: 12, kneeFlex: 43, torso: 45, elbow: 22, shoulder: 88 });
-  assert.match(fit.spokenSummary(little), /^Raise the saddle about 9 to 12 millimetres\./);
+  assert.match(long, /so the saddle is a little low\./);
+  assert.match(r.change.why, /so the saddle is a little low/);
+  const far = fit.advise(null, { strokes: 12, kneeFlex: 52, torso: 45, elbow: 22, shoulder: 88 });
+  assert.match(fit.spokenSummary(far), /^Raise the saddle about 10 millimetres\./);
+  assert.match(fit.spokenSummary(far, { long: true }), /so the saddle is too low\./);
+  // With pain: at most 5, and said why in the longer version.
+  const sore = fit.advise(null, { strokes: 12, kneeFlex: 52, torso: 45, elbow: 22, shoulder: 88 }, null, { pain: true });
+  assert.match(fit.spokenSummary(sore), /^Raise the saddle about 5 millimetres\./);
+  assert.match(fit.spokenSummary(sore, { long: true }), /With pain, 5 millimetres is the most to change in one go\./);
+  const little = fit.advise(null, { strokes: 12, kneeFlex: 49.5, torso: 45, elbow: 22, shoulder: 88 });
+  assert.match(fit.spokenSummary(little), /^Raise the saddle about 5 millimetres\./); // was 43: 9 to 12
   assert.match(fit.spokenSummary(little, { long: true }), /a little low\./);
   const high = fit.advise(null, { strokes: 12, kneeFlex: 26, torso: 45, elbow: 22, shoulder: 88 });
-  assert.match(fit.spokenSummary(high), /^Lower the saddle about 12 to 15 millimetres\./);
+  assert.match(fit.spokenSummary(high), /^Lower the saddle about 5 millimetres\./); // was 12 to 15
   const bars = fit.advise(null, { strokes: 12, kneeFlex: 35, torso: 34, elbow: 5, shoulder: 100 });
-  assert.equal(fit.spokenSummary(bars), 'Raise the handlebars: move one spacer from above the stem to below it. Change only that. When you have done it, tap I made this change.');
+  assert.equal(fit.spokenSummary(bars), 'Raise the handlebars: move one spacer from above the stem to below it. Change only that. Then tap I made this change.');
   assert.match(fit.spokenSummary(bars, { long: true }), /Your back is low, .*long and low\.$/);
-  const cases = [r, little, high, bars, fit.advise(null, null), fit.advise({ kneeFlex: 40 }, null), fit.advise({ kneeFlex: 30 }, null),
+  const cases = [r, far, sore, little, high, bars, fit.advise(null, null), fit.advise({ kneeFlex: 40 }, null), fit.advise({ kneeFlex: 30 }, null),
     fit.advise({ kneeFlex: 20 }, { strokes: 12, kneeFlex: 46 }), fit.advise({ kneeFlex: 40 }, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 60 })];
   for (const c of cases) for (const long of [false, true]) {
     const t = fit.spokenSummary(c, { long });
@@ -370,11 +384,13 @@ test('spoken summary: the action first and short, then stop; the reason is in th
 });
 
 test('result rows: honest in-range wording and a real step on every row', () => {
-  const pedal = { strokes: 12, strokesSeen: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 88, hipBottom: 104 };
+  const pedal = { strokes: 12, strokesSeen: 12, kneeFlex: 38, torso: 45, elbow: 22, shoulder: 88, hipBottom: 104 };
   const rows = fit.measures(fit.advise({ kneeFlex: 37, torso: 45, elbow: 22, shoulder: 88 }, pedal), pedal);
   const still = rows.find(x => x.key === 'kneeStill');
-  assert.match(still.why, /within 2\.5° of the 25 to 35 target/);
-  assert.match(still.why, /counts as in range/);
+  // Just outside, within u: Fair, never "inside" (was "within 2.5°... counts as in range").
+  assert.match(still.why, /within 3° of the 25 to 35 target/);
+  assert.match(still.why, /closer than a phone camera can tell apart/);
+  assert.equal(still.status, 'Fair');
   assert.equal(still.step, 'Nothing extra to do: it agrees with the pedalling reading.');
   assert.match(rows.find(x => x.key === 'kneePedal').why, /inside the target/);
   for (const x of rows) {
@@ -388,15 +404,16 @@ test('result rows: with a saddle change only the knee rows can be red', () => {
   const rows = fit.measures(fit.advise({ kneeFlex: 44, torso: 30, elbow: 40, shoulder: 66 }, pedal), pedal);
   const red = rows.filter(x => x.grade === 'red').map(x => x.key);
   assert.deepEqual(red, ['kneePedal', 'kneeStill']);
-  for (const k of ['torso', 'elbow', 'shoulder']) assert.equal(rows.find(x => x.key === k).status, 'After the saddle');
+  for (const k of ['torso', 'elbow']) assert.equal(rows.find(x => x.key === k).status, 'After the saddle');
+  assert.equal(rows.find(x => x.key === 'shoulder').status, 'For reference');
 });
 
 test('headline by verdict', () => {
   // The headline gives the decision in words; the "Saddle height" area gives the numbers behind it.
-  const dis = fit.advise({ kneeFlex: 20 }, { strokes: 12, kneeFlex: 46 });
+  const dis = fit.advise({ kneeFlex: 20 }, { strokes: 12, kneeFlex: 47 });
   assert.equal(fit.headline(dis).what, 'Film again');
   assert.equal(fit.headline(dis).why, 'Your two knee readings point different ways, so I will not suggest a change yet.');
-  assert.equal(fit.saddleWhy(dis), 'Held still, your knee bends 20°, under the 25 to 35 target. Pedalling, it bends 46°, over the 30 to 40 target.');
+  assert.equal(fit.saddleWhy(dis), 'Held still, your knee bends 20°, under the 25 to 35 target. Pedalling, it bends 47°, over the 33 to 43 target.');
   const so = fit.headline(fit.advise({ kneeFlex: 40 }, null));
   assert.equal(so.what, 'Film again before you move the saddle');
   assert.match(so.why, /^I could not measure you pedalling\. Held still, your knee is outside its range, but that reading alone cannot say how far to move the saddle\./);
@@ -405,14 +422,17 @@ test('headline by verdict', () => {
   const okR = fit.advise(null, { strokes: 12, kneeFlex: 41, torso: 45, elbow: 22, shoulder: 60 });
   const ok = fit.headline(okR);
   assert.equal(ok.what, 'Nothing to change today');
-  assert.equal(ok.why, 'Your saddle height looks right. Your shoulder angle is outside the target. That is fine to ride.');
-  assert.equal(fit.saddleWhy(okR), 'Your knee bends 41° with the pedal at its lowest point, within 2.5° of the 30 to 40 target.');
-  assert.equal(fit.headline(fit.advise(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 88 })).why, 'Your saddle height looks right. Your back, elbow and shoulder angles are in range too.');
+  // 41 is inside 33 to 43 but within u of its edge: Fair; the shoulder at 60 is for reference only.
+  assert.equal(ok.why, 'Your knee is in range, near the edge. Your back and elbow angles are in range too.');
+  assert.equal(fit.saddleWhy(okR), 'Your knee bends 41° with the pedal at its lowest point, inside the 33 to 43 target, near its edge.');
+  assert.equal(fit.headline(fit.advise(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 22, shoulder: 88 })).why, 'Your saddle height looks right. Your back and elbow angles are in range too.');
   assert.equal(fit.headline(fit.advise(null, null)).what, 'Not enough to measure');
   // A saddle change: the reason in words under the headline, the numbers in the area, never the same sentence twice.
   const low = fit.advise(null, { strokes: 12, kneeFlex: 47, torso: 45, elbow: 22, shoulder: 88 });
-  assert.equal(fit.headline(low).why, 'Your knee bends too much with the pedal at its lowest point, so the saddle is too low. Change only this for now: moving the saddle changes your reach too.');
-  assert.equal(fit.saddleWhy(low), 'Your knee is still bent 47° with the pedal at its lowest point. The target is 30 to 40, so the saddle is too low. 15 mm is the most to change in one go.');
+  assert.equal(fit.headline(low).why, 'Your knee bends a little too much with the pedal at its lowest point, so the saddle is a little low. Change only this for now: moving the saddle changes your reach too.');
+  assert.equal(fit.saddleWhy(low), 'Your knee is still bent 47° with the pedal at its lowest point. The target is 33 to 43, so the saddle is a little low.');
+  // The words follow the step: "too" for 10 mm.
+  assert.match(fit.headline(fit.advise(null, { strokes: 12, kneeFlex: 52 })).why, /^Your knee bends too much with the pedal at its lowest point, so the saddle is too low\./);
   assert.match(fit.headline(fit.advise(null, { strokes: 12, kneeFlex: 26, torso: 45, elbow: 22, shoulder: 88 })).why, /^Your knee does not bend quite enough with the pedal at its lowest point, so the saddle is a little high\./);
   const bars = fit.advise(null, { strokes: 12, kneeFlex: 35, torso: 34, elbow: 5, shoulder: 100 });
   assert.match(fit.headline(bars).why, /^Your back is low, your arms reach far forward and your elbows are locked straight, so the front of the bike is long and low\. If one spacer is not enough, a shorter stem is the next step\.$/);
@@ -464,7 +484,9 @@ test('judging a saddle change against the reading before it', () => {
   assert.match(fit.judgeChange(drop, { knee: 26, src: 'pedalling' }).text, /A 12 mm drop should change it by about 3 to 4°\. That fits\./);
   assert.equal(fit.judgeChange(drop, { knee: 18, src: 'pedalling' }).verdict, 'other-way');
   assert.match(fit.judgeChange(drop, { knee: 18, src: 'pedalling' }).text, /It moved the other way\. Check the saddle really moved, then film once more before you change anything else\.$/);
-  const more = fit.judgeChange({ made: { kind: 'saddle', dir: 1, mm: 5 }, knee: 52, src: 'pedalling' }, { knee: 44, src: 'pedalling' });
+  // 10 mm, not 5: a 5 mm step is now too small for the camera to judge (SPEC 4.4, item 4).
+  assert.equal(fit.judgeChange({ made: { kind: 'saddle', dir: 1, mm: 5 }, knee: 52, src: 'pedalling' }, { knee: 44, src: 'pedalling' }).verdict, 'too-small');
+  const more = fit.judgeChange({ made: { kind: 'saddle', dir: 1, mm: 10 }, knee: 52, src: 'pedalling' }, { knee: 44, src: 'pedalling' });
   assert.equal(more.verdict, 'too-much');
   assert.match(more.text, /That is more than the change should do\. Film once more to check\.$/);
   for (const k of [33, 40, 44, 47]) assert.ok(!/\u2014/.test(fit.judgeChange(prev, { knee: k, src: 'pedalling' }).text));
@@ -514,8 +536,8 @@ test('a change the camera cannot see is not "That fits": unseen, held once', () 
   assert.equal(r.held, true);
   assert.equal(r.change, null);
   assert.equal(fit.headline(r).what, 'Film once more');
-  // A 5 mm raise with no movement: unseen too, never "That fits".
-  assert.equal(fit.judgeChange({ ...prev, made: { ...prev.made, mm: 5 }, knee: 43 }, { knee: 43, src: 'pedalling', setup: 'wall' }).verdict, 'unseen');
+  // A 5 mm raise with no movement: too small to see (round 4, SPEC 4.4), never "That fits".
+  assert.equal(fit.judgeChange({ ...prev, made: { ...prev.made, mm: 5 }, knee: 43 }, { knee: 43, src: 'pedalling', setup: 'wall' }).verdict, 'too-small');
   // A big change that did not show: it hardly changed.
   const big = fit.judgeChange({ ...prev, made: { ...prev.made, mm: 30 } }, { knee: 48, src: 'pedalling', setup: 'wall' });
   assert.equal(big.verdict, 'unseen');
@@ -525,7 +547,7 @@ test('a change the camera cannot see is not "That fits": unseen, held once', () 
     const v = fit.judgeChange({ made: { kind: 'saddle', dir: 1, mm }, knee: 55, src: 'pedalling' }, { knee: k, src: 'pedalling' });
     const moved = 55 - k;
     const fitsSaid = /That fits/.test(v.text + v.spoken);
-    assert.equal(fitsSaid, moved >= fit.SAME_TOL && moved <= mm / 3 + fit.SAME_TOL && moved >= mm / 4 - fit.SAME_TOL && !v.inRange, `${mm} mm, 55 to ${k}`);
+    assert.equal(fitsSaid, moved >= fit.SAME_TOL && moved <= mm / 3 + fit.SAME_TOL && moved >= mm / 4 - fit.SAME_TOL && !v.inRange && !fit.tooSmallToSee(mm), `${mm} mm, 55 to ${k}`);
   }
 });
 
@@ -539,7 +561,7 @@ test('a retest that does not fit holds the next change back', () => {
   assert.equal(other.overall, 'amber');
   assert.equal(fit.headline(other).what, 'Film once more');
   assert.equal(fit.headline(other).why, 'Your last change did not do what it should have, so I will not suggest another one until one more film shows what it did.');
-  assert.equal(fit.saddleWhy(other), 'Your knee bends 47° with the pedal at its lowest point, outside the 30 to 40 target.');
+  assert.equal(fit.saddleWhy(other), 'Your knee bends 47° with the pedal at its lowest point, outside the 33 to 43 target.');
   const said = fit.spokenSummary(other);
   assert.ok(said.startsWith('Knee bend 43 degrees before. 47 degrees now.'), said);
   assert.ok(!/°/.test(said), said);
@@ -552,11 +574,12 @@ test('a retest that does not fit holds the next change back', () => {
 });
 
 test('in range, but the saddle move did not fit: only a handlebar change waits, once', () => {
-  const pedal = { strokes: 12, strokesSeen: 12, kneeFlex: 36, torso: 34, elbow: 5, shoulder: 100 };
+  // 38, not 36: 36 is now Fair (within u of 33), and this case needs the saddle Good.
+  const pedal = { strokes: 12, strokesSeen: 12, kneeFlex: 38, torso: 34, elbow: 5, shoulder: 100 };
   const r = fit.advise(null, pedal, 'wall');
   assert.equal(r.change.kind, 'bars');
   const made = { at: 'A', setup: 'wall', knee: 49, src: 'pedalling', made: { kind: 'saddle', dir: 1, mm: 15, at: 'A' } };
-  const w = fit.withRetest(r, fit.judgeChange(fit.pendingChange([made]), { knee: 36, src: 'pedalling', setup: 'wall' }));
+  const w = fit.withRetest(r, fit.judgeChange(fit.pendingChange([made]), { knee: 38, src: 'pedalling', setup: 'wall' }));
   assert.equal(w.retest.verdict, 'too-much');
   assert.equal(w.change, null);
   assert.equal(w.held, true);
@@ -569,8 +592,8 @@ test('in range, but the saddle move did not fit: only a handlebar change waits, 
   assert.equal(a.reach.step, 'Film once more before you change the handlebars.');
   assert.match(fit.spokenSummary(w), /Leave the saddle where it is\. Film once more before you change the handlebars\.$/);
   // Saved with held: true, the next film is the one-time recheck, and the bars change then goes ahead.
-  const h = [{ at: 'B', setup: 'wall', knee: 36, src: 'pedalling', held: true }, made];
-  const again = fit.judgeChange(fit.pendingChange(h), { knee: 36, src: 'pedalling', setup: 'wall' });
+  const h = [{ at: 'B', setup: 'wall', knee: 38, src: 'pedalling', held: true }, made];
+  const again = fit.judgeChange(fit.pendingChange(h), { knee: 38, src: 'pedalling', setup: 'wall' });
   assert.equal(again.recheck, true);
   const w2 = fit.withRetest(r, again);
   assert.ok(!w2.held);
@@ -624,25 +647,27 @@ test('the change still waiting to be checked', () => {
 });
 
 test('the film after a held-back retest is compared with the reading before the change', () => {
-  const madeAt = { at: 'A', knee: 47, src: 'pedalling', made: { kind: 'saddle', dir: 1, mm: 15, at: 'A' } };
+  // Round 4: 50 before and 46.5 after, so the reading after a change that fits is still past 43 + u
+  // (was 47 and 43; 43 is inside the band now).
+  const madeAt = { at: 'A', knee: 50, src: 'pedalling', made: { kind: 'saddle', dir: 1, mm: 15, at: 'A' } };
   const pedal = (k) => ({ strokes: 12, strokesSeen: 12, kneeFlex: k, torso: 45, elbow: 22, shoulder: 88 });
   // Film 2: no change showed up, so it is held back and saved with held: true.
-  const r2 = fit.advise(null, pedal(47));
+  const r2 = fit.advise(null, pedal(50));
   const f2 = fit.withRetest(r2, fit.judgeChange(fit.pendingChange([madeAt]), { knee: r2.knee, src: r2.kneeSource }));
   assert.equal(f2.retest.verdict, 'unseen');
   assert.equal(f2.held, true);
   assert.match(fit.headline(f2).why, /until one more film shows what it did/);
   assert.match(fit.spokenSummary(f2), /Check the tape mark, then film once more\. I will not suggest another change until then\.$/);
-  const history = [{ at: 'B', knee: 47, src: 'pedalling', held: true }, madeAt];
+  const history = [{ at: 'B', knee: 50, src: 'pedalling', held: true }, madeAt];
   // Film 3, the saddle now really moved: compared with film 1, and it fits.
-  const r3 = fit.advise(null, pedal(43));
+  const r3 = fit.advise(null, pedal(46.5));
   const f3 = fit.withRetest(r3, fit.judgeChange(fit.pendingChange(history), { knee: r3.knee, src: r3.kneeSource }));
   assert.equal(f3.retest.verdict, 'consistent');
-  assert.match(f3.retest.text, /^Knee bend 47° before, 43° now\. A 15 mm raise should change it by about 4 to 5°\. That fits\./);
+  assert.match(f3.retest.text, /^Knee bend 50° before, 47° now\. A 15 mm raise should change it by about 4 to 5°\. That fits\./);
   assert.equal(f3.change.kind, 'saddle');
   assert.ok(!f3.held);
   // Film 3, still no change: the second look does not hold back again, it goes by the reading.
-  const r3b = fit.advise(null, pedal(47));
+  const r3b = fit.advise(null, pedal(50));
   const f3b = fit.withRetest(r3b, fit.judgeChange(fit.pendingChange(history), { knee: r3b.knee, src: r3b.kneeSource }));
   assert.equal(f3b.retest.verdict, 'unseen');
   assert.equal(f3b.retest.recheck, true);
@@ -705,7 +730,7 @@ test('the slowest turn the app asks for is one the pedalling check still follows
 test('what "I made this change" stores: the number he gave, never the suggestion', () => {
   const raise = { kind: 'saddle', raise: true, mm: [9, 12] };
   assert.deepEqual(fit.madeChange(raise, '12', 'T'), { kind: 'saddle', dir: 1, mm: 12, at: 'T' });
-  // More than 15 is saved as it is (the card says the check will be rougher); up to the input's 50.
+  // More than 10 is saved as it is (the card says the check will be rougher); up to the input's 50.
   assert.equal(fit.madeChange({ kind: 'saddle', raise: true, mm: [15, 15] }, 25, 'T').mm, 25);
   assert.equal(fit.madeChange(raise, '40', 'T').mm, 40);
   assert.equal(fit.madeChange(raise, 50, 'T').mm, 50);
@@ -720,9 +745,10 @@ test('what "I made this change" stores: the number he gave, never the suggestion
   assert.equal(fit.madeChange({ ...raise, raise: false }, 7.6, 'T').mm, 8);
   assert.deepEqual(fit.madeChange({ kind: 'bars' }, '5', 'T'), { kind: 'bars', at: 'T' });
   assert.equal(fit.madeChange(null, '5', 'T'), null);
-  assert.equal(fit.madeNote(fit.madeChange(raise, 25, 'T')), 'Saved 25 mm. That is more than 15 mm, the most for one change, so this check will be rougher.');
+  // 10 mm is the biggest step the app gives now (was 15).
+  assert.equal(fit.madeNote(fit.madeChange(raise, 25, 'T')), 'Saved 25 mm. That is more than 10 mm, the most for one change, so this check will be rougher.');
   assert.equal(fit.madeNote(fit.madeChange(raise, 10, 'T')), 'Saved. Next time you film, I will check what it did.');
-  assert.deepEqual(fit.MADE_CHOICES, [5, 10, 15]);
+  assert.deepEqual(fit.MADE_CHOICES, [3, 5, 10]);
   // The home card, dated by the check, not by the tap.
   assert.equal(fit.retestPrompt({ kind: 'saddle', dir: 1, mm: 10 }, 'Oct 3'), 'You raised the saddle 10 mm after your Oct 3 check. Film again to see what it did. A few minutes.');
   assert.equal(fit.retestPrompt({ kind: 'saddle', dir: -1, mm: 8 }, 'Oct 3'), 'You lowered the saddle 8 mm after your Oct 3 check. Film again to see what it did. A few minutes.');
@@ -763,7 +789,7 @@ test('areas: a low saddle gives one red area, and reach waits for it', () => {
   assert.equal(a.saddle.name, 'Saddle height');
   assert.equal(a.saddle.grade, 'red');
   assert.equal(a.saddle.status, 'Needs attention');
-  assert.equal(a.saddle.step, 'Raise the saddle about 15 mm.');
+  assert.equal(a.saddle.step, 'Raise the saddle about 3 mm.');
   const lowR = fit.advise({ kneeFlex: low - 8, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 15, kneeFlex: 47, torso: 45, elbow: 22, shoulder: 88 });
   assert.equal(a.saddle.why, lowR.change.why); // the numbers
   assert.notEqual(a.saddle.why, fit.headline(lowR).why); // not the headline's reason word for word
@@ -777,20 +803,25 @@ test('areas: a low saddle gives one red area, and reach waits for it', () => {
 });
 
 test('areas: all in range is Good twice', () => {
-  const a = areasOf({ kneeFlex: 30, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 88 });
+  const a = areasOf({ kneeFlex: 30, torso: 45, elbow: 22, shoulder: 88 }, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 22, shoulder: 88 });
   assert.equal(a.saddle.status, 'Good');
   assert.equal(a.saddle.step, 'Leave the saddle height as it is.');
   assert.equal(a.reach.status, 'Good');
-  assert.equal(a.reach.why, 'Your back, elbow and shoulder angles are all inside their targets.');
+  assert.equal(a.reach.why, 'Your back and elbow angles are inside their targets.'); // the shoulder is for reference
   assert.equal(a.reach.step, 'No change needed.');
-  // Within 2.5 degrees of a target is in range, but not "inside" it.
-  const edge = areasOf(null, { strokes: 12, kneeFlex: 36, torso: 38, elbow: 22, shoulder: 88 });
-  assert.equal(edge.reach.status, 'Good');
-  assert.match(edge.reach.why, /all in range, each inside its target or within 2\.5° of it\./);
+  // Within u of a target, outside it: Fair, and never "inside" it (was Good, "within 2.5° of it").
+  const edge = areasOf(null, { strokes: 12, kneeFlex: 38, torso: 38, elbow: 22, shoulder: 88 });
+  assert.equal(edge.reach.status, 'Fair');
+  assert.equal(edge.reach.why, 'Your back angle is a little outside its target. That is fine to ride.');
+  // Inside, but within u of an edge: Fair, nothing to change.
+  const inside = areasOf(null, { strokes: 12, kneeFlex: 38, torso: 42, elbow: 22, shoulder: 88 });
+  assert.equal(inside.reach.status, 'Fair');
+  assert.equal(inside.reach.why, 'Your back and elbow angles are inside their targets. Your back angle is near the edge. That is fine to ride.');
+  assert.equal(inside.reach.step, 'No change needed.');
 });
 
 test('areas: a long, low front end with the saddle right', () => {
-  const a = areasOf(null, { strokes: 12, kneeFlex: 35, torso: 34, elbow: 5, shoulder: 100 });
+  const a = areasOf(null, { strokes: 12, kneeFlex: 38, torso: 34, elbow: 5, shoulder: 100 });
   assert.equal(a.saddle.status, 'Good');
   assert.equal(a.reach.status, 'Needs attention');
   assert.equal(a.reach.step, 'Raise the handlebars: move one spacer from above the stem to below it.');
@@ -798,29 +829,30 @@ test('areas: a long, low front end with the saddle right', () => {
 });
 
 test('areas: one angle out on its own is Fair, fine to ride, with nothing to do', () => {
-  const a = areasOf(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 60 });
+  // Round 4: the elbow, since the shoulder is for reference only and never out (SPEC 4.2).
+  const a = areasOf(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 40, shoulder: 88 });
   assert.equal(a.reach.status, 'Fair');
   assert.equal(a.reach.step, 'Fine to ride. I will compare it on your next check.');
-  assert.equal(a.reach.why, 'Your shoulder angle is outside its target. That is fine to ride.');
-  // Only the shoulder a little low, no change: no "Compare it next time", no "weight on your hands".
-  const little = fit.advise(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 76 });
-  const lr = fit.measures(little, { strokes: 12, kneeFlex: 36 });
+  assert.equal(a.reach.why, 'Your elbow bend is outside its target. That is fine to ride.');
+  // Only the elbow a little out, no change: no "Compare it next time", no "weight on your hands".
+  const little = fit.advise(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 32, shoulder: 76 });
+  const lr = fit.measures(little, { strokes: 12, kneeFlex: 38 });
   const la = fit.areas(little, lr)[1];
   assert.equal(la.status, 'Fair');
-  assert.equal(la.why, 'Your shoulder angle is a little outside its target. That is fine to ride.');
+  assert.equal(la.why, 'Your elbow bend is a little outside its target. That is fine to ride.');
   const words = [la.why, la.step, ...lr.flatMap(x => [x.why, x.step]), fit.headline(little).why, fit.spokenSummary(little, { long: true })].join(' ');
   assert.ok(!/Compare it next time|weight on your hands/.test(words), words);
   assert.ok(fit.nothingToDo(little), 'the home screen says Nothing to change');
   assert.ok(!fit.nothingToDo(fit.advise(null, { strokes: 12, kneeFlex: 47, torso: 45, elbow: 22, shoulder: 88 })));
   // A cramped rider: three angles out, but not two signs of a long, low front, so still no bars change.
-  const c = areasOf(null, { strokes: 12, kneeFlex: 35, torso: 30, elbow: 40, shoulder: 66 });
+  const c = areasOf(null, { strokes: 12, kneeFlex: 38, torso: 30, elbow: 40, shoulder: 66 });
   assert.equal(c.reach.status, 'Fair');
-  assert.match(c.reach.why, /^Your back angle, elbow bend and shoulder angle are outside their targets\./);
+  assert.match(c.reach.why, /^Your back angle and elbow bend are outside their targets\./);
 });
 
 test('areas: by verdict, and every area has one step and no Excellent', () => {
   const cases = [
-    [{ kneeFlex: 20 }, { strokes: 12, kneeFlex: 46 }], // disagree
+    [{ kneeFlex: 20 }, { strokes: 12, kneeFlex: 47 }], // disagree
     [{ kneeFlex: 40, torso: 45, elbow: 22, shoulder: 88 }, null], // still only, out of range
     [{ kneeFlex: 30, torso: 45, elbow: 22, shoulder: 88 }, null], // still only, in range
     [null, null], // nothing
@@ -881,7 +913,7 @@ test('pain or numbness: said first, staged, with its limits and "not medical adv
   assert.equal(said, `${note} ${plain}`); // the rest is unchanged
   assert.deepEqual(fit.advise(null, pedal), r);
   // Nothing to change: "Your position looks in range." in place of "Try this one change first."
-  const ok = fit.advise(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 88 });
+  const ok = fit.advise(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 22, shoulder: 88 });
   assert.match(fit.painNote(ok), /^You said pain or numbness keeps coming back\. Your position looks in range\. If it is no better/);
   assert.ok(fit.spokenSummary(ok, { pain: true }).endsWith('Nothing to change today. Your saddle height looks right.'));
   // Nothing measured: neither line, since neither would be true.
@@ -892,19 +924,20 @@ test('pain or numbness: said first, staged, with its limits and "not medical adv
 });
 
 test('a retest on two readings that disagree keeps the disagree wording', () => {
-  const r = fit.advise({ kneeFlex: 20 }, { strokes: 12, kneeFlex: 46 });
-  const re = fit.withRetest(r, fit.judgeChange({ made: { kind: 'saddle', dir: 1, mm: 10 }, knee: 41, src: 'pedalling' }, { knee: 46, src: 'pedalling' }));
+  const r = fit.advise({ kneeFlex: 20 }, { strokes: 12, kneeFlex: 47 });
+  const re = fit.withRetest(r, fit.judgeChange({ made: { kind: 'saddle', dir: 1, mm: 10 }, knee: 41, src: 'pedalling' }, { knee: 47, src: 'pedalling' }));
   assert.equal(re.retest.verdict, 'other-way');
   assert.equal(fit.headline(re).what, 'Film again');
   assert.equal((fit.headline(re).why.match(/will not suggest/g) || []).length, 1);
-  assert.match(fit.spokenSummary(re), /^Knee bend 41 degrees before\. 46 degrees now\..*point different ways/);
+  assert.match(fit.spokenSummary(re), /^Knee bend 41 degrees before\. 47 degrees now\..*point different ways/);
 });
 
 // ── "Did you make this change?" after the results screen has gone ─────────────────────────────
 test('the change a session suggested is kept, and asked about until it is answered', () => {
-  const r = fit.advise(null, { strokes: 12, kneeFlex: 43, torso: 45, elbow: 22, shoulder: 88 });
+  const r = fit.advise(null, { strokes: 12, kneeFlex: 49.5, torso: 45, elbow: 22, shoulder: 88 });
   const sug = fit.suggestedChange(r.change);
-  assert.deepEqual(sug, { kind: 'saddle', raise: true, mm: [9, 12] });
+  // One step now (was 43: 9 to 12), with how far out it was, so the Check tab says what the results said.
+  assert.deepEqual(sug, { kind: 'saddle', raise: true, mm: [5, 5], how: 'a little' });
   assert.deepEqual(fit.suggestedChange({ kind: 'bars', flags: ['torso'] }), { kind: 'bars' });
   assert.equal(fit.suggestedChange(null), null);
   // What "Yes, I made it" stores from the suggestion is the same as from the change itself.
@@ -948,7 +981,7 @@ test('the words of the change card: how far, never a number preselected, and Lat
   const low = fit.spokenSummary(fit.advise(null, { strokes: 12, kneeFlex: 47, torso: 45, elbow: 22, shoulder: 88 }));
   assert.match(low, /When you have moved it, tell me how far\.$/);
   const bars = fit.spokenSummary(fit.advise(null, { strokes: 12, kneeFlex: 35, torso: 34, elbow: 5, shoulder: 100 }));
-  assert.match(bars, /When you have done it, tap I made this change\.$/);
+  assert.match(bars, /Then tap I made this change\.$/); // never "done" (SPEC 7.1)
   for (const w of ['results', 'home']) for (const m of ['ask', 'later', 'before']) for (const sg of [sug, { kind: 'bars' }]) {
     const x = fit.madeQuestion(w, m, sg, 'Oct 10');
     assert.ok(!/\u2014/.test(x.q + (x.yes || '') + (x.no || '')));
@@ -987,7 +1020,7 @@ test('nothing measured: says what went wrong, and the headline, area reason and 
 
 test('the on-screen saddle reason uses ° and mm, the spoken one degrees and millimetres', () => {
   const r = fit.advise(null, { strokes: 12, kneeFlex: 49, torso: 45, elbow: 22, shoulder: 88 });
-  assert.equal(r.change.why, 'Your knee is still bent 49° with the pedal at its lowest point. The target is 30 to 40, so the saddle is too low. 15 mm is the most to change in one go.');
+  assert.equal(r.change.why, 'Your knee is still bent 49° with the pedal at its lowest point. The target is 33 to 43, so the saddle is a little low.');
   for (const t of [r.change.why, fit.saddleWhy(r), fit.headline(r).why]) assert.ok(!/degrees|millimetres/.test(t), t);
   assert.match(fit.saddleWhy(r, ' degrees'), /49 degrees/);
   assert.ok(!/°|\bmm\b/.test(fit.spokenSummary(r)));
@@ -995,11 +1028,12 @@ test('the on-screen saddle reason uses ° and mm, the spoken one degrees and mil
 });
 
 test('Reach Fair only calls an angle a sign of a long, low front end when it is one', () => {
-  const closed = areasOf(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 22, shoulder: 68 }).reach;
-  assert.equal(closed.why, 'Your shoulder angle is outside its target. That is fine to ride.');
-  const lowBack = areasOf(null, { strokes: 12, kneeFlex: 36, torso: 33, elbow: 22, shoulder: 88 }).reach;
+  // A closed shoulder is for reference only: it is not called out at all (was Fair, "outside its target").
+  const closed = areasOf(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 22, shoulder: 68 }).reach;
+  assert.equal(closed.why, 'Your back and elbow angles are inside their targets.');
+  const lowBack = areasOf(null, { strokes: 12, kneeFlex: 38, torso: 33, elbow: 22, shoulder: 88 }).reach;
   assert.equal(lowBack.why, 'Your back angle is outside its target. That is one sign of a long, low front end, but the handlebars only need to move when two signs point the same way. That is fine to ride.');
-  const bent = areasOf(null, { strokes: 12, kneeFlex: 36, torso: 45, elbow: 40, shoulder: 88 }).reach;
+  const bent = areasOf(null, { strokes: 12, kneeFlex: 38, torso: 45, elbow: 40, shoulder: 88 }).reach;
   assert.match(bent.why, /That is fine to ride\.$/);
   // No pedalling reading: the saddle is not settled, so bars wait whatever the angles say.
   const wait = areasOf({ kneeFlex: 30, torso: 33, elbow: 5, shoulder: 100 }, null).reach;
@@ -1021,23 +1055,25 @@ test('the summary status agrees with the areas', () => {
 test('the handlebars advice only counts angles the screen shows as out of range', () => {
   // Round 2 found "Raise the handlebars" (Needs attention) from a back at 38 and a shoulder at 97,
   // while both rows said "within 2.5° of the target ... counts as in range" and "No change needed.".
-  const edge = { strokes: 12, strokesSeen: 12, kneeFlex: 36, torso: 38, elbow: 20, shoulder: 97 };
+  // Round 4: a sign counts only in its Needs attention zone, past its own u (SPEC 4.3), and the
+  // shoulder, for reference only, only above 95 plus u.
+  const edge = { strokes: 12, strokesSeen: 12, kneeFlex: 38, torso: 38, elbow: 20, shoulder: 98 };
   const r = fit.advise(null, edge);
   assert.equal(r.change, null);
   assert.notEqual(fit.headline(r).what, 'Raise the handlebars');
-  assert.equal(areasOf(null, edge).reach.status, 'Good');
-  // Just past the tolerance on both: two signs, and both rows say so.
-  const past = fit.advise(null, { ...edge, torso: 37.4, shoulder: 97.6 });
+  assert.equal(areasOf(null, edge).reach.status, 'Fair'); // the back is just outside, within u
+  // Just past u on both: two signs, and both rows say so.
+  const past = fit.advise(null, { ...edge, torso: 36.9, shoulder: 98.1 });
   assert.equal(past.change?.kind, 'bars');
-  // Every combination around the edges: a sign counts exactly when its row is out of range, on the
-  // side that means a long, low front, and the bars change comes exactly when two signs count.
-  const sideOf = (row) => (row.grade === 'green' || row.grade === 'na' ? 'in' : 'out');
-  for (const torso of [34, 37, 37.4, 37.5, 37.6, 38, 39.9, 40, 45]) for (const shoulder of [90, 95, 95.1, 97.4, 97.5, 97.6, 98, 101])
-    for (const elbow of [5, 7.9, 8, 10, 12.4, 12.5, 12.6, 20]) {
-      const p = { strokes: 12, strokesSeen: 12, kneeFlex: 36, torso, elbow, shoulder };
+  // Every combination around the edges: a sign counts exactly when its row is Needs attention (the
+  // shoulder: above 95 plus u), on the side that means a long, low front, and the bars change comes
+  // exactly when two signs count.
+  for (const torso of [34, 36.9, 37, 37.1, 38, 39.9, 40, 45]) for (const shoulder of [90, 95, 97.9, 98, 98.1, 101])
+    for (const elbow of [5, 7.9, 8, 10, 11.9, 12, 12.1, 20]) {
+      const p = { strokes: 12, strokesSeen: 12, kneeFlex: 38, torso, elbow, shoulder };
       const res = fit.advise(null, p);
       const rows = Object.fromEntries(fit.measures(res, p).map(x => [x.key, x]));
-      const out = { torso: sideOf(rows.torso) === 'out' && torso < 40, shoulder: sideOf(rows.shoulder) === 'out' && shoulder > 95, elbow: elbow < 8 };
+      const out = { torso: rows.torso.grade === 'red' && torso < 40, shoulder: shoulder > 95 + fit.U.shoulder, elbow: elbow < 8 };
       const n = Object.values(out).filter(Boolean).length;
       const at = `torso ${torso}, shoulder ${shoulder}, elbow ${elbow}`;
       assert.equal(res.change?.kind === 'bars', n >= 2, at);
@@ -1045,13 +1081,13 @@ test('the handlebars advice only counts angles the screen shows as out of range'
         assert.deepEqual(res.change.flags, ['torso', 'shoulder', 'elbow'].filter(k => out[k]), at);
         for (const k of res.change.flags) {
           assert.notEqual(rows[k].status, 'Good', `${at}: ${k} is part of the change`);
-          assert.ok(!/counts as in range/.test(rows[k].why), `${at}: ${rows[k].why}`);
+          assert.ok(!/closer than a phone camera can tell apart|inside the target/.test(rows[k].why), `${at}: ${rows[k].why}`);
           assert.equal(rows[k].step, 'Part of the main change: raise the handlebars.', at);
         }
       }
       const reach = fit.areas(res, Object.values(rows))[1];
       // The Fair reason calls an angle one sign of a long, low front only when it is one.
-      if (!res.change && reach.grade === 'amber') assert.equal(/That is one sign of a long, low front end/.test(reach.why), n === 1, `${at}: ${reach.why}`);
+      if (!res.change && reach.grade === 'amber' && /outside/.test(reach.why)) assert.equal(/That is one sign of a long, low front end/.test(reach.why), n === 1, `${at}: ${reach.why}`);
     }
 });
 
@@ -1172,7 +1208,8 @@ test('the spoken summary: the action first and short', () => {
 test('compared with last time: better or worse, against the target', () => {
   const knee = fit.TARGETS.kneeDynamic;
   assert.equal(fit.compareLast(37, 49, 'Oct 3', knee), 'Down 12° since Oct 3, now inside the target');
-  assert.equal(fit.compareLast(41, 49, 'Oct 3', knee), 'Down 8° since Oct 3, now in range'); // within 2.5 of it, not "inside"
+  // Within u of it, outside: closer, never "in range" (round 4: the 2.5 degree tolerance is gone).
+  assert.equal(fit.compareLast(44, 49, 'Oct 3', knee), 'Down 5° since Oct 3, closer to the target');
   assert.equal(fit.compareLast(45, 49, 'Oct 3', knee), 'Down 4° since Oct 3, closer to the target');
   assert.equal(fit.compareLast(53, 49, 'Oct 3', knee), 'Up 4° since Oct 3, further from the target');
   assert.equal(fit.compareLast(25, 29, 'Oct 3', knee), 'Down 4° since Oct 3, further from the target');

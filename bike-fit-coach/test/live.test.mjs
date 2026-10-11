@@ -60,7 +60,7 @@ test('the state table, screen towards the rider: holding still and pedalling go 
   const pedal = front({ phase: 'pedal', pedal: { started: true, elapsed: 10, total: 20, left: 9.6, dir: 'backwards' } });
   assert.deepEqual([pedal.ring.digits, pedal.ring.frac, pedal.border, pedal.caption, pedal.step], ['10', 0.5, 'blue', false, 'Step 4 of 5']);
   assert.equal(front({ phase: 'pedal', pedal: { started: true, elapsed: 30, total: 30, left: 0, more: true, dir: 'forwards' } }).sub, 'A few more turns');
-  assert.equal(front({ phase: 'pedal', pedal: { started: false, total: 30, dir: 'forwards' } }).sub, 'Forwards, easy effort');
+  assert.equal(front({ phase: 'pedal', pedal: { started: false, total: 30, dir: 'forwards' } }).sub, 'Forwards, long-ride effort');
 });
 
 test('screen away: the same figure and outline, the last correction on a card, the ring kept for a helper', () => {

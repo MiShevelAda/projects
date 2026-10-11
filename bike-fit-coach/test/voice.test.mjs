@@ -172,12 +172,14 @@ test('every line said in simulated sessions is in the catalog and has its clips'
     p.stdout.on('data', (d) => { out += d; });
     p.on('close', (code) => (code === 0 ? resolve(JSON.parse(out)) : reject(new Error(`${q}: exit ${code}`))));
   });
-  const queries = ['setup=wall', 'setup=trainer&screen=towards', 'setup=friend&helper=visible', 'pain&setup=wall&low', 'setup=wall&low&then=now', 'setup=trainer&pedal=stop'];
+  // Round 4: the question screens too (flow), with the fitter, feel, revert and kit lines.
+  const queries = ['setup=wall', 'setup=trainer&screen=towards', 'setup=friend&helper=visible', 'pain&setup=wall&low', 'setup=wall&low&then=now', 'setup=trainer&pedal=stop',
+    'setup=trainer&low&flow&then=home', 'pain&setup=wall&low&flow&seed=worse&feel=worse', 'setup=wall&low&flow&seed=trend&kit=no', 'setup=wall&low&flow&fitter=yes'];
   const known = new Set(cat.lines.map(l => l.text));
   const said = new Set();
   for (let i = 0; i < queries.length; i += Math.max(1, availableParallelism() - 1)) {
     for (const o of await Promise.all(queries.slice(i, i + Math.max(1, availableParallelism() - 1)).map(run))) {
-      for (const s of [...o.said, ...(o.next?.said || [])]) said.add(voiceText(s));
+      for (const s of [...o.said, ...(o.next?.said || []), ...(o.flow?.said || []), ...(o.homeFlow?.said || [])]) said.add(voiceText(s));
     }
   }
   assert.ok(said.size > 40, `${said.size} lines`);
@@ -198,7 +200,7 @@ test('sentences and voice parts: a whole-line clip first, else the longest run o
     [{ text: 'Got it.', clip: true }, { text: 'Hold it. Three. Two. One.', clip: true }, { text: 'Then this', clip: false }]);
   assert.deepEqual(voiceParts('Three. Two. One.', (x) => some.has(x)), [{ text: 'Three.', clip: false }, { text: 'Two.', clip: true }, { text: 'One.', clip: false }]);
   // The spoken result, sentence by sentence, from real clips.
-  const r = cat.lines.find(l => l.from === 'fit.spokenSummary' && /Raise the saddle about \d+ to \d+ millimetres\./.test(l.text));
+  const r = cat.lines.find(l => l.from === 'fit.spokenSummary' && /Raise the saddle about \d+ millimetres\./.test(l.text));
   assert.ok(r);
   assert.ok(voiceParts(r.text, has).length >= 3);
   // No lookbehind in ui.js: older Safari cannot parse one, and the whole page would fail.
