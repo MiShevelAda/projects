@@ -1,5 +1,6 @@
-// Round 4, builder C: the drawn demo clips (assets/demo/), placeholders until realistic clips replace
-// them. The rule: a demo plays before a move, never during it (the design review, "Live screen"), on
+// Round 4, builder C: the demo clips (assets/demo/). Drawn placeholders first; since 2026-10-12 the
+// moves are computer-made 3D clips of invented riders (look A, Alex's "A is fine") and only the
+// placement loop is still drawn. The rule: a demo plays before a move, never during it (the design review, "Live screen"), on
 // the rider's first check of a setup (day one) or when he asks to see it again in Learn, muted
 // because the app's own voice speaks, and a tap skips it. These check the files, the page and the
 // service worker; the sessions are run by test/flow-runner.mjs below.
@@ -21,9 +22,18 @@ const session = (q) => {
 // getting on and holding still, then pedalling, the way this setup pedals.
 const SETUPS = ['trainer', 'wall', 'friend'];
 const FILES = ['place', ...SETUPS.flatMap(s => [`hold-${s}`, `pedal-${s}`])];
-// Design choices: the drawn clips are 6 to 8 s at 1280x720 and 214 to 556 KB each; 700 KB a clip
-// and 4 MB for the folder keep a first check on a phone connection quick.
+// Design choices: the clips are 6 to 8 s at 1280x720 and 384 to 650 KB each; 700 KB a clip and
+// 4 MB for the folder keep a first check on a phone connection quick.
 const CLIP_MAX = 700 * 1024, ALL_MAX = 4 * 1024 * 1024;
+// The clips of invented people are labelled as such on screen (the shot list's rule). Drawn and
+// rendered alike are made on a computer, so the one label is true of both.
+const LABEL = 'Computer-made demo';
+// An MP4's own length: the movie header ('mvhd') holds its time scale and duration.
+function mp4Secs(buf) {
+  const at = buf.indexOf(Buffer.from('mvhd')), o = at + 8;
+  assert.ok(at > 0, 'no movie header');
+  return buf[at + 4] === 1 ? Number(buf.readBigUInt64BE(o + 20)) / buf.readUInt32BE(o + 16) : buf.readUInt32BE(o + 12) / buf.readUInt32BE(o + 8);
+}
 
 test('the demo files: one muted clip and its poster for each step, only the ones the app uses, and small', async () => {
   const dir = new URL('../assets/demo/', import.meta.url);
@@ -49,6 +59,16 @@ test('the demo files: one muted clip and its poster for each step, only the ones
   for (const f of FILES) assert.ok(app.includes(`'${f}'`), `app.js does not use ${f}`);
 });
 
+test('each clip\'s length in app.js is the file\'s own, so the guard never cuts a clip short', async () => {
+  const app = await read('app.js');
+  const secs = new Function(`return ${app.match(/const DEMO_SECS = (\{[^}]*\});/)[1]}`)();
+  assert.deepEqual(Object.keys(secs).sort(), [...FILES].sort());
+  for (const f of FILES) {
+    const len = mp4Secs(await readFile(new URL(`../assets/demo/${f}.mp4`, import.meta.url)));
+    assert.ok(Math.abs(len - secs[f]) < 0.05, `${f}: the file is ${len} s, DEMO_SECS says ${secs[f]}`);
+  }
+});
+
 test('the demos are left to the network like every clip, and their posters are cached for offline', async () => {
   const sw = await read('sw.js');
   const core = sw.slice(sw.indexOf('const CORE = ['), sw.indexOf('];', sw.indexOf('const CORE = [')));
@@ -64,17 +84,23 @@ test('the page: the demo is muted, inline, without controls, and one tap anywher
   const html = await read('index.html');
   const tag = (id) => html.match(new RegExp(`<[a-z]+ id="${id}"[^>]*>`))?.[0] || '';
   // The live screen's demo: a button over the camera view, labelled for VoiceOver.
-  assert.match(tag('demo'), /^<button id="demo" class="demo" type="button" aria-label="Drawn demo\. Tap to skip\."[^>]*hidden>$/);
+  assert.match(tag('demo'), /^<button id="demo" class="demo" type="button" aria-label="Computer-made demo\. Tap to skip\."[^>]*hidden>$/);
   const run = html.slice(html.indexOf('<div id="run"'), html.indexOf('<!-- ── the results'));
   assert.ok(run.includes('id="demo"'), 'the demo is part of the camera view');
-  assert.match(run, /<button id="demo"[^>]*>\s*<video id="demoVideo"/);
+  assert.match(run, /<button id="demo"[^>]*>\s*<span class="vbox"><video id="demoVideo"/);
   // The placement loop, in the drawing's box on the placement screen.
   const kf = run.slice(run.indexOf('<div class="keyframe">'), run.indexOf('<div class="placeText">'));
   assert.ok(kf.includes('id="placeVideo"'), 'the placement loop sits in the drawing\'s box');
   // Learn: the setups' rows play their demo when tapped.
   const learn = html.slice(html.indexOf('id="tabLearn"'), html.indexOf('<div class="tabfade"'));
   for (const s of SETUPS) assert.match(learn, new RegExp(`<button id="learn${s[0].toUpperCase()}${s.slice(1)}" class="learnrow" type="button" data-demo="${s}"`), s);
-  assert.match(tag('learnDemo'), /aria-label="Drawn demo\. Tap to stop\."/);
+  assert.match(tag('learnDemo'), /aria-label="Computer-made demo\. Tap to stop\."/);
+  // And for the eyes: the label shows on the clip, in the live view and in Learn.
+  for (const id of ['demo', 'learnDemo']) {
+    const box = html.slice(html.indexOf(`<button id="${id}"`), html.indexOf('</button>', html.indexOf(`<button id="${id}"`)));
+    assert.ok(box.includes(`<span class="demoTag" aria-hidden="true">${LABEL}</span>`), `${id} shows "${LABEL}"`);
+  }
+  assert.ok(!/Drawn demo/.test(html), 'no "Drawn demo" left on the page');
   for (const id of ['demoVideo', 'placeVideo', 'learnVideo']) {
     const v = tag(id);
     assert.ok(v.startsWith('<video'), id);
@@ -153,8 +179,11 @@ test('asked to see it again: a setup\'s row in Learn plays its moves, muted, and
   assert.equal(r.learnDemo.why, 'skipped');
 });
 
-test('README calls the demos drawn placeholders', async () => {
+test('README says the moves are computer-made 3D clips of invented riders and the placement loop is drawn', async () => {
   const readme = await read('README.md');
   assert.match(readme, /assets\/demo\//);
-  assert.match(readme, /drawn placeholders?/i);
+  assert.match(readme, /computer-made 3D/i);
+  assert.match(readme, /invented/i);
+  assert.match(readme, /placement loop[^.]*still drawn/i);
+  assert.ok(!/drawn placeholders/i.test(readme), 'README still calls every demo a drawn placeholder');
 });

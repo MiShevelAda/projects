@@ -484,7 +484,7 @@ const debug = { phase: () => phase, setup: () => setup, screen: () => screen, se
   // said in the phone's voice because its clip failed (fallback) or has none (missing), and manifest
   // errors.
   voice: { clips: 0, played: [], fallback: [], missing: [], errors: [], cuts: [] },
-  // The drawn demos (Demo): each one shown, its clips, the step and the line it began in, and when, in
+  // The demos (Demo): each one shown, its clips, the step and the line it began in, and when, in
   // which step and why it ended (ended, skipped, left with its step, failed, stalled).
   demos: [] };
 window.__bfc = debug;
@@ -941,7 +941,7 @@ const HANDLERS = {
       ph.demoLine = lastQueued();
     },
     tick({ t, rider }) {
-      // Day one: the drawn demo of the moves begins with the get-on line (Demo); it ends by itself, at
+      // Day one: the demo of the moves begins with the get-on line (Demo); it ends by itself, at
       // a tap, or when this step ends. Only with the screen towards him (round 5, the UX review's
       // item 8): with the screen away he walks to the bike as the line starts and can no longer see it.
       if (ph.demoLine && Voice.cur?.text === ph.demoLine && Voice.cur.t0 != null) {
@@ -1854,9 +1854,10 @@ function draw(raw, W, H, side, others = []) {
   drawFigure(g, raw, side, (i) => [ox + raw[i].x * W * s, oy + raw[i].y * H * s], unit, TONE[curView.tone] || TONE.white);
 }
 
-// ── the drawn demos ──────────────────────────────────────────────────────────────────────────
-// Short drawn clips of the next moves (assets/demo/), placeholders until realistic clips replace them
-// (README, "The drawn demos"). The design review's rule: a demo plays before a move, never during it.
+// ── the demos ────────────────────────────────────────────────────────────────────────────────
+// Short clips of the next moves (assets/demo/): computer-made 3D clips of invented riders, and the
+// placement loop still drawn (README, "The demos"). Each one is labelled "Computer-made demo" on
+// screen. The design review's rule: a demo plays before a move, never during it.
 // So they play on the first check of a setup on this phone (day one, not session.returning) while the
 // rider can see the screen: the placement loop in the drawing's box while the phone is placed, then,
 // with the screen towards him only, getting on and holding still, and pedalling the way this setup
@@ -1866,7 +1867,7 @@ function draw(raw, W, H, side, others = []) {
 // of at once and the check goes on as without it.
 const DEMO_DIR = 'assets/demo/';
 // Each clip's length in seconds (ffprobe), for the guard that ends one that never says it ended.
-const DEMO_SECS = { place: 7.5, 'hold-trainer': 7, 'hold-wall': 8, 'hold-friend': 7, 'pedal-trainer': 7, 'pedal-wall': 6, 'pedal-friend': 6 };
+const DEMO_SECS = { place: 7.5, 'hold-trainer': 7, 'hold-wall': 8, 'hold-friend': 7, 'pedal-trainer': 6, 'pedal-wall': 6, 'pedal-friend': 6 };
 const demoMoves = (s) => [`hold-${s}`, `pedal-${s}`];
 const Demo = {
   cur: null,
