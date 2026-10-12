@@ -8,7 +8,7 @@
 const CACHE = 'bfc-v2-mp0.10.35-4eaa5eb7';
 // Every file the page needs offline. The clips (.mp4) are left to the network on purpose (see the
 // fetch handler); their posters are here, so Getting Ready (the setup guide), Learn (the Camera app
-// clip) and the drawn demos (assets/demo/, day one and Learn) look the same offline. Offline, a demo
+// clip) and the demos (assets/demo/, day one and Learn) look the same offline. Offline, a demo
 // clip cannot play, so the app goes on without it (app.js, Demo).
 const CORE = ['./', './index.html', './app.js', './fit.js', './ui.js', './manifest.webmanifest', './icons/icon-192.png', './assets/setup-guide-poster.jpg', './assets/how-to-poster.jpg',
   './vendor/mediapipe/vision_bundle.mjs', './assets/voice/manifest.json',

@@ -38,7 +38,7 @@
 //   kit=no        on Getting Ready of a retest, taps Different Shoes or Shorts instead of Start.
 // then=home walks the same screens; what it saw and heard there is printed as "homeFlow", and the
 // next check's lines start at Getting Ready's Start.
-// Round 4, builder C: the drawn demos, for the runner only (each check prints "demos": every demo
+// Round 4, builder C: the demos, for the runner only (each check prints "demos": every demo
 // shown, its clips, the step and the line it began in, and when, in which step and why it ended):
 //   skipdemo      tap the demo of the moves 1 s after it shows (printed as "demoTap", and whether it
 //                 still showed after the tap as "demoShownAfterTap");

@@ -222,7 +222,7 @@
   .learnrow svg { width: 2.1rem; height: auto; color: var(--blue); }
   .learnrow b { display: block; font-size: 1rem; font-weight: 600; }
   .learnrow span { font-size: 0.882rem; line-height: 1.33; color: var(--sec); }
-  /* Learn's setup rows play their drawn demo: a row is a button, with a play circle at its end. */
+  /* Learn's setup rows play their demo: a row is a button, with a play circle at its end. */
   button.learnrow { appearance: none; width: 100%; margin: 0; border: 0; border-top: 1px solid var(--sep); background: none; color: inherit; font: inherit; text-align: left; grid-template-columns: 2.1rem minmax(0, 1fr) 1.65rem; align-items: center; }
   button.learnrow:first-child { border-top: 0; }
   .learnrow svg.play { width: 1.65rem; height: 1.65rem; }
@@ -478,12 +478,18 @@
   .keyframe video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #131A24; }
   .keyframe.playing { aspect-ratio: 16 / 9; }
   .keyframe.playing svg { display: none; }
-  /* Day one: the drawn demo of the moves, over the camera view, under the caption and the top bar. */
+  /* Day one: the demo of the moves, over the camera view, under the caption and the top bar. */
   .demo { appearance: none; position: absolute; inset: 0; z-index: 7; margin: 0; border: 0; border-radius: 0; color: #fff; background: var(--f-bg);
     display: flex; align-items: center; justify-content: center; padding: var(--top) var(--padR) calc(var(--capH) + 12px) var(--padL); }
   .demo video { display: block; height: 100%; max-width: 100%; aspect-ratio: 16 / 9; object-fit: contain; border-radius: 22px; background: #131A24; }
   .demoTap { position: absolute; right: calc(var(--padR) + 12px); bottom: calc(var(--capH) + 24px); min-height: 36px; padding: 0 16px; border-radius: 18px; display: inline-flex; align-items: center;
     background: rgba(28,28,30,0.78); border: 1px solid rgba(255,255,255,0.16); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); font-size: 15px; font-weight: 600; }
+  /* The label on a clip of invented people: on the clip's top left corner, in the live view and in Learn. */
+  .demo { container-type: size; }
+  .demo .vbox, .learnDemo .vbox { position: relative; display: block; }
+  .demo .vbox { width: min(100cqw, 100cqh * 16 / 9); aspect-ratio: 16 / 9; }
+  .demo .vbox video { width: 100%; height: 100%; }
+  .demoTag { position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 13px; background: rgba(0,0,0,0.55); color: #fff; font-size: 12px; font-weight: 600; pointer-events: none; }
   .kfnote { position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 13px; background: rgba(0,0,0,0.5); font-size: 12px; font-weight: 600; }
   .placeText { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
   .placeText h1 { font-size: clamp(28px, 4.8vw, 40px); line-height: 1.15; font-weight: 700; }
@@ -1021,13 +1027,13 @@
     </div>
 
     <h2 class="h2">Three Ways to Hold the Bike</h2>
-    <!-- Each row plays its setup's drawn demo (getting on and holding still, then pedalling), muted,
+    <!-- Each row plays its setup's demo (getting on and holding still, then pedalling), muted,
          for a rider who wants to see it again; a tap on it stops it. -->
     <div class="card flat">
       <button id="learnTrainer" class="learnrow" type="button" data-demo="trainer"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 26a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M26 26a7 7 0 1 0 14 0a7 7 0 1 0 -14 0M11 26l7-12h10l5 12M18 14l4 12h-11M28 26 33 38h-8l3-12M4 39h36"/></svg><div><span class="vh">Watch the demo: </span><b>On a trainer or rollers</b><span>Bike level. Pedal forwards, 30 seconds.</span></div><svg class="play" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="var(--blue-bg)"/><path d="M11 8.5v11l9-5.5z" fill="var(--blue-text)"/></svg></button>
       <button id="learnWall" class="learnrow" type="button" data-demo="wall"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M40 4v36M36 8l4 4M36 16l4 4M36 24l4 4M36 32l4 4M3 28a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M21 28a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M9 28l6-10h8l4 10M15 18l3 10H9M4 39h30"/></svg><div><span class="vh">Watch the demo: </span><b>Leaning on a wall</b><span>Wall on the far side, front brake on. Pedal backwards, 20 seconds.</span></div><svg class="play" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="var(--blue-bg)"/><path d="M11 8.5v11l9-5.5z" fill="var(--blue-text)"/></svg></button>
       <button id="learnFriend" class="learnrow" type="button" data-demo="friend"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 30a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M23 30a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M9 30l6-10h8l4 10M15 20l3 10H9M32.5 8a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M36 12v12M36 16l-6 4M36 24l-3 8M36 24l3 8"/></svg><div><span class="vh">Watch the demo: </span><b>A friend holds it</b><span>Friend upright on the far side. Pedal backwards, 20 seconds.</span></div><svg class="play" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="var(--blue-bg)"/><path d="M11 8.5v11l9-5.5z" fill="var(--blue-text)"/></svg></button>
-      <button id="learnDemo" class="learnDemo" type="button" aria-label="Drawn demo. Tap to stop." hidden><video id="learnVideo" muted playsinline preload="none" aria-hidden="true"></video></button>
+      <button id="learnDemo" class="learnDemo" type="button" aria-label="Computer-made demo. Tap to stop." hidden><span class="vbox"><video id="learnVideo" muted playsinline preload="none" aria-hidden="true"></video><span class="demoTag" aria-hidden="true">Computer-made demo</span></span></button>
     </div>
 
     <h2 class="h2">Tips</h2>
@@ -1194,11 +1200,11 @@
 
   <svg id="border" class="border" aria-hidden="true"><rect id="borderRect" x="7" y="7" rx="40" fill="none" stroke-width="14" stroke-linecap="round"/></svg>
 
-  <!-- Day one: a drawn demo of the next moves (getting on and holding still, then pedalling), while
-       the get-on line is said and he is still at the phone. Muted: the voice speaks. A tap anywhere
-       skips it. Drawn placeholders until realistic clips replace them (README, "The drawn demos"). -->
-  <button id="demo" class="demo" type="button" aria-label="Drawn demo. Tap to skip." hidden>
-    <video id="demoVideo" muted playsinline preload="none" aria-hidden="true"></video>
+  <!-- Day one: a demo of the next moves (getting on and holding still, then pedalling), while the
+       get-on line is said and he is still at the phone. Muted: the voice speaks. A tap anywhere skips
+       it. Computer-made 3D clips of invented riders, labelled as such (README, "The demos"). -->
+  <button id="demo" class="demo" type="button" aria-label="Computer-made demo. Tap to skip." hidden>
+    <span class="vbox"><video id="demoVideo" muted playsinline preload="none" aria-hidden="true"></video><span class="demoTag" aria-hidden="true">Computer-made demo</span></span>
     <span class="demoTap" aria-hidden="true">Tap to Skip</span>
   </button>
 

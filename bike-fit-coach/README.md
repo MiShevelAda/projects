@@ -16,7 +16,7 @@ voice. If you hear nothing, turn the volume up and switch off silent mode.
 
 The app has three tabs, like Apple's Health app: **Check** (start a check; your latest result),
 **Progress** (each area over time on its target band) and **Learn** (how a check works, where the
-phone goes, the three setups with a drawn demo of each, privacy). The tabs follow the phone's light
+phone goes, the three setups with a demo of each, privacy). The tabs follow the phone's light
 or dark mode; the check itself (Setup, Getting Ready and the camera view) is always dark, like
 Apple's own assessment flow.
 
@@ -682,20 +682,23 @@ Once after the camera's first frame the app notes what the browser really gave (
 size and frame rate, from `track.getSettings()`) in `window.__bfc.camera`, and Copy Results adds one
 line, "Camera: front, 1280 by 720, 30 frames a second.", so a phone test can report it.
 
-### The drawn demos
+### The demos
 
-Round 4: short clips of the next moves, in `assets/demo/`. **They are drawn placeholders**, stand-ins
-drawn on a computer (no real people), with "Drawn demo" in the corner, until realistic clips replace
-them. The design review's rule is that a demo plays before a move, never during it, so they play only
-on the first check of a setup on this phone (day one), while you can see the screen:
+Short clips of the next moves, in `assets/demo/`. Since 2026-10-12 the moves are **computer-made 3D
+clips** of invented riders, rendered in Blender in look A, the realistic look Alex picked ("A is
+fine", `DECISIONS.md`); the placement loop is still drawn, as in round 4, because it has no 3D
+version yet. Both are labelled **Computer-made demo** on screen, in the live view and in Learn,
+and VoiceOver reads the same words. The design review's rule is that a demo plays before a move,
+never during it, so they play only on the first check of a setup on this phone (day one), while you
+can see the screen:
 
 - while the voice says where the phone goes, the placement clip (a man standing the phone on the box)
   loops in the drawing's box on the placement screen;
-- from the get-on line, with the screen towards you only: getting on and holding still, then
-  pedalling the way your setup pedals (forwards on a trainer, backwards against a wall or with a
-  friend), about 15 seconds in all, over the camera view, under the caption. Round 5: with the screen
-  away you walk to the bike as that line starts and cannot see it, so it does not play then (moving
-  it to before the walk is Alex's call, FOR-ALEX decision 10).
+- from the get-on line, with the screen towards you only: holding still with the near pedal at the
+  bottom, then pedalling the way your setup pedals (forwards on a trainer, backwards against a wall or
+  with a friend), about 13 seconds in all, over the camera view, under the caption. Round 5: with the
+  screen away you walk to the bike as that line starts and cannot see it, so it does not play then
+  (moving it to before the walk is Alex's call, FOR-ALEX decision 10).
 - With Reduce Motion on, neither plays by itself; the drawing stays, and Learn's rows still play one
   on a tap.
 
@@ -703,9 +706,16 @@ They are muted, because the app's own voice is speaking, add no time (the step w
 instruction to be heard anyway), and a tap anywhere on one skips it (**Tap to Skip**). They never play
 on a returning run. To see them again, tap your setup's row under "Three Ways to Hold the Bike" in
 Learn. A clip that cannot play (offline, since clips are left to the network; Low Power Mode; a
-browser without H.264) is let go of at once, and the check goes on as without it. Seven clips,
-2.4 MB, and their posters (cached for offline), 0.34 MB; the source is the stand-in set's muted
-versions (`S02`, `D1`, `S03`, `D2`, `S05`, `S04`, `S06`). Not seen on an iPhone yet.
+browser without H.264) is let go of at once, and the check goes on as without it.
+
+The files: seven clips, 1280x720, 30 fps, H.264, no sound track, 384 to 650 KB each, and their
+posters (frame 0 of each clip, cached for offline). Each clip's length in `DEMO_SECS` (app.js) is the
+file's own, which `demo.test.mjs` reads from the file. The holds are one still frame, so nothing moves
+in a "hold still" demo; the pedalling clips are two turns of a seamless loop. Known limits, from the
+render review: the faces look doll-like and the hair is solid; the pose model loses the far ankle now
+and then, as it does on a real side-on rider; and the placement loop is drawn while the rest are 3D.
+In each pedalling clip the app's own measuring puts the knee in its green band. Not seen on an
+iPhone yet.
 
 ## The phone's roll, taken out of the picture
 
@@ -977,7 +987,7 @@ on the second look): 6 new clips, 6 removed, 704 in all (13.89 MB; 304 precached
 - When anything in `vendor/` or `models/` changes, change the cache name in `sw.js` (the test says
   what it must contain), or phones keep the old engine. A new file the page needs goes into `CORE`
   in `sw.js` (`screens.test.mjs` checks the list). The clips (the setup guide, the Camera app clip,
-  the drawn demos) are left to the network, so they play only online; their posters are cached.
+  the demos) are left to the network, so they play only online; their posters are cached.
 - Large text: sizes are in rem on `font: -apple-system-body`, so they follow the iPhone's text size;
   buttons are sized by padding and wrap, and the tab labels stay 11 px, as Apple's do. When the
   first answer of a question screen would sit under the Next bar (28 px text on a 375 x 667 screen,
@@ -1006,9 +1016,9 @@ on the second look): 6 new clips, 6 removed, 704 in all (13.89 MB; 304 precached
 | `fit.js` | The measuring maths and the words of the results, with no browser code, so it can be tested |
 | `sw.js` | Offline support from the first visit: the engine and the model are cached when it installs (that first visit may download them twice), and the voice clips in their own cache |
 | `assets/voice/` | The coach's recorded voice: one `.m4a` clip per line or sentence, and `manifest.json` (see "The voice") |
-| `assets/demo/` | The drawn demos, drawn placeholders: the placement loop, and getting on and holding still and pedalling for each setup, muted, with their posters (see "The drawn demos") |
+| `assets/demo/` | The demos: the drawn placement loop, and computer-made 3D clips of holding still and pedalling for each setup, muted, with their posters (see "The demos") |
 | `tools/voice/` | The voice build: `build-voice.mjs` (the one command), `catalog.mjs` (every line the app can say, from the code), `jsread.mjs` (reads app.js for it, no library needed), `render.py` (Kokoro) |
-| `test/` | Tests, and the made-up rider and helper they use (`setups.test.mjs`: the three setups, picking the rider, and checks on what app.js says; `flow.test.mjs`: whole simulated sessions, run by `flow-runner.mjs`; `ui.test.mjs`: the screens' words and shapes; `screens.test.mjs`: what the tabs, the check flow and the results sheet are built from; `roll.test.mjs`: the phone's roll taken out, for both cameras and both sideways positions; `live.test.mjs`: the camera view's states, the camera choice and the placement step; `cx.test.mjs`: the customer research's changes, the calendar file and its times, the win's words, the bike guide and the tape tip, the permission screen and the new spoken lines; `voice.test.mjs`: every line has a recorded clip, every clip is real audio, the one shared audio element, the service worker's voice cache; `simple.test.mjs`: the simplicity pass, no long line on a main-path screen, one primary button per step, details one tap away, short spoken sentences and clips; `sound.test.mjs`: the sound on an iPhone, Tap to Hear Me and the setup guide; `feel.test.mjs`: round 4's flow rules, better, the same or worse, one change per ride, a change put back, a fitter's bike, other shoes or shorts; `demo.test.mjs`: the drawn demos, shown on day one, never on a returning run, skipped by a tap, the files muted and small; `access.test.mjs`: contrast of the buttons, and large text on the question screens and the results bar; `honest.test.mjs`: round 5, each result screen says one true thing, a change put back ends on a calm next step, the short pain line, Learn's error from the constant, Reach and Bars from one hand position, Start a Check first, and the fitter row in Learn) |
+| `test/` | Tests, and the made-up rider and helper they use (`setups.test.mjs`: the three setups, picking the rider, and checks on what app.js says; `flow.test.mjs`: whole simulated sessions, run by `flow-runner.mjs`; `ui.test.mjs`: the screens' words and shapes; `screens.test.mjs`: what the tabs, the check flow and the results sheet are built from; `roll.test.mjs`: the phone's roll taken out, for both cameras and both sideways positions; `live.test.mjs`: the camera view's states, the camera choice and the placement step; `cx.test.mjs`: the customer research's changes, the calendar file and its times, the win's words, the bike guide and the tape tip, the permission screen and the new spoken lines; `voice.test.mjs`: every line has a recorded clip, every clip is real audio, the one shared audio element, the service worker's voice cache; `simple.test.mjs`: the simplicity pass, no long line on a main-path screen, one primary button per step, details one tap away, short spoken sentences and clips; `sound.test.mjs`: the sound on an iPhone, Tap to Hear Me and the setup guide; `feel.test.mjs`: round 4's flow rules, better, the same or worse, one change per ride, a change put back, a fitter's bike, other shoes or shorts; `demo.test.mjs`: the demos, shown on day one, never on a returning run, skipped by a tap, the files muted and small; `access.test.mjs`: contrast of the buttons, and large text on the question screens and the results bar; `honest.test.mjs`: round 5, each result screen says one true thing, a change put back ends on a calm next step, the short pain line, Learn's error from the constant, Reach and Bars from one hand position, Start a Check first, and the fitter row in Learn) |
 
 ## Credits
 
