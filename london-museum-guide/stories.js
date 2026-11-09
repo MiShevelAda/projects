@@ -349,73 +349,86 @@ export const STORIES = {
   "find": "From the sequoia, carry on along the top balcony to the other side of the hall. The entrance is on your left. Hope will keep you company on the way.",
   "arrive": "You are there when a gallery of fifty objects opens off the top balcony, on your left.",
   "look": [
-   "The room itself. No member of the public had been in here for more than eighty years.",
+   "The room itself, and the old wooden herbarium cabinets around it. No member of the public had been in here for more than eighty years.",
    "A stone handaxe, four hundred thousand years old. Hold up your own hand beside it.",
-   "A Star Wars toy, now home to tiny sea creatures called bryozoans. Find the toy underneath."
+   "The Lion Man replica and a Star Wars toy, side by side, forty thousand years apart. Find the toy under the sea creatures.",
+   "Jenny, the talking fish. Do not expect conversation."
   ],
   "story": [
-   "Stop just inside, and look at the room before anything in it. The public had not been in here for more than eighty years. Take a slow look round. You are among the first visitors in generations to stand where you are standing.",
-   "Here is why. In September 1940, at the height of the Blitz, bombs and fire tore through the museum's botany department, and in 1943 this room was handed to the plant collections, out of sight. A herbarium is a library of plants: specimens pressed flat on paper, each one labelled with where and when it was found, so that a botanist a century later can check what grew where. For eight decades this was the plants' room, not ours. It opened again, as this gallery, on the sixteenth of September 2026. The museum's plant collections run to millions of specimens, some of them collected centuries ago.",
-   "Its fifty objects are about us, and the rest of the natural world, and the gallery is a trial. It is here for about eighteen months, and what visitors make of it will help shape a permanent gallery, planned for 2029. So in here you are not just a visitor. You are on the panel. Take your duties seriously. Or at least, seriously enough.",
-   "Now find the handaxe. It was shaped from stone four hundred thousand years ago, long before our own species existed. Look at its edges. Someone chose that stone, held it in one hand, and struck it with another stone, again and again, flake by flake, until it had that shape. Now look at your own hand. The one that made this was not so very different.",
-   "Handaxes are the most successful tool design in human history. Earlier kinds of human made them, in much the same teardrop shape, for well over a million years, across Africa, Europe and Asia, and in Britain too, when it was still joined to the rest of Europe. Our phones, by comparison, last about three years before we want a new one. There is a lesson in there somewhere. I am not going to be the one to draw it. A good handaxe could butcher a carcass, shape wood or dig up roots. The original multi-tool.",
-   "Then find, at the other end of time, a Star Wars toy that ended up underwater and was colonised by bryozoans: tiny animals that build their colonies on any hard surface they can find. They are not, it seems, fussy about the franchise. The toy is from the 1980s, which, by the standards of this room, makes it a newborn.",
-   "Lean in and look at the crust on it. Each bryozoan colony is made of hundreds or thousands of individuals, each smaller than a grain of rice, each living in its own little box and catching food from the water with a crown of tiny tentacles. They have been doing this for nearly five hundred million years, on rocks, shells, seaweed and now, apparently, on merchandise.",
-   "Which is the quiet point of the toy. Plastic is now found in every ocean on Earth, and life, being life, has started to use it. That is either reassuring or alarming, depending on how you look at it, and this room would like you to look at it both ways at once.",
-   "So, between a stone tool and a plastic toy, four hundred thousand years of us, making things and leaving them behind. Before you leave, think about which object here stayed with you. Then, if something moves you, tell the museum. They did ask. Every opinion counts in here, which is more than most rooms can say."
+   "Stop just inside, and look at the room before anything in it. Those wooden cabinets around the walls are the originals, the herbarium cabinets the scientists used. This room has had several lives. In 1893, the year the sequoia slice arrived, it was the Osteology Gallery, full of skeletons. In 1911 it became the Upper Mammals Gallery. After the bombs of 1940 it went to the plants, as a working herbarium, closed to the public, and for more than eighty years no visitor came in. It opened again on the sixteenth of September 2026. A boneyard, a mammal hall, a filing cabinet. And now, you.",
+   "Here is the arrangement. This gallery is a trial. It runs until March 2028, and what visitors make of it will help shape a permanent gallery planned for 2029. The museum calls it a way to flip the lens: not what we have done to nature, but what nature has done to us. In here, it promises, you'll get to listen, touch, compare and share your opinion. So you are not just a visitor. You are on the panel. Take your duties seriously. Or at least, seriously enough.",
+   "Now find the stone handaxe. It is about four hundred thousand years old, and it was found in 1859, in a gravel pit, alongside the remains of woolly mammoths. The museum says it gave the first strong evidence that humans were far older than many people believed. Look at its edges. Someone chose that stone, held it in one hand and struck it with another, again and again, flake by flake, until it had that shape. Now hold up your own hand beside it. Not so very different. And 1859 is also the year Darwin published On the Origin of Species. So in a single year, humanity got very much older, and so did life itself. A bad year to be young.",
+   "Now find two figures, side by side, made about forty thousand years apart. One is a replica of the Lion Man; the original is in Museum Ulm, in Germany. It was carved from mammoth ivory about forty thousand years ago, in what would have been hundreds of hours of work, and it is one of the oldest known figurative carvings. Beside it is a Star Wars figure, one of thousands mass-produced in the 1980s, found on the seabed and now crusted with bryozoans. Lean in. Each bryozoan is a tiny animal with a crown of tentacles, living in its own little box. They are not, it seems, fussy about the franchise. The museum asks what the things we make tell us about what we value. The toy left the factory as one of thousands. The sea made it one of a kind.",
+   "Around the Lion Man is a section that asks a question: should nature have rights? There is an interactive here where you cast your view and see how it compares with other visitors'. Go on. Here, touching the exhibit is the whole point, and nobody will tell you off for doing so.",
+   "Now look for the miniature dinosaurs. Benjamin Waterhouse Hawkins and Richard Owen made them while preparing the life-size Crystal Palace sculptures of 1854, whose dinosaurs were one Megalosaurus, one Hylaeosaurus and two Iguanodons. Look for Iguanodon's thumb spike, perched on its nose, and a frog-like creature called Labyrinthodon. Here is the twist. After the Belgian skeletons of 1878, scientists stood Iguanodon up on its back legs, like a kangaroo. It mostly walked on all fours. So the Crystal Palace models are, in the museum's words, correct in their four-leggedness, albeit for the wrong reasons. The old model got the posture right, and the correction got it wrong.",
+   "Now find the replica dog jaw. This one you can touch. It comes from one of the earliest known domestic dogs, from what is now Somerset, about fourteen thousand three hundred years ago. It ate much the same food as its people, and its genes link it to an earlier dog from Türkiye, which helps trace how dogs spread with people. The original jaw, it's recorded, was found in Gough's Cave, in Cheddar Gorge, and given to the museum in 1928 by the fifth Marquess of Bath. An early entry in a very long line of good dogs.",
+   "Now find the skeleton of a seal. This is Jenny, advertised as a talking fish. She was, the museum says, in fact a monk seal that had been trained to say the words mama and papa. In May 1859 a reviewer for The Spectator went to see a Talking Fish on Piccadilly, and reported no fish at all, its talking very doubtful. Whether that was Jenny, nobody has said. The museum uses her to show how naming animals, and giving them human traits, connects us to them, and can make us misread what they need. Fake news, it turns out, is older than the internet. Sometimes it has flippers.",
+   "A few quick finds, if you can reach them. A Victorian brooch that is really a trilobite, four hundred and twenty-five million years old, set in gold: trilobites were fashionable jewellery. A box of spermaceti tablets, wax from the heads of sperm whales, and things made of baleen, the same stuff Hope fed through: corset frames, umbrella ribs, collar stiffeners. Recorders and tapes, where you can put your ear to a bush-cricket and decide what you would name it. And paper-cuts by the Aboriginal artist Jenna Lee, recreating plants from Captain Cook's Endeavour voyage, and pointing to the Indigenous names and knowledge the records left out.",
+   "So, from a stone handaxe to a plastic toy: four hundred thousand years of us, making things and leaving them behind. Before you leave, think about which object stayed with you. Then, if something moved you, tell the museum. They did ask. Every opinion counts in here, which is more than most rooms can say."
   ],
   "chapters": [
-   "A Room Reopened",
-   "Bombs and the Herbarium",
-   "A Gallery on Trial",
-   "The Handaxe",
-   "The Most Successful Tool",
-   "The Star Wars Toy",
-   "The Bryozoan Crust",
-   "Plastic in Every Ocean",
+   "A Room with Many Lives",
+   "You Are on the Panel",
+   "The Stone Handaxe",
+   "Two Figures, Far Apart",
+   "Cast Your Vote",
+   "The Crystal Palace Models",
+   "The Dog You Can Touch",
+   "Jenny, the Talking Fish",
+   "Quick Finds",
    "Have Your Say"
   ],
   "walking": [
-   "During the Second World War the museum was hit by bombs, and in the autumn of 1940 its botany department, home of the herbarium, took a direct hit. A herbarium is a library of plants: millions of specimens, each pressed flat on paper and labelled with where and when it was collected.",
-   "The room you are heading for was handed over to that collection and closed to the public for more than eighty years. It reopened in September 2026 as a trial gallery, which means that, for once, your opinion of a museum gallery may actually change it."
+   "The museum started planning early. It began working on an evacuation in 1933, and before the fighting started most of the exhibits went off to country houses. Some skeletons stayed behind in their cases, sandbagged, like very calm sentries.",
+   "At half past four in the morning on the ninth of September 1940, two incendiary bombs and an oil bomb came through the roof of the east wing and into the Botany Department. Between then and April 1941 the museum was badly damaged in several raids. A herbarium sheet now in New York still carries a label: sheet damaged by enemy action on the tenth of September, 1940. Paperwork, even under fire.",
+   "The staff kept their spirits up with Tin Hat, a magazine of anonymous humorous articles started by the chief librarian. And in the autumn of 1941 the Linnean Society sent Carl Linnaeus's own specimens, books and manuscripts to the museum's outpost at Tring, for safety. So a museum that had been bombed became the safe house for the man who set the rules for scientific names.",
+   "The room ahead is where the plants went after that night, and no visitor went in for eighty years."
   ],
   "ask": [
    "Why was this room closed for so long?",
    "Was Jenny really a talking fish?",
    "How old is the handaxe?"
-  ]
+  ],
+  "tip": "Soon after it opened, one review found part of this room screened off. If you meet a barrier, skip what you cannot reach; the rest still works."
  },
  "marine-reptiles": {
   "find": "Go back down to the ground floor of Hintze Hall. Stand with your back to the main entrance, facing the staircase. Go through the archways on your right, just before the stairs. If you reach the stairs, you have gone a step too far.",
   "arrive": "You are there when skeletons of sea reptiles line both walls, behind glass.",
   "look": [
    "The skeletons along both walls, behind glass: ichthyosaurs, shaped like dolphins, and plesiosaurs, mostly neck.",
-   "The long skull of Temnodontosaurus, found by Mary Anning and her brother Joseph when she was about twelve.",
-   "Plesiosaurus dolichodeirus, Mary's find of 1823. Follow the neck until you run out of neck."
+   "The long skull of Temnodontosaurus, found by Mary Anning's brother Joseph when she was twelve.",
+   "Plesiosaurus dolichodeirus, Mary's find of 1823, the first complete plesiosaur skeleton ever found. Follow the neck until you run out of neck."
   ],
   "story": [
-   "Look left, then right. Along both walls, behind glass, swim the sea dragons of the age of dinosaurs. They are not dinosaurs, but marine reptiles: air-breathing animals that went back to the sea. Ichthyosaurs, shaped rather like dolphins. And plesiosaurs, small heads on long necks, flying through the water on four great flippers.",
-   "Walk slowly along the ichthyosaurs first. The name means fish lizard, and they are a lovely example of nature arriving at the same answer twice: a reptile that ended up shaped like a dolphin, millions of years before there were any dolphins. They did not lay eggs on beaches, either. Fossils have been found of mothers with babies inside them, and even being born. Live young, at sea, in the Jurassic. Some kinds of ichthyosaur grew longer than a bus.",
-   "Some of the most important of these were found at Lyme Regis, on the Dorset coast, by a young woman named Mary Anning, who sold fossils to make a living. That coast is now a World Heritage Site, and its cliffs still give up fossils after every winter storm. Her father, a cabinetmaker who collected fossils on the side, died when she was eleven and left the family in debt. Fossils were how they paid the bills.",
-   "Now find the long skull of Temnodontosaurus. Her brother Joseph found it when Mary was about twelve years old, and a year later she found more of the skeleton. At twelve, most of us were still looking for the biscuit tin. Temnodontosaurus had some of the largest eyes of any animal ever known, each one about the size of a dinner plate, for hunting in the gloom of deep water. Do not hold its gaze for too long.",
-   "Now walk on and find the plesiosaur. Start at the body and follow the neck. Keep going... still going... there is the head. Mary uncovered this skeleton in December 1823. It was her first complete plesiosaur, and its name, dolichodeirus, means long-necked, which is fair. How plesiosaurs swam puzzled scientists for a long time. Most now think they flew through the water with their flippers, much as sea turtles and penguins do, though how all four flippers worked together is still argued over.",
-   "That neck caused a scandal. It was so long that some experts at first suspected a fake, among them Georges Cuvier in Paris, the most famous anatomist in Europe. A meeting was called at the Geological Society in London to settle it. Cuvier looked again, and accepted that it was real. Mary was not invited to the meeting. The Geological Society did not admit women for another eighty years. The skeleton itself reached this museum about twenty-five years after she found it. Cuvier, to be fair, had reason to be suspicious. Fossil fakes were not unknown, and nothing alive today has a neck quite like that.",
-   "She was more than a finder of skeletons. She noticed that certain stones in the cliffs, which locals called bezoar stones, were full of fish bones and scales, and worked out with the scientists she corresponded with that they were fossilised dung. Reading an animal's last dinner from its droppings. Not glamorous, but it was very good science.",
-   "She had little formal education, in an age when science was a club for gentlemen, and Mary Anning was not a gentleman. For a long time, the men who bought her fossils took the credit. She died in 1847, in Lyme Regis. Today she is remembered as one of the greatest fossil hunters there has ever been. And here, in front of you, along both walls, is her work."
+   "Look left, then right. Along both walls, behind glass, swim the sea dragons of the age of dinosaurs. They are not dinosaurs but marine reptiles: air-breathing animals that went back to the sea. Ichthyosaurs, shaped like dolphins. Plesiosaurs, which are mostly neck. And Jurassic crocodiles that lived in the sea. The first known drawing of an ichthyosaur, by Edward Lhwyd in the 1690s, took it for a fish. They have been fooling people ever since.",
+   "Walk slowly along the ichthyosaurs, and look out for two of them in particular. One is a female with evidence of six unborn young inside her. Another died, and was preserved, in the act of giving birth. These reptiles did not lay eggs on beaches. They had live young, at sea, in the Jurassic. And they were record-breakers: the first four-limbed animals to reach truly gigantic sizes, with seventeen-metre animals within a few million years of the group's beginning.",
+   "Now find the long skull of Temnodontosaurus. In the autumn of 1811, at Lyme Regis on the Dorset coast, her brother Joseph, then fifteen, found the skull. Mary was twelve. From November 1812 she dug out the skeleton, and everyone in town thought she had discovered what must have been a monster. At twelve, most of us were still looking for the biscuit tin. The animal was about five metres long and lived about two hundred million years ago. It was not the first ichthyosaur ever found, but it was the first to be scientifically studied and described, by Sir Everard Home, in 1814.",
+   "Now follow the money. The lord of the manor, Henry Hoste Henley, bought it for twenty-three pounds. In May 1819 it went to auction as a Crocodile in a Fossil State, and Charles Konig of the British Museum bought it. By 1820 it had a name, Ichthyosaurus, fish lizard, usually credited to Konig, though, as the museum points out, it was neither. Later it became Temnodontosaurus platyodon. So, if the usual credit is right, the man who bought it as a crocodile named it a fish lizard. Look for the eye socket, if you can pick it out: Temnodontosaurus had some of the largest eyes of any animal known. Do not hold its gaze for too long.",
+   "Walk on along the wall. Of the nine Anning children, only Mary and Joseph lived to grow up. Their father Richard, a cabinetmaker, died of tuberculosis in 1810 and left the family in debt. By five or six, Mary had already been his fossil-hunting sidekick, and she taught herself geology and anatomy. The market for fossils was made by a war: the Napoleonic Wars kept tourists at home, and they flocked to Lyme Regis. So, indirectly, Napoleon paid the Annings' rent. He was never thanked.",
+   "Now find Plesiosaurus dolichodeirus. Start at the body and follow the neck. Keep going... still going... there is the head. That neck is as long as the body and tail together, on an animal about three and a half metres long that ate fish and crustaceans. Mary found it on the tenth of December 1823, and it is the first complete, articulated plesiosaur skeleton ever found: the holotype, the one every other is compared with. Plesiosaurus had been named two years earlier, from scraps. The Duke of Buckingham bought this one for a hundred and fifty guineas, and in February 1824 had it taken to the Geological Society.",
+   "That neck caused a scandal. It was so long that Georges Cuvier in Paris, the most famous anatomist in Europe, suspected a fake. A meeting at the Geological Society settled it. Mary was not invited. The Society did not admit women until the twentieth century. Once convinced, Cuvier sent someone to Lyme to buy a plesiosaur for Paris. And, in the museum's words, ever the businesswoman, Mary bought a specimen from another collector and sold it to him for three times the price. He doubted her, then paid her triple.",
+   "Somewhere along these walls is an older plesiosaur, found in Nottinghamshire in 1718: the first substantially intact plesiosaur skeleton. Robert Darwin, the great-grandfather of Charles, wrote about it to William Stukeley, who bought it for the Royal Society. At first it was identified as human. Stukeley argued for a crocodile, or perhaps a porpoise. So before anyone knew what a plesiosaur was, this one had already been a man, a crocodile and a porpoise. It is still waiting for an apology.",
+   "Look at the flippers on any plesiosaur. Most scientists think they flew through the water, as sea turtles and penguins do, and robot-flipper experiments found that timing the back pair against the front gave sixty percent more thrust. They could not come ashore, so they gave birth at sea. And the neck kept causing trouble: Edward Drinker Cope put the head of an Elasmosaurus on the end of its tail. The plesiosaur's neck has been confusing people for two hundred years.",
+   "Turn back along the walls. Mary was more than a finder. She saw that the bezoar stones in the cliffs were full of fish bones and scales, and, with the scientists she wrote to, worked out that they were fossilised dung. As far as is known she published one thing: part of an 1839 letter correcting a magazine editor on a fossil shark. He replied suggesting she was mistaken. In 1828 she found the first pterosaur discovered outside Germany, now on the Hintze Hall first-floor balcony. In 1830 her friend Henry De la Beche painted Duria Antiquior, A More Ancient Dorset, and sold prints for her benefit. She died of breast cancer in 1847, aged forty-seven, still short of money.",
+   "Back to the middle of the gallery. In 2020, eleven-year-old Ruby Reynolds and her father found pieces of a jawbone over two metres long at Blue Anchor, in Somerset. In 2024 the species was named Ichthyotitan severnensis, estimated at about twenty-five metres long, and Ruby is a co-author of the paper. It is not on show here. In 2010 the Royal Society named Mary among the ten British women who most influenced the history of science, and her statue in Lyme Regis, unveiled in 2022, came from a campaign by another eleven-year-old, Evie Swire. At twelve, Mary's name was left off the papers. At eleven, Ruby's is on one."
   ],
   "chapters": [
    "Sea Dragons on Both Walls",
-   "The Ichthyosaurs",
-   "Mary Anning of Lyme Regis",
-   "The Temnodontosaurus Skull",
-   "The Long-Necked Plesiosaur",
+   "Ichthyosaur Mothers",
+   "Mary Anning's Monster",
+   "Follow the Money",
+   "The Family Business",
+   "Follow the Neck",
    "The Neck Scandal",
-   "The Bezoar Stones",
-   "Mary Anning Remembered"
+   "The 1718 Plesiosaur",
+   "How They Swam",
+   "More Than a Finder",
+   "Two Girls, Two Centuries"
   ],
   "walking": [
-   "Mary Anning was born in 1799 in Lyme Regis, on the Dorset coast, where the cliffs are packed with fossils from the age of dinosaurs. Her family was poor, and they sold what they found to tourists. The cliffs crumble in winter storms, which is when the best fossils appear, and also when hunting them is most dangerous.",
-   "In 1833 a landslide killed her dog, Tray, and very nearly killed her too. She kept going. The skeletons you are about to see are the result."
+   "The museum's fossil collections were not all dug up by its own staff. A good many came from buying out the collectors. Gideon Mantell's collections, for instance, came in 1838 and 1853. And a collector called Thomas Hawkins sold his ichthyosaurs and plesiosaurs to the British Museum in 1834 and 1840, for three thousand, one hundred and fifteen pounds and five shillings in all.",
+   "There was a catch. At a parliamentary inquiry into the museum in 1835, the trustees learned how much of what they had bought was plaster. In 1840 they bought from him again anyway. Many of his restored skeletons are reportedly still on display, and nobody has labelled which. And in 1840 he published The Book of the Great Sea Dragons, inspired by Mary Anning's plesiosaur.",
+   "So some of the sea dragons ahead may be partly Victorian plaster, quietly holding their poses after nearly two hundred years. Some of the most important were found by a girl from Lyme Regis."
   ],
   "tip": "The T. rex Restaurant is by this gallery, open from 11:00, if anyone in your party needs feeding.",
   "ask": [
@@ -425,70 +438,87 @@ export const STORIES = {
   ]
  },
  "human-evolution": {
-  "find": "Follow the signs for the Red Zone, through the Birds and Lasting Impressions galleries, into the East Wing. Human Evolution is next to Earth Hall, close to Sophie the stegosaurus. If you meet a stegosaurus, you are very close.",
-  "arrive": "You are there when a life-size Neanderthal looks you in the eye.",
+  "find": "Follow the signs for the Red Zone, through the Birds and Lasting Impressions galleries, into the East Wing. Human Evolution is next to Earth Hall, close to Sophie the stegosaurus. If you meet a stegosaurus, you are very close. Stop at the entrance before you go in: the first thing to see is on the wall outside.",
+  "arrive": "You are there when a wall of skulls rises beside the entrance, from the oldest at the bottom to us at the top.",
   "look": [
-   "Gibraltar 1: the first adult Neanderthal skull ever found, though nobody knew it at the time.",
-   "Cheddar Man, and the face rebuilt for him. He lived about ten thousand years ago.",
-   "The two life-size figures, a Neanderthal and an early modern human. Hold their gaze if you can."
+   "The wall of skulls by the entrance: the oldest at the bottom, ours at the top, about twice the size.",
+   "A single tooth on a wire, three and a half million years old. Lit like a jewel, and it knows it.",
+   "The two life-size figures, a Neanderthal and a modern human. Check what the modern one has in his mouth.",
+   "Cheddar Man, and the face rebuilt for him. He lived about ten thousand years ago."
   ],
   "story": [
-   "Before anything else, find the two life-size figures. They have probably noticed you already. This gallery is about one species in particular, our own, and about the cousins who walked the Earth beside us. It opened in December 2015, and it is the museum's attempt to answer the oldest question there is: where did we come from? Our own species first appeared in Africa, about three hundred thousand years ago, and spread from there across the world.",
-   "Now look for the skull from Gibraltar. It was found in 1848, in a quarry, and nobody knew what it was. Eight years later, in 1856, quarry workers in Germany's Neander Valley turned up more bones of the same kind, and those gave these people their name. Only then did anyone realise that Gibraltar had given us the first adult Neanderthal skull ever found. Gibraltar found it first. A valley in Germany got the name. The skull is thought to be a woman's.",
-   "Stay with the skull a moment. Neanderthals were not the shambling brutes of old cartoons. They were stocky and strong, built for cold, and their brains were, on average, a little larger than ours. They made fine stone tools, controlled fire, hunted large animals and lived through ice ages across Europe and western Asia for hundreds of thousands of years. They disappeared about forty thousand years ago. Nobody is quite sure why. We had other cousins, too. The Denisovans are known mostly from their DNA and from a few teeth and bones found in Siberia and Tibet.",
-   "Then find Cheddar Man, who lived in Britain about ten thousand years ago. His is the oldest almost complete skeleton of our own species ever found in this country. He is on loan from the Longleat Estate, so do be polite. He was found in 1903, in Gough's Cave, in Cheddar Gorge in Somerset.",
-   "Look at the face rebuilt for him. In 2018, scientists read DNA from his bones and found that he very probably had dark skin and blue eyes, which surprised a great many people who had assumed otherwise. He was a hunter-gatherer. Farming would not reach Britain for thousands of years after him, and in his day Britain was not yet an island: you could still walk to the rest of Europe. His people knew a Britain of dense forest, red deer and wild boar.",
-   "Back to those two figures: a Neanderthal and an early modern human, made by the Dutch artists Adrie and Alfons Kennis, who are twin brothers. The Neanderthal's face is based on remains about forty thousand years old, found at Spy, in Belgium. Walk right up to him. The Kennis brothers are known for faces that seem about to speak, and the effect up close is uncanny.",
-   "Look him in the eye. Before the Neanderthals disappeared, our ancestors met them, and sometimes had children with them. That is why many people alive today still carry a little Neanderthal DNA, often a percent or two. In a sense, he is family. Possibly the side you only see at weddings. The full Neanderthal genome was first read in 2010, by a team led by the Swedish scientist Svante Pääbo, and in 2022 he won a Nobel Prize for it. Genetics, it turns out, can be a family reunion.",
-   "As you go, glance back at the two of them standing together. Two kinds of human, sharing the same world for thousands of years. Only one of them is still here to visit museums. It might easily have been the other. We gave ourselves the name Homo sapiens, which means wise human. Of course we did."
+   "Stop at the entrance, and look for the wall to the left of the opening. It is painted in eight stripes, a million years each, from very dark grey at the bottom, seven million years ago, to the palest at the top, marked Today, and on it hang seventeen reproduction skulls, each a different species. The small cracked one at the bottom is Sahelanthropus. Ours is at the top, perhaps two times the size. In between, they spread sideways: a family tree drawn as a hedge. The gallery opened in December 2015.",
+   "Now go in. On your left, look for a case in the wall with three skeletons side by side. A male chimpanzee. Australopithecus sediba, almost two million years old, from South Africa: real fossil caramel brown, reconstruction white. And a modern woman, whose skeleton is about a hundred and fifty years old. The panel says we share about ninety-eight per cent of our DNA with chimpanzees. Compare their feet. Then, discreetly, compare your own.",
+   "Further along, look for a small spot-lit case with a single tooth on a wire. It is a canine from Laetoli, three and a half million years old, the oldest fossil from our side of the family that the museum owns. At first it was thought to be a monkey's. Then Lucy was found, and in the 1980s the tooth became Australopithecus afarensis, Lucy's species. Promoted from monkey to family, and lit like a jewel to prove it.",
+   "Now find the waist-high wall of skulls and white heads: six species of Homo, each a replica skull beside a resin head, every face by the Dutch twins Adrie and Alfons Kennis. You may touch. Among them are a Homo antecessor child of about eleven, from Spain, eight hundred and fifty thousand years old, and Homo floresiensis, a young woman just over a metre tall. Alfons Kennis is frank: the fullness of the lips, the shape of the nostrils, you can't know this. These aren't portraits. They are still uncanny.",
+   "In that row is a cast of the Gibraltar skull; the skull itself is one of this gallery's highlights. It was found in 1848, but understood only after the Neander Valley find of 1856. It is thought to be a woman's, the first adult Neanderthal skull ever found, and Darwin called it wonderful. In 1864, it's recorded, Hugh Falconer proposed Homo calpicus, after Calpe, Gibraltar's old name. Too late. Gibraltar found it, a German valley named it, Darwin admired it. It may be fifty thousand years old, though the museum admits the dating isn't very precise. Neanderthal brains were as big as ours, just differently shaped.",
+   "Now look for a waist-high case of six skulls, and the Broken Hill skull, or its exact cast: the original is often away for research. In 1921 it was nearly lost when terrified workers in a lead and zinc mine, at what is now Kabwe, in Zambia, came face to face with it. See the broken teeth, some of the oldest evidence of tooth decay in a human. Long thought half a million years old, it had to be its own witness, because the mine had been quarried away: in 2020 the uranium inside it gave about three hundred thousand years. So several kinds of human shared the world then; casts of one, Homo naledi, are here too. Zambia has asked for the skull back since the 1970s; in 2018, at a UNESCO committee, the two countries agreed to talk directly.",
+   "Next, look for the handaxe you may touch, a blunted replica of a flint one like those from Boxgrove, in West Sussex. Beside it is part of a rhinoceros skull that Homo heidelbergensis broke open for the brain. Lunch, the hard way. Then find the Clacton spear, four hundred and twenty thousand years old, the oldest wooden spear in the world.",
+   "Walk on towards the far end. By a small cinema, look for two full-height cases either side of the corridor. The Neanderthal is in his twenties and a hundred and fifty-five centimetres tall. See the leather bands on his wrist and in his hair, and two black lines painted round his collarbone. Neanderthals made crayons: used blocks of black pigment, some of them shaped, are known from at least seventy of their sites. Now the other one. It is not a cigarette. He is chewing a twig, his paintbrush, painting his legs with designs copied from mammoth-bone engravings. His body is based on the Red Lady of Paviland, found in Wales in 1823 and long thought to be a woman. He was a man.",
+   "Look the Neanderthal in the eye. Before his people vanished, about forty thousand years ago, ours sometimes had children with them, so many of us carry a percent or two of Neanderthal DNA. He is family. Possibly the side you only see at weddings. Svante Pääbo, whose team read the Neanderthal genome in 2010, won a Nobel Prize for it in 2022, and in 2020 he and Hugo Zeberg found that the main genetic risk factor for severe COVID came from Neanderthals; a different Neanderthal stretch protects. The Denisovans, other cousins, are known mostly from DNA and a few teeth and bones from Siberia and Tibet, and since 2025, possibly, a skull from Harbin, in China. Not everyone is convinced.",
+   "Now find Cheddar Man and the face rebuilt for him: the oldest almost complete skeleton of our species found in Britain, on loan from the Longleat Estate, so do be polite. Drainage works at Gough's Cave turned him up by accident in 1903, and he was hailed as the earliest Englishman, forty to eighty thousand years old. Radiocarbon later made him about ten thousand. In 2018, DNA from the petrous bone in his ear, the densest in the body, showed he very probably had dark skin and blue eyes: pale eyes reached Europe before pale skin. Modern Britons share about ten per cent of their ancestry with his people, but they aren't his direct descendants. Like everyone in Europe then, he could not digest milk as an adult, and farming was thousands of years away. The most famous man from Cheddar never tasted the cheese.",
+   "At the far end, against purple, look for a tall pillar holding the top of a human skull, shaped into a cup. It is from Gough's Cave too, from other people entirely, about fourteen thousand seven hundred years ago: one of three, from two adults and a child, the oldest directly dated skull cups known. The museum's scientists published them in 2011, and think the practice was ritual.",
+   "Glance back down the room, dark where you came in, lighter here. Our species is about three hundred thousand years old; in 2017 fossils from Jebel Irhoud, in Morocco, pushed that back a hundred thousand years. Of two waves out of Africa, the first, about a hundred and twenty thousand years ago, seems to have died out; almost everyone outside Africa descends from the second, about sixty thousand years ago. Only one kind of human is still here to visit museums. We gave ourselves the name Homo sapiens, which means wise human. Of course we did."
   ],
   "chapters": [
-   "The Two Figures",
+   "The Wall of Skulls",
+   "Three Skeletons",
+   "A Tooth on a Wire",
+   "Heads You Can Touch",
    "The Gibraltar Skull",
-   "Who Neanderthals Were",
+   "The Broken Hill Skull",
+   "Stone and Wood",
+   "The Two Figures",
+   "Meet the Family",
    "Cheddar Man",
-   "Cheddar Man's Face",
-   "The Kennis Brothers' Neanderthal",
-   "Neanderthal DNA in You",
-   "Two Kinds of Human"
+   "A Cup from Gough's Cave",
+   "Wise Human"
   ],
   "walking": [
-   "Our species is about three hundred thousand years old, which makes us newcomers. For most of that time we were not alone. Neanderthals lived across Europe and western Asia for hundreds of thousands of years. They made tools, used fire and survived ice ages, and they disappeared about forty thousand years ago.",
-   "Before they did, our ancestors met them, and sometimes had children with them. That is why many people alive today carry a little Neanderthal DNA. Your family tree, in other words, is more interesting than you thought."
+   "On the way, a story the museum tells against itself. Piltdown Man was a human-looking skull and an ape-like jaw from Sussex, and for about forty years he fooled science. He was exactly the ancestor a great many people were hoping to find, which is always the moment to be careful.",
+   "In 1949 the museum's own Kenneth Oakley tried out a fluorine test he had developed, which gives a rough idea of how long a bone has lain in the ground. In 1953 he and Joseph Weiner showed that the jaw and teeth were not the age of the skull, and were not fossils at all. That November, the two of them and Wilfrid Le Gros Clark called the whole thing a most elaborate and carefully prepared hoax, and they said so in the museum's own Bulletin. Who forged it was argued over for decades, until in 2016 a study by the museum's own scientists and colleagues pointed firmly at the man who had found it.",
+   "So the museum's proudest moment in the study of human evolution was proving its own famous fossil a fake, and publishing the confession itself. Everything in the room ahead has been tested harder because of it."
   ],
   "ask": [
    "Is that a cigarette in his mouth?",
    "Do I have Neanderthal DNA?",
    "Was Cheddar Man the first Briton?"
-  ]
+  ],
+  "tip": "By the handaxe you can touch, the museum's own guide describes a film of a flint-knapper making a handaxe and then butchering a deer. With small children, or a delicate stomach, keep your eyes on the handaxe."
  },
  "sophie": {
   "find": "Earth Hall is the tall hall at the heart of the Red Zone, on the ground floor of the East Wing. From Human Evolution it is right next door. From anywhere else, go down to the ground floor of Hintze Hall and follow the signs for the Red Zone and Earth Hall. Sophie stands in the hall. She is the one with plates down her back.",
   "arrive": "You are there when you see a stegosaurus, and an escalator climbing into a giant globe.",
   "look": [
-   "The plates along her back, and the spikes on her tail. Admire the tail from a respectful distance.",
+   "Her nineteen plates and four tail spikes, the most complete set ever found. Admire the tail from a respectful distance.",
    "Her skull: tiny for her size, with teeth about as big as your little fingernail. Compare.",
+   "Up on the first-floor mezzanine: Enigmacursor, a dinosaur new to science, named in 2025.",
    "The escalator rising into a giant metal globe. That is your ride to the next stop."
   ],
   "story": [
-   "Stand back far enough to see all of her. Meet Sophie, a Stegosaurus, and the most complete skeleton of her kind ever found. Remember the jigsaw in the Dinosaurs gallery, with pieces missing? Sophie is the one that came with the box. Take your time. She has had a hundred and fifty million years to get ready for you.",
-   "She lived about a hundred and fifty million years ago, in what is now Wyoming, in the United States. In 2003 a fossil hunter named Bob Simon found her at Red Canyon Ranch, she arrived in London late in 2013, and since December 2014 she has stood here. She is just over five and a half metres long. Her kind could grow to nine.",
-   "Her kind was named in 1877 by Othniel Charles Marsh, the same man who later mistook Triceratops horns for a bison's. Stegosaurus means roof lizard, because Marsh first thought the plates lay flat along its back, like tiles on a roof. They do not. Nobody gets them all right first time.",
-   "Now walk round to her head. Smaller. Smaller than that. There. For an animal that weighed about one and a half tonnes, about as much as a car, it is astonishingly small, and her teeth are no bigger than your little fingernail. Hold yours up, for scale. The scientists who studied her think her bite was about as strong as a cow's. A plant eater, then, and not a hunter. The old story that Stegosaurus had a second brain in its hips, to make up for the small one in its head, has long been dropped. The small one, it seems, managed.",
-   "Walk back along her body and look at the plates on her back. What they were for is still argued over. Showing off to other stegosaurs, perhaps, or helping her warm up and cool down. What the spikes on her tail were for is not argued over at all. Palaeontologists even have a nickname for them, the thagomizer, borrowed from a newspaper cartoon. She could certainly look after herself.",
-   "She does not move and she does not roar, and after the T. rex I find that rather restful. When you are ready, find the escalator rising into the giant globe. It will carry you up, and into the Earth itself. Not many escalators can say that."
+   "Stand back far enough to see all of her. Meet Sophie, a Stegosaurus: one of the most complete ever found, and when she went on show in 2014 the museum called her the most complete. Only about a fifth of known dinosaur species are known well enough to piece together a whole skeleton. If you saw the jigsaw in Dinosaurs, Sophie is the one that came with the box. She is five point six metres long and two point nine metres tall, about a four-by-four, as the museum put it. Take your time. She has had a hundred and fifty million years to get ready for you.",
+   "Now walk along her back, and count. Nineteen plates, and four spikes on the tail: the most complete set ever discovered, says the museum. She has more than three hundred bones, missing only the left arm and the base of the tail, and they are preserved in three dimensions rather than squashed flat. Plenty of fossils reach us pressed like a flower in a book. Sophie arrived in the round.",
+   "She lived about a hundred and fifty million years ago, in what is now Wyoming. In the spring of 2003 Bob Simon found her at the top of a hill on Red Canyon Ranch, and digging her out took three weeks. In 2012 two museum scientists at the Tucson Gem and Mineral Fair saw a life-size cast of a Wyoming Stegosaurus and realised how good the original was. Seventy donors paid for her. She is named after Sophie Herrmann, the lead donor's daughter; before that, she was reportedly called Sarah. She reached London late in 2013, and as the museum's director said, unlike our much-loved Diplodocus cast, this is the real thing. Spotted at a trade fair, paid for by seventy people, named after one donor's daughter.",
+   "Now walk round to her head. Smaller. Smaller than that. There. Every bone of her skull survives in three dimensions and separate, so studying it, said the museum's Paul Barrett, is almost like playing with a Meccano set. Her teeth are no bigger than your little fingernail. Hold yours up, for scale. Yet her jaws worked very efficiently: a computer model in 2016 put her bite within the range of living plant-eating mammals, such as sheep and cows, strong enough for tough plants. A plant eater, then, not a hunter. She does not roar either, which after a T. rex I find rather restful.",
+   "Look at her legs: short at the front, long at the back, a leftover from ancestors that walked on two. She could not run, and probably walked at only a few miles an hour. Some gaps between her bones were still open, so she was not fully grown, and her kind could reach nine metres. But, said one of her scientists, it wasn't a baby by any means. A teenager, then. And she may not be a she. Proving a female takes eggs, or a special bone tissue, so she is a she by convention.",
+   "Now take her in whole, and wonder how you weigh something that died a hundred and fifty million years ago. In 2015 the team shrink-wrapped her digital skeleton and turned the volume into mass: about one thousand five hundred and sixty kilograms. Two weighing methods disagreed, until the team allowed for the fact that she was still growing. Then they agreed. About a tonne and a half, then, about as much as a car. A car with nineteen plates on the roof.",
+   "Walk back along her body to the tail. Othniel Charles Marsh, who named Stegosaurus in 1877, thought the plates lay flat like tiles: hence roof lizard. They do not. They are thin and fragile, so defence is out of fashion; display, or shedding heat, are the leading ideas. The hollow in her hips, behind the old myth of a second brain, stored food for lean times, says the museum. The small brain managed. The tail spikes are a thagomizer, after a Far Side cartoon about the late Thag Simmons, and an Allosaurus tail bone has a hole one fits perfectly. It had healed. The Allosaurus walked away, and lived with it. T. rex, by the way, lived closer in time to you than to her.",
+   "Before you go, look up to the first-floor mezzanine. Since June 2025 a new species has stood there: Enigmacursor, a small two-legged plant-eater from Sophie's world, named by the same two museum scientists who studied Sophie. Then find the escalator rising into the giant globe. It will carry you up, and into the Earth itself. Not many escalators can say that."
   ],
   "chapters": [
-   "Meet Sophie",
-   "Found in Wyoming",
-   "Named Roof Lizard",
-   "Her Head and Teeth",
-   "Plates and Tail Spikes",
+   "The Most Complete",
+   "Count the Plates",
+   "How She Got Here",
+   "Her Small Head",
+   "Her Legs and Age",
+   "How to Weigh a Dinosaur",
+   "Plates, Hips and Tail",
    "Up into the Globe"
   ],
   "walking": [
-   "Stegosaurus lived in the late Jurassic, about a hundred and fifty million years ago. Tyrannosaurus rex lived roughly eighty million years after that, near the very end of the age of dinosaurs. Which means that T. rex is closer in time to you than it is to a Stegosaurus.",
-   "Walk with that thought for a moment. The age of dinosaurs was so long that some of its most famous animals never met, and never could have. The one you are about to see has the added distinction of being more complete than any other of her kind."
+   "You are about to cross from one museum into another. Earth Hall was the Geological Museum: founded in the 1830s, as the usual history has it, and moved to this building in 1935. Before it even opened, the new building reportedly hosted the World Economic Conference of 1933, sixty-six nations gathered to mend the world's economy. It is not remembered as a success. The rocks have been more dependable.",
+   "Then, at the very end of 1969, came the Moon. From the twenty-seventh of December it showed a piece of Moon basalt about the size of a walnut, inside a Plexiglass sphere eighty-one centimetres across, and fifty-two thousand people came to see it. A walnut, in a bubble, with a queue.",
+   "In 1986 the Natural History Museum absorbed its neighbour, with more than thirty thousand minerals, and three years later the Lasting Impressions gallery opened to join the two buildings. Two museums, one wall apart, joined by a corridor in 1989. And the one you are in still has the best escalator."
   ],
   "tip": "The Earth Hall Cafe is by the Exhibition Road entrance, if you want a break before the escalator.",
   "ask": [
@@ -498,43 +528,50 @@ export const STORIES = {
   ]
  },
  "kobe": {
-  "find": "Ride the escalator up through the globe. At the top, turn left into Volcanoes and Earthquakes. The earthquake room, set up like a Japanese supermarket, is at the back. The museum says it can be upsetting for some people, so skip it if you would rather.",
-  "arrive": "You are there when you step into a room set up like a Japanese supermarket.",
+  "find": "Ride the escalator up through the globe. At the top, turn left into Volcanoes and Earthquakes. The story starts at the very beginning of the gallery and walks you through it; the earthquake room, set up like a Japanese supermarket, is at the back. The museum says that room can be upsetting for some people, so skip it if you would rather.",
+  "arrive": "You are there when you walk into Volcanoes and Earthquakes and find a big world map with three buttons in front of it.",
   "look": [
-   "The shop shelves, before the shaking starts. Take a good look while they are still.",
-   "Two casts from the eruption of Vesuvius, in the year 79: a man lying face down, and a dog in a sturdy collar. Look gently."
+   "The world map with three buttons. Press all three and watch the planet's cracks line up.",
+   "Two casts from the eruption of Vesuvius, in the year 79: a man lying face down, and a dog in a sturdy collar. Look gently.",
+   "The iron-nickel meteorite, polished silver by hands. The closest you will come to touching Earth's core.",
+   "The shop shelves, before the shaking starts. Take a good look while they are still."
   ],
   "story": [
-   "Before the supermarket, take a moment in the gallery itself. Everything in here is about one idea: the ground under your feet is not as still as it looks. The Earth's outer shell is broken into great plates that drift a few centimetres a year, roughly as fast as your fingernails grow. Where they meet, they grind, slide and jam. Most of the time nothing happens. Then, all at once, it does. There are about a dozen large plates, and many smaller ones.",
-   "Walk through the gallery and find the two casts from the eruption of Vesuvius, in the year 79: a man lying face down, one hand raised to his eyes, and a dog in a sturdy collar. They hold the last moments of real lives, so look at them gently. That eruption buried the Roman towns of Pompeii and Herculaneum. A young man named Pliny, watching from across the Bay of Naples, described it in letters that still survive. His uncle, the naturalist Pliny the Elder, sailed towards the danger to help, and did not come back.",
-   "Casts like these were first made in the 1860s, by the archaeologist Giuseppe Fiorelli. The bodies buried in the ash had long since decayed, leaving hollows in their shape, often with the bones still lying inside. Fiorelli poured plaster into the hollows, and when the ash was cleared away, the people and animals came back into view, just as they were at the end. Vesuvius is still active. It last erupted in 1944, and many people live around it today.",
-   "Vesuvius gave its name, through Pliny, to a whole kind of eruption: a Plinian eruption, a column of ash and pumice punching tens of kilometres into the sky. When such a column collapses, it can send avalanches of scorching gas and ash racing down the mountain faster than anyone could run. That is what reached Herculaneum.",
-   "The towns lay buried and almost forgotten for more than sixteen hundred years, until excavations began in the 1700s. Much of what we know about everyday Roman life, the bakeries, the graffiti, the dinner tables, comes from what Vesuvius covered and kept.",
-   "Now walk to the back of the gallery and step into the little supermarket. Stand among the shelves. Look at them for a moment, while they are still: ordinary things, in ordinary rows. This room is modelled on a real morning, the earthquake that struck the Japanese city of Kobe on the seventeenth of January 1995, just before six o'clock. Stand with your feet a little apart.",
-   "The shaking was over in seconds. It struck close to a large and crowded city, and more than six thousand people lost their lives, most of them in Kobe itself. Homes collapsed, fires broke out across the city, and a long stretch of raised motorway toppled onto its side. What you feel in this room is only a faint echo of it. More than a hundred thousand buildings were destroyed, and the port of Kobe, then one of the busiest in the world, took two whole years to rebuild.",
-   "Why was it so destructive? It was shallow, and close, and parts of the city and its port stood on soft ground and land reclaimed from the sea, which shook harder and in places turned almost to liquid. Where a quake strikes, and what it strikes, can matter as much as how strong it is.",
-   "What came after matters too. Huge numbers of people travelled to Kobe to help, so many that 1995 is remembered in Japan as the first year of the volunteer. Japan went on to strengthen its buildings and bridges, and engineers around the world still study what Kobe taught them.",
-   "Earthquakes are measured on a scale where each whole step up means roughly thirty times more energy released, so a small change in the number is a very large change in the ground. Japan now has a warning system that can detect the first, faster waves of a quake and send alerts to phones and trains a few seconds before the strongest shaking arrives. A few seconds sounds like nothing. It is long enough to stop a train, or to get under a table.",
-   "It is easy to think of the ground beneath our feet as solid, permanent, finished. Even Britain has a few hundred small earthquakes a year, almost all of them too small to feel, so you have very probably slept through several. This gallery is here to remind you, quite politely, that the ground is none of those things. The planet is still moving. And so, in its slow way, is everything that lives on it."
+   "Start at the world map in the first room, and find its three buttons. The left one lights up volcanoes active since 2000, in red. The middle one, large earthquakes, in green. The right one, the edges of the plates, in blue. Press all three and watch them line up: the planet's cracks, lit up like a fairground. The Earth's shell is broken into about a dozen large plates and many smaller ones, drifting about as fast as your fingernails grow. Britain, the panel notes, has not had an eruption for fifty-five million years. Relax. Slightly.",
+   "Now look for the case of three lavas from Hawaii. Crumbly a'a. Ridged pahoehoe. And Pele's hair: threads of golden volcanic glass, spun out by the wind. Then find the lava bomb, a breadcrust bomb the size of a country loaf. It cracked as it landed, because its inside was still expanding. You may touch it, and the pillow lava too. Go on. It has cooled down.",
+   "Find the obsidian and the pumice. One is black and glassy; the other is white, and light enough to float. Both are volcanic glass that cooled fast. The only real difference is gas. Then look for three six-sided basalt columns from the Giant's Causeway, which has about forty thousand of them. It can spare three.",
+   "Now look for the silver heat suit, rated to about a thousand degrees, then move round it to the film of a lava lake, with a bench beside it. In 2013 museum scientists went to assess Popocatepetl, a volcano near the eleven and a half million people of Mexico City. Two of them told the museum's own audio guide that they set off at five in the morning, climbed with empty rucksacks, and filled them with rock on the way down. The only climb I know where the bag gets heavier on the way down.",
+   "Now go back a few steps, past the basalt columns, to the low glass case just beyond the lava bomb, and look gently at the two casts inside. A large dog in a sturdy collar, lying on its back. A man face down, his left hand raised to his face, as if to shield his eyes. They are plaster casts from Pompeii, and they hold the last moments of real lives. The bodies decayed in the ash and left hollows, often with the bones still inside, and in the 1860s Giuseppe Fiorelli poured plaster into them. The panel says the flows of hot gas and ash can reach seven hundred and twenty-five kilometres an hour. Almost impossible to outrun.",
+   "Step back from the case. In the year 79 Vesuvius buried Pompeii and Herculaneum. A young man named Pliny watched from across the Bay of Naples and described it in letters that survive; his uncle, Pliny the Elder, sailed in to help, and did not come back. Eruptions like it are still called Plinian. The famous date, the twenty-fourth of August, comes from later copies of those letters. But a charcoal scrawl found on a Pompeii wall in 2018 is dated mid-October, and charcoal fades fast, so it may have been October. Not everyone accepts it. Vesuvius has erupted more than forty times since, last in 1944, and greater Naples, home to some three and a half million people, has grown up to its slopes.",
+   "Now find the ostrich chick, the young rhea and the echidna. Ostrich from Africa, rhea from South America: flightless cousins whose ancestor, the panel says, lived when those continents were joined. The echidna has been isolated in Australia for thirty-five million years. Two flightless birds on different continents, and neither moved a feather, though newer DNA studies suggest their ancestors may have flown. In 1912 Alfred Wegener proposed that continents drift, and was widely dismissed, because nobody could say what moved them. Then in 1963 Fred Vine and Drummond Matthews predicted mirror-image magnetic stripes on the sea floor, either side of the ocean ridges. Within a few years they were found. The continents were moving after all.",
+   "Look for the iron-nickel meteorite, polished silver by visitors' hands. The museum calls it the closest you will come to handling a piece of Earth's core, so do add your fingerprints to the shine. Then find the granite with the Geiger counter, and press the button. The rock clicks. That is its own radioactivity, ticking quietly away, as granite does. Press it again. Still at it.",
+   "Now find the wind-up fault model, and turn the handle. Watch the needle climb from green towards red. Keep turning. Sooner or later it snaps, and you cannot predict when. That is the whole problem, in one handle. Where plates meet, they grind and jam, and most of the time nothing happens. Then, all at once, it does.",
+   "Look for the floor-level case with a Chinese bronze vessel, and a brass seismograph beside it. The vessel is a replica of one built in the year 132 by Zhang Heng: a quake shook a ball from a dragon's mouth into a frog's, and the dragon showed the direction. The brass machine is John Milne's seismograph of 1885, designed with Thomas Gray in Japan and made in Glasgow. Milne, a British mining engineer teaching in Tokyo, took up earthquakes after the Yokohama quake of 1880. When fire destroyed his observatory in 1895 he moved, with his Japanese wife Tone, to the Isle of Wight, which became a world centre of seismology. The world's earthquakes, read from the Isle of Wight. The next room remembers a real morning.",
+   "Now walk to the far end and step into the little supermarket. Hold the handrail, and stand with your feet a little apart. Look at the shelves while they are still: bowls and chopsticks, bamboo steamers, noodles, soy sauce, cans of beer. This room is modelled on the earthquake that struck the Japanese city of Kobe on the seventeenth of January 1995, just before six in the morning. When it shakes, the screens above the shelves play real security-camera footage from Kobe supermarkets in 1995. In Kobe itself, the shaking lasted about twenty seconds. Parts of the city stood on soft ground and land reclaimed from the sea, which shook harder. More than six thousand people lost their lives. Homes collapsed, fires broke out across the city, and a long stretch of raised motorway toppled onto its side. What you feel here is only a faint echo of it.",
+   "Step out past the fallen girders. More than a hundred thousand buildings were destroyed, and the port took two years to rebuild. So many people came to help that 1995 is remembered in Japan as the first year of the volunteer, and Japan marks the date each year, as a day for disaster prevention and volunteering. Earthquakes are measured on a scale where each step up means about thirty times more energy. Japan strengthened its buildings, and its warning system can now alert phones and trains seconds before the strongest shaking: enough to start slowing a train, or get under a table.",
+   "By the exit, look for the screen about Tohoku, and the glass case opposite it. In 2011 an earthquake and tsunami in Japan killed more than sixteen thousand people. In the case are a cracked clock with no hands, and a calendar open at March 2011, with a watermark where the sea came in. Beside them, boots for rescue dogs, and a straw that filters dirty water. Then a panel asks if you have experienced an earthquake. In Britain, perhaps without knowing: it has a few hundred small ones a year and feels twenty or thirty; the biggest, the Dogger Bank quake of 1931, magnitude six point one, was felt as far as Norway. It is easy to think of the ground beneath our feet as solid, permanent, finished. This gallery is here to remind you, quite politely, that the ground is none of those things."
   ],
   "chapters": [
-   "The Drifting Plates",
-   "The Vesuvius Casts",
-   "How the Casts Were Made",
-   "A Plinian Eruption",
-   "Buried for Sixteen Centuries",
+   "Press All Three",
+   "Lavas from Hawaii",
+   "Obsidian, Pumice and Basalt",
+   "Into the Volcano",
+   "The Two Casts",
+   "Pliny and Vesuvius",
+   "Continents and Birds",
+   "Touch the Core",
+   "Make an Earthquake",
+   "Two Machines",
    "The Kobe Supermarket",
-   "Seconds of Shaking",
-   "Why It Was So Destructive",
-   "The Year of the Volunteer",
-   "Scales and Early Warnings",
-   "Not So Solid Ground"
+   "After Kobe",
+   "Tohoku and Britain"
   ],
   "walking": [
-   "Japan is one of the most earthquake-prone countries in the world, because it sits where several of the great plates of the Earth's crust meet. Earthquakes there are part of life, and the country has learned more than most about building for them.",
-   "Even so, nothing prepared the city of Kobe for the morning of the seventeenth of January 1995. You are about to step into a room that remembers it. The museum says it can be upsetting for some people, and it is perfectly fine to skip it."
+   "You are riding up through a globe, and, as the usual account has it, you have earlier visitors to thank. Surveys showed that few of them ever climbed the Geological Museum's grand staircase to its top floors, so when the hall was redesigned, in 1996, it was given a machine to do the climbing: an escalator rising about eleven metres through a model globe. The laziest visitors in London got the best ride in the building.",
+   "The gallery at the top opened on the thirty-first of January 2014, replacing an older one called The Power Within. The museum's own volcanologists and curators work on live volcanoes, and inside you will hear about one of their climbs.",
+   "One more thing before you step off. The gallery ends in a room that shakes, and the museum says it can be upsetting for some people. It is perfectly fine to skip it. Start with the volcanoes, and decide when you get there."
   ],
-  "tip": "No ticket is needed. The museum warns that some people find it upsetting, so skipping it is perfectly fine.",
+  "tip": "No ticket is needed. The gallery is loud in places, and the museum warns that some people find the earthquake room upsetting, so skipping it is perfectly fine.",
   "ask": [
    "How long did the Kobe earthquake last?",
    "How were the Pompeii casts made?",
@@ -547,29 +584,37 @@ export const STORIES = {
   "look": [
    "Her neck and tail, held out in the air with nothing underneath. Check. Really, nothing.",
    "Her feet, and the top of her neck behind the head: both fix mistakes Dippy carried for over a century.",
-   "The path through the garden: five hundred and forty million years of life, at walking pace."
+   "The path through the garden: five hundred and forty million years of life, at walking pace.",
+   "The bronze Diplodocus skull on a boulder along the path. Feel the teeth. It doesn't mind."
   ],
   "story": [
-   "Stand beside her and look along that neck. Now look underneath it. Nothing. No props, no pillars. This is Fern, a Diplodocus cast in bronze, and the museum calls her the first life-size bronze Diplodocus able to hold herself up. Steel cables run through the bronze, anchored at her hips, and pull her neck and tail up the way cables hold up a bridge. The museum calls her the world's first post-tensioned bronze dinosaur, which is the most engineering anyone has ever said about a dinosaur. There is no trick. It is simply very clever engineering.",
-   "She is a copy of Dippy, the plaster Diplodocus made for the museum in 1905, who greeted visitors in Hintze Hall from 1979 until Hope took his place. Musical chairs, one last time. Dippy's bones were scanned while he toured the country, and from those scans came Fern. It took three years, and museum scientists working with specialist sculptors and engineers. Local schoolchildren chose her name. Nobody asked me. The children, once again, got there first.",
-   "Walk round to her head and look at the top of her neck, just behind the skull. She is more correct than the original. On Dippy, that first bone of the neck was mounted upside down, and it stayed that way for more than a century. On Fern it is the right way up, and her feet have been put right too. Even a copy, it seems, can evolve.",
-   "Now walk back along her tail. Diplodocus means double beam, after the pairs of small bones that run along the underside of the tail. The real animal lived about a hundred and fifty million years ago, in what is now the western United States: the same time and the same part of the world as Sophie the stegosaurus, whom you met indoors. Size was clearly not a family value they shared. A Diplodocus could reach about twenty-five metres from nose to tail, about the length of Hope.",
-   "Look around you at the garden. It reopened in July 2024, as part of the museum's Urban Nature Project, and the whole site covers five acres. In its first year, more than five million people visited these gardens, so you are in good company. Somewhere nearby stands a second bronze dinosaur, a Hypsilophodon. See if you can find it before you go.",
-   "The path around Fern leads through five hundred and forty million years of life on Earth, from the oldest animals with hard parts to the present day. Walk it slowly, if you have the time. Today you have met a whale, a tree, a stone from Mars and a dinosaur with a very small head. Thank you for walking with me."
+   "Stand beside her and look along that neck. Now look underneath it. Nothing. No props, no pillars. This is Fern, and the museum calls her the first life-size bronze Diplodocus able to hold herself up. Steel cables run through the bronze, anchored at her hips, and pull her neck and tail up. The museum calls them post-tensioned cables, the kind you would see in a bridge, which is the most engineering anyone has ever said about a dinosaur. She is over twenty-five metres long, with fifteen metres of tail in the air, tapering to the width of a human finger. On a windy day she flexes like a suspension bridge, head and tail moving in tandem. If she wobbles, it is working.",
+   "Now look at her feet. Diplodocus, says the museum's Paul Barrett, were a bit like ballerinas: they walked around on their toes. Fern's feet are arched where Dippy's were flat, because a big pad of fat sat under them, as under an elephant's. Her hips have been brought together, and Dippy's slightly knock-kneed stance corrected. And at the top of her neck, just behind the skull, the first bone is the right way up. On Dippy it was upside down for more than a century. Even a copy, it seems, can evolve.",
+   "Now look along the joints of her spine. The first tests hit a problem: the bronze bones were too heavy and touched over too small an area, so the cast would simply break apart. The fix was hollow bones with struts inside, like the air-filled bones of real sauropods, and bronze discs standing in for cartilage. In Barrett's words, the engineers' solutions were essentially biological solutions to the same problem a living Diplodocus would have had. The engineers had reinvented the dinosaur. She was cast at a foundry in Madrid, the whole project took three years, and local schoolchildren chose her name. Nobody asked me.",
+   "Go to her head and look back along her. She is a copy, and the original has a story. In 1899 railroad workers in Wyoming dug up a Diplodocus. Andrew Carnegie, the American industrialist, acquired it, and the species was named carnegii, after him. In 1902 King Edward VII saw a sketch of the bones at Carnegie's castle in Scotland, and Carnegie agreed to give London a cast. Two hundred and ninety-two bones came in thirty-six crates, and on the twelfth of May 1905 Dippy was unveiled: the first Diplodocus on display anywhere in the world. In the Second World War he was taken apart and hidden in the basement. A gift from a castle, hidden in a cellar.",
+   "Stay at her head. Dippy kept changing his mind. At first his head pointed down and his tail lay on the ground. His neck was raised in the 1960s, and in 1993 his tail was lifted over visitors' heads, which meant re-casting it in a lighter material. His front feet, a museum palaeontologist has said, were copies of his back ones: they never had Diplodocus hands, so they just made copies of the feet. He greeted visitors in Hintze Hall from 1979 until the fourth of January 2017, then made way for Hope. Musical chairs, one last time. His tour of the country, from 2018 to 2021, drew more than two point one million visitors. While he toured, all two hundred and ninety-two bones were scanned, and from those scans came Fern. The copy came out more correct than the original.",
+   "Now find the second bronze dinosaur nearby, a Hypsilophodon: about the size of a large dog, with a small beak, modelled on Isle of Wight fossils a hundred and twenty-five million years old. The museum calls it the most accurate skeleton of this dinosaur ever made. Nearly all known Hypsilophodon come from one layer of rock, long read as a herd killed in a flood. The museum's scientists now think it was a more normal collection. Less disaster film, more ordinary Tuesday.",
+   "Look at the planting around her. Fern's part of the garden is the Jurassic: drier, more Mediterranean, with short ferns, cycads and the Wollemi pine. That pine was thought extinct until it turned up in an Australian canyon in 1994, and in 2020 its last wild trees had to be rescued from a wildfire. Near her, look for fossil wood: a Dorset conifer that grew more than a hundred and forty-five million years ago and turned to stone as quartz filled it. The real Diplodocus lived about a hundred and fifty million years ago, in what is now the western United States, in the same world as Sophie the stegosaurus.",
+   "Now the path. It runs one metre for every five million years, from the Cambrian, about five hundred and forty million years ago: in the museum's own words, five hundred and forty million years in fifteen minutes. On that scale our whole species fits in the last six centimetres, about a palm's width. Look for a band of red volcanic rock from Iceland. It marks the extinction when more than ninety per cent of life vanished. On the way are bronzes to touch: Tiktaalik, a giant millipede, an insect like a dragonfly, as wide as a wood pigeon. Further on, on a boulder, a bronze Diplodocus skull. Feel the slender teeth. They raked leaves, which went down whole. No chewing. No manners.",
+   "Before you go, turn and look up at the building. On a ledge of the east wing, find a terracotta pterosaur with folded wings, one of the extinct animals Waterhouse put on this side. The walk ends as it began, with a clay animal on a wall. Today you have met a whale, a tree, a stone from Mars and a dinosaur with a very small head. Thank you for walking with me. Do come back. Hope will still be diving."
   ],
   "chapters": [
-   "Fern Holds Herself Up",
-   "A Copy of Dippy",
-   "More Correct than Dippy",
-   "Along the Double Beam",
-   "The Garden Around You",
-   "The Path through Time"
+   "Nothing Underneath",
+   "Her Feet and Neck",
+   "Built Like a Dinosaur",
+   "Dippy's First Life",
+   "Dippy Changes His Mind",
+   "The Small One Nearby",
+   "A Jurassic Garden",
+   "A Walk through Time",
+   "Look Up, and Goodbye"
   ],
   "walking": [
-   "Dippy, the Diplodocus whose copy you are about to meet, was a gift. In the early twentieth century the American industrialist Andrew Carnegie had a Diplodocus skeleton dug up in the American West, and plaster casts of it were sent to museums around the world. London's was made in 1905.",
-   "For decades Dippy greeted visitors in Hintze Hall, and when he made way for Hope, plenty of people minded. He went on a tour of the country instead, and while he toured, his bones were scanned. That is where this story ends: outside, in bronze."
+   "As you head out, a word about where this museum is going. More than two hundred million visitors have come through its doors since 1881, which is a great many wet umbrellas. In 2020 it declared a planetary emergency, and it has promised a new or revitalised gallery every year until its hundred and fiftieth birthday, in 2031. In 2027, for the first time in its history, it opens a permanent gallery for young children, aged four to seven. Somebody has to tell them about the whale.",
+   "It is also packing. About twenty-eight million specimens are due to move to a new centre near Reading, from 2028 to 2031: the biggest collections move the country has seen. The museum has moved before, once, when it left Bloomsbury for this building by horse and cart. This time, one imagines, the carts will be larger.",
+   "A museum with a deadline, then, and a very large number of boxes. And the garden ahead was the first piece of that plan to open."
   ],
-  "tip": "A second bronze dinosaur, a Hypsilophodon, stands nearby. See if you can find it.",
+  "tip": "The small bronzes on panels and boulders along the garden path are made to be touched. Small hands welcome, and large ones.",
   "ask": [
    "How does Fern hold herself up?",
    "What did Dippy get wrong?",

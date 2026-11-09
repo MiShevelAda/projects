@@ -29,7 +29,7 @@ export const RESPELL = [
   ['pahoehoe', 'pa-hoy-hoy', 'the Hawaiian lava: pa-HOY-hoy'],
   ["Pele's", "Paylay's", "Pele's hair: PAY-lay, the Hawaiian volcano goddess"],
   ['Sequoyah', 'Sikwoya', 'si-KWOY-a, like the tree'],
-  ['Tone', 'Toneh', "John Milne's wife, Tone: TOH-neh, a Japanese name, not the English word"],
+  ['Tone', 'Tohneh', "John Milne's wife, Tone: TOH-neh, a Japanese name, not the English word"],
 ];
 
 const ONES = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
