@@ -8,6 +8,18 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### Always a working version online; chapter titles in every story
+
+> **"Also keep always a functional version online and only update or when full section is ready"**
+> **"Also add lables to each section instead of calling or story"**
+
+Said from inside the museum, after one update left the private link blank (code published without
+the data file it needed). **The rule underneath:** the version he can open must always work. An
+update goes out only when a whole piece is finished, every test passes, and the exact published
+folder has been opened in a phone-sized browser with no errors; code and data always go together.
+"Labels" was read as a title for each chapter of a story: shown above each section, lit while it
+plays, named in the player ("Chapter 3 of 14: Sold as a Royal Fish"), tappable to jump there.
+
 ### The museum guide looks like bike fit, is built around the visitor's jobs, and tells funny, longer stories
 
 > **"The ux ui of bike fit app is perfect here"**
