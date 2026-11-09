@@ -6,7 +6,7 @@
 import json, re, sys
 from urllib.parse import urlparse
 
-FIELDS = ['find', 'arrive', 'look', 'story', 'walking', 'tip']
+FIELDS = ['find', 'arrive', 'look', 'story', 'chapters', 'walking', 'tip']
 src = json.load(open(sys.argv[1]))
 stops = open('stops.js').read()
 

@@ -17,6 +17,12 @@ export const STORIES = {
    "Now look at the walls. They are crawling with animals, and every one has been seated with care. Owen insisted that the living and the extinct be kept apart. So the living are on your left, the west wing: look for lions and wolves. The extinct are on your right, the east wing. Somewhere up there a clay pterodactyl keeps watch over the traffic. It is the one with wings that is not a pigeon. Nearby is the Great Palaeotherium, an extinct relative of the horse, which has been extinct for so long that most people have never heard of it.",
    "Last, look right up to the peak above the main door. Empty? Good, you have found it. A statue of Adam once stood there, presiding over every creature on the building. He was lost around the time of the Second World War, and no one is quite sure how. Not the easiest thing to mislay. Shall we go in?"
   ],
+  "chapters": [
+   "The Front of the Building",
+   "Waterhouse's Cathedral to Nature",
+   "Living Left, Extinct Right",
+   "The Empty Peak"
+  ],
   "walking": [
    "South Kensington is not full of museums by accident. After the Great Exhibition of 1851, its profits bought land here for museums and colleges, which is why you are surrounded by them. The natural history collections, meanwhile, were bursting out of the British Museum in Bloomsbury, and Richard Owen spent years arguing that they needed a home of their own.",
    "He got one, and he got it on a grand scale. Victorian building projects, like modern ones, were rarely early and rarely small. This one was worth the wait."
@@ -48,6 +54,22 @@ export const STORIES = {
    "And somewhere along the bays is a slice of the Imilac meteorite, from the Atacama Desert in Chile. It is a kind of meteorite called a pallasite: shining metal, studded with green crystals of olivine, the gem we call peridot. It is about four and a half billion years old, as old as the solar system. So the oldest thing in this hall is not the whale at all. It is a stone from space, being very modest about it.",
    "Before you leave the hall, one more nudge. Look up past her, at the painted ceiling. Don't linger. Later on this walk you will be up on the top balcony, much closer to it, and to her."
   ],
+  "chapters": [
+   "Look Up, Meet Hope",
+   "Stranded at Wexford",
+   "Sold as a Royal Fish",
+   "The Family Scrapbook",
+   "The Doors She Squeezed Through",
+   "A Pose from the Fog",
+   "Hanging from the Iron",
+   "Under the Jaw",
+   "What the Baleen Remembers",
+   "Why She Is Called Hope",
+   "The Missouri Leviathan",
+   "Mantell's Misplaced Spike",
+   "The Imilac Meteorite",
+   "The Painted Ceiling"
+  ],
   "walking": [
    "The skeleton you are about to meet began as a stranding. In March 1891 a blue whale came ashore on a sandbar near Wexford, on the south-east coast of Ireland, and the museum bought her that same year.",
    "Blue whales are the largest animals ever known to have lived, bigger than any dinosaur. They feed on krill, tiny shrimp-like animals, and they do it by the tonne. They have no teeth at all; instead they strain their food through comb-like plates called baleen. Keep your neck loose. You will need it."
@@ -73,6 +95,18 @@ export const STORIES = {
    "Speaking of which, follow the noise. The loudest thing in the gallery is the T. rex, and it is not a skeleton at all but a moving model, made to show the animal as it might have been in life. When you reach it, don't look at the dinosaur first. Look at the children closest to it. Then at the grown-ups just behind, pretending they only came for the children. Do not try for the front. The front belongs to the children, and they are not giving it up.",
    "While you wait your turn, the real animal. Tyrannosaurus rex means tyrant lizard king, and it was named in 1905, from bones found in Montana. The biggest known were about twelve metres long, with teeth the size of bananas and one of the strongest bites of any land animal we know of. Then there are the arms: short, with just two fingers each, and the subject of jokes ever since. Nobody is quite sure what they were for. What it sounded like, nobody knows either. Its closest living relatives are crocodiles and birds, so the model's roar is an educated guess, made with feeling. Its eyes faced forward, too, so it could judge distance rather well. Bear that in mind.",
    "One last thing, as you head out. The age of dinosaurs ended about sixty-six million years ago, when an asteroid about ten kilometres across struck the Earth in what is now Mexico. Dust and soot darkened the skies, plants withered, and around three quarters of all species on Earth died out. But not every dinosaur went. One small, feathered group survived, and their descendants are flying about outside this building right now. Birds are dinosaurs. So the next time a pigeon in South Kensington looks at you sideways, show some respect. And keep a little wonder in reserve: later on this walk, in Earth Hall, you will meet the most complete skeleton of her kind ever found. No spoilers."
+  ],
+  "chapters": [
+   "Onto the Walkway",
+   "Owen's Crystal Palace Models",
+   "How Bones Become Stone",
+   "A Very Long Reign",
+   "The Triceratops Skull",
+   "Marsh's First Guess",
+   "Tyrannosaur Tooth Marks",
+   "The Moving Tyrannosaurus",
+   "Tyrant Lizard King",
+   "The End of an Age"
   ],
   "walking": [
    "This museum has been in the dinosaur business since before it opened. Its founder, Richard Owen, coined the word dinosaur in the 1840s, from the Greek for terrible lizard. He had only a handful of bones and teeth to go on, all found in England, and he guessed, correctly, that they belonged to a group of animals nobody had named before.",
@@ -100,6 +134,19 @@ export const STORIES = {
    "Look back at the model, and remember when it was made: whaling was at its height. In the twentieth century, hundreds of thousands of blue whales were killed, and the animal came close to vanishing altogether. The measurements its makers used came from one of those whales. The museum's collection holds another reminder, though not in this room: blue whale vertebrae labelled only Wembley Exhibition. In 2024, researchers working through the letters of a former director, Sir Sidney Harmer, showed they had been shown at the British Empire Exhibition, and came from whales killed off South Georgia. Whale bones that went to the fair. Today blue whales are protected, and their numbers are slowly recovering, though there are still far fewer than there once were.",
    "So before you go, look at it one more time, from tail to head. Wood, wire and plaster, nearly a century old, standing in for an animal most people will never see. It does the job rather well. Not bad, for something built before most homes had a television."
   ],
+  "chapters": [
+   "The Other Blue Whale",
+   "Built in This Room",
+   "A Rather Bloated Belly",
+   "The Canteen Rumour",
+   "Whales and Dolphins Above",
+   "Where Hope Once Hung",
+   "Tongue and Blowhole",
+   "A Mammal Like You",
+   "Cousins of the Hippo",
+   "Made in the Whaling Years",
+   "One Last Look"
+  ],
   "walking": [
    "The model you are about to meet was made in the 1930s, when whaling was at its height and the blue whale was being hunted towards extinction. Its makers worked from photographs and from the measurements of a single female, killed by a British research team in 1925.",
    "They built it where it stands, out of wood and plaster. It is one of the museum's best loved objects, and it has outlasted almost everything else from its decade, including, for a while, the whale skeleton that hung above it."
@@ -119,6 +166,13 @@ export const STORIES = {
    "Look around for a portrait close by. If it is there, that is Alfred Russel Wallace. That is Alfred Russel Wallace, who arrived at the same great idea, evolution by natural selection, on his own, while collecting on the islands of South-east Asia. In 1858 he posted his thoughts to Darwin, who had been sitting on the same idea for twenty years, and their work was presented together that summer. Two men. One idea. One staircase.",
    "This is the public Darwin. Somewhere else in the building, in the museum's library, a second statue shows him reading, in his slippers. That one is by appointment only.",
    "Now turn round and look where he is looking. Down the length of the hall, under the whale, towards the door. The whole parade of life he did so much to explain. He ended his great book with the line: there is grandeur in this view of life. Standing here, it is hard to argue."
+  ],
+  "chapters": [
+   "Darwin on the Landing",
+   "The Irony of His Seat",
+   "Alfred Russel Wallace",
+   "A Second Darwin",
+   "Where Darwin Is Looking"
   ],
   "walking": [
    "Charles Darwin sailed round the world on HMS Beagle as a young man, from 1831 to 1836, and then spent more than twenty years thinking, collecting, writing letters and breeding pigeons before he published On the Origin of Species in 1859. He disliked controversy and was often unwell, which did not stop the controversy from finding him.",
@@ -143,6 +197,17 @@ export const STORIES = {
    "Last, find something from much further away: a fragment of the Moon, brought back by Apollo 17 in 1972, the last mission to land people there. One of the two men who walked on the Moon on that trip, Harrison Schmitt, was a geologist, the only trained scientist ever to stand on it. Fitting, then, that a piece of what he helped collect should end up in a natural history museum. The six Apollo landings brought home about three hundred and eighty kilograms of Moon rock and dust between them. Before he left, Schmitt's crewmate Gene Cernan, the last person to walk on the Moon, wrote his daughter's initials in the dust. They are very probably still there.",
    "It came to Britain as a gift of goodwill, one of a hundred and thirty-five countries given a piece. Rather a lot of those goodwill pieces have since gone missing around the world, which is the kind of thing that happens when you hand out bits of the Moon. Britain's is right here. Moon rocks are old, too: most scientists think the Moon itself formed from the debris of a colossal collision with the young Earth, more than four billion years ago.",
    "So there you have it. A fossil, a book and a stone. One from the ground, one from a desk, and one from the sky. Each, in its way, changed what we know, and each has come a long way to sit on a first floor in South Kensington."
+  ],
+  "chapters": [
+   "Three Treasures to Find",
+   "The Archaeopteryx Slab",
+   "A Bavarian Lagoon",
+   "Who Bought the Fossil",
+   "On the Origin of Species",
+   "Two Surprises in the Book",
+   "A Piece of the Moon",
+   "A Gift of Goodwill",
+   "Fossil, Book and Stone"
   ],
   "walking": [
    "The room you are heading to is the museum's greatest hits. Of its many millions of specimens, only a handful made it in, each chosen because it changed what we know, or how we came to know it.",
@@ -170,6 +235,18 @@ export const STORIES = {
    "And then the amethyst, set in a silver ring shaped like a snake, with signs of the zodiac on it. Amethyst is simply quartz, the commonest crystal on any beach, coloured purple by traces of iron and natural radiation. Its last private owner, the writer Edward Heron-Allen, called it trebly cursed, and in 1944, a year after his death, his daughter gave it to the museum, his letter of warning and all. Read the story on the case if you like. But you should know that the museum's own scientists suspect he invented the curse to help sell a short story he had written about it. If so, it was cursed mainly with marketing.",
    "So: a room of rocks that turns out to be a room of stories. Carbon squeezed into diamonds, a piece of Mars that crossed space to land in Egypt, and a purple quartz with a publicist. Not bad, for the quietest room in the building."
   ],
+  "chapters": [
+   "The Original Oak Cabinets",
+   "Notice the Hush",
+   "How Crystals Stack",
+   "Names Along the Cases",
+   "The Aurora Pyramid",
+   "How Diamonds Form",
+   "Diamonds That Glow",
+   "The Nakhla Meteorite",
+   "The Cursed Amethyst",
+   "A Room of Stories"
+  ],
   "walking": [
    "The Minerals gallery has barely changed since the museum opened in 1881. A Victorian visitor would still recognise it, cabinets and all. Minerals are the building blocks of rocks: each one is a natural solid with its own recipe of chemical elements and its own way of stacking its atoms.",
    "Most are not especially precious. A few are worth a fortune, because they are rare, hard and beautiful all at once. The museum keeps the most valuable at the far end, in a room called the Vault. The name is a clue."
@@ -191,6 +268,14 @@ export const STORIES = {
    "Giant sequoias are built to last. Their bark is thick and spongy, and it shrugs off the forest fires that kill other trees. The fires even help: the heat dries out the sequoia's cones so they open and drop their seeds onto freshly cleared ground. A tree that uses fire to plant its children. Hard not to admire. One giant sequoia still standing in California, known as General Sherman, is the largest single tree on Earth by volume. This one was a member of a very exclusive club.",
    "Now notice the year it came down: 1891. That same year, half a world away, a blue whale stranded on a sandbar in Ireland. Turn round, lean on the rail, and look down. There she is. Two giants of the same year, meeting in the same hall. From up here you can see the whole shape of her dive, head down, mouth open. The museum itself recommends this balcony for photographs of her, so take one. She will hold still.",
    "And look up. You are close to the ceiling now: a hundred and sixty-two panels of plants, painted by hand and gilded, from the Scots pine to the citron and the orange tree. They were cut from the plans to save money, and put back because Waterhouse insisted. Every building needs someone like that."
+  ],
+  "chapters": [
+   "The Giant Sequoia Slice",
+   "Reading the Rings",
+   "The Timeline Beside It",
+   "Built to Survive Fire",
+   "Hope from the Balcony",
+   "The Ceiling, Up Close"
   ],
   "walking": [
    "Giant sequoias grow naturally in only one place on Earth: a scattering of groves on the western slopes of the Sierra Nevada mountains, in California. They are among the largest living things there are, and some still standing are thousands of years old.",
@@ -217,6 +302,17 @@ export const STORIES = {
    "Which is the quiet point of the toy. Plastic is now found in every ocean on Earth, and life, being life, has started to use it. That is either reassuring or alarming, depending on how you look at it, and this room would like you to look at it both ways at once.",
    "So, between a stone tool and a plastic toy, four hundred thousand years of us, making things and leaving them behind. Before you leave, think about which object here stayed with you. Then, if something moves you, tell the museum. They did ask. Every opinion counts in here, which is more than most rooms can say."
   ],
+  "chapters": [
+   "A Room Reopened",
+   "Bombs and the Herbarium",
+   "A Gallery on Trial",
+   "The Handaxe",
+   "The Most Successful Tool",
+   "The Star Wars Toy",
+   "The Bryozoan Crust",
+   "Plastic in Every Ocean",
+   "Have Your Say"
+  ],
   "walking": [
    "During the Second World War the museum was hit by bombs, and in the autumn of 1940 its botany department, home of the herbarium, took a direct hit. A herbarium is a library of plants: millions of specimens, each pressed flat on paper and labelled with where and when it was collected.",
    "The room you are heading for was handed over to that collection and closed to the public for more than eighty years. It reopened in September 2026 as a trial gallery, which means that, for once, your opinion of a museum gallery may actually change it."
@@ -239,6 +335,16 @@ export const STORIES = {
    "That neck caused a scandal. It was so long that some experts at first suspected a fake, among them Georges Cuvier in Paris, the most famous anatomist in Europe. A meeting was called at the Geological Society in London to settle it. Cuvier looked again, and accepted that it was real. Mary was not invited to the meeting. The Geological Society did not admit women for another eighty years. The skeleton itself reached this museum about twenty-five years after she found it. Cuvier, to be fair, had reason to be suspicious. Fossil fakes were not unknown, and nothing alive today has a neck quite like that.",
    "She was more than a finder of skeletons. She noticed that certain stones in the cliffs, which locals called bezoar stones, were full of fish bones and scales, and worked out with the scientists she corresponded with that they were fossilised dung. Reading an animal's last dinner from its droppings. Not glamorous, but it was very good science.",
    "She had little formal education, in an age when science was a club for gentlemen, and Mary Anning was not a gentleman. For a long time, the men who bought her fossils took the credit. She died in 1847, in Lyme Regis. Today she is remembered as one of the greatest fossil hunters there has ever been. And here, in front of you, along both walls, is her work."
+  ],
+  "chapters": [
+   "Sea Dragons on Both Walls",
+   "The Ichthyosaurs",
+   "Mary Anning of Lyme Regis",
+   "The Temnodontosaurus Skull",
+   "The Long-Necked Plesiosaur",
+   "The Neck Scandal",
+   "The Bezoar Stones",
+   "Mary Anning Remembered"
   ],
   "walking": [
    "Mary Anning was born in 1799 in Lyme Regis, on the Dorset coast, where the cliffs are packed with fossils from the age of dinosaurs. Her family was poor, and they sold what they found to tourists. The cliffs crumble in winter storms, which is when the best fossils appear, and also when hunting them is most dangerous.",
@@ -264,6 +370,16 @@ export const STORIES = {
    "Look him in the eye. Before the Neanderthals disappeared, our ancestors met them, and sometimes had children with them. That is why many people alive today still carry a little Neanderthal DNA, often a percent or two. In a sense, he is family. Possibly the side you only see at weddings. The full Neanderthal genome was first read in 2010, by a team led by the Swedish scientist Svante Pääbo, and in 2022 he won a Nobel Prize for it. Genetics, it turns out, can be a family reunion.",
    "As you go, glance back at the two of them standing together. Two kinds of human, sharing the same world for thousands of years. Only one of them is still here to visit museums. It might easily have been the other. We gave ourselves the name Homo sapiens, which means wise human. Of course we did."
   ],
+  "chapters": [
+   "The Two Figures",
+   "The Gibraltar Skull",
+   "Who Neanderthals Were",
+   "Cheddar Man",
+   "Cheddar Man's Face",
+   "The Kennis Brothers' Neanderthal",
+   "Neanderthal DNA in You",
+   "Two Kinds of Human"
+  ],
   "walking": [
    "Our species is about three hundred thousand years old, which makes us newcomers. For most of that time we were not alone. Neanderthals lived across Europe and western Asia for hundreds of thousands of years. They made tools, used fire and survived ice ages, and they disappeared about forty thousand years ago.",
    "Before they did, our ancestors met them, and sometimes had children with them. That is why many people alive today carry a little Neanderthal DNA. Your family tree, in other words, is more interesting than you thought."
@@ -284,6 +400,14 @@ export const STORIES = {
    "Now walk round to her head. Smaller. Smaller than that. There. For an animal that weighed about one and a half tonnes, about as much as a car, it is astonishingly small, and her teeth are no bigger than your little fingernail. Hold yours up, for scale. The scientists who studied her think her bite was about as strong as a cow's. A plant eater, then, and not a hunter. The old story that Stegosaurus had a second brain in its hips, to make up for the small one in its head, has long been dropped. The small one, it seems, managed.",
    "Walk back along her body and look at the plates on her back. What they were for is still argued over. Showing off to other stegosaurs, perhaps, or helping her warm up and cool down. What the spikes on her tail were for is not argued over at all. Palaeontologists even have a nickname for them, the thagomizer, borrowed from a newspaper cartoon. She could certainly look after herself.",
    "She does not move and she does not roar, and after the T. rex I find that rather restful. When you are ready, find the escalator rising into the giant globe. It will carry you up, and into the Earth itself. Not many escalators can say that."
+  ],
+  "chapters": [
+   "Meet Sophie",
+   "Found in Wyoming",
+   "Named Roof Lizard",
+   "Her Head and Teeth",
+   "Plates and Tail Spikes",
+   "Up into the Globe"
   ],
   "walking": [
    "Stegosaurus lived in the late Jurassic, about a hundred and fifty million years ago. Tyrannosaurus rex lived roughly eighty million years after that, near the very end of the age of dinosaurs. Which means that T. rex is closer in time to you than it is to a Stegosaurus.",
@@ -311,6 +435,19 @@ export const STORIES = {
    "Earthquakes are measured on a scale where each whole step up means roughly thirty times more energy released, so a small change in the number is a very large change in the ground. Japan now has a warning system that can detect the first, faster waves of a quake and send alerts to phones and trains a few seconds before the strongest shaking arrives. A few seconds sounds like nothing. It is long enough to stop a train, or to get under a table.",
    "It is easy to think of the ground beneath our feet as solid, permanent, finished. Even Britain has a few hundred small earthquakes a year, almost all of them too small to feel, so you have very probably slept through several. This gallery is here to remind you, quite politely, that the ground is none of those things. The planet is still moving. And so, in its slow way, is everything that lives on it."
   ],
+  "chapters": [
+   "The Drifting Plates",
+   "The Vesuvius Casts",
+   "How the Casts Were Made",
+   "A Plinian Eruption",
+   "Buried for Sixteen Centuries",
+   "The Kobe Supermarket",
+   "Seconds of Shaking",
+   "Why It Was So Destructive",
+   "The Year of the Volunteer",
+   "Scales and Early Warnings",
+   "Not So Solid Ground"
+  ],
   "walking": [
    "Japan is one of the most earthquake-prone countries in the world, because it sits where several of the great plates of the Earth's crust meet. Earthquakes there are part of life, and the country has learned more than most about building for them.",
    "Even so, nothing prepared the city of Kobe for the morning of the seventeenth of January 1995. You are about to step into a room that remembers it. The museum says it can be upsetting for some people, and it is perfectly fine to skip it."
@@ -332,6 +469,14 @@ export const STORIES = {
    "Now walk back along her tail. Diplodocus means double beam, after the pairs of small bones that run along the underside of the tail. The real animal lived about a hundred and fifty million years ago, in what is now the western United States: the same time and the same part of the world as Sophie the stegosaurus, whom you met indoors. Size was clearly not a family value they shared. A Diplodocus could reach about twenty-five metres from nose to tail, about the length of Hope.",
    "Look around you at the garden. It reopened in July 2024, as part of the museum's Urban Nature Project, and the whole site covers five acres. In its first year, more than five million people visited these gardens, so you are in good company. Somewhere nearby stands a second bronze dinosaur, a Hypsilophodon. See if you can find it before you go.",
    "The path around Fern leads through five hundred and forty million years of life on Earth, from the oldest animals with hard parts to the present day. Walk it slowly, if you have the time. Today you have met a whale, a tree, a stone from Mars and a dinosaur with a very small head. Thank you for walking with me."
+  ],
+  "chapters": [
+   "Fern Holds Herself Up",
+   "A Copy of Dippy",
+   "More Correct than Dippy",
+   "Along the Double Beam",
+   "The Garden Around You",
+   "The Path through Time"
   ],
   "walking": [
    "Dippy, the Diplodocus whose copy you are about to meet, was a gift. In the early twentieth century the American industrialist Andrew Carnegie had a Diplodocus skeleton dug up in the American West, and plaster casts of it were sent to museums around the world. London's was made in 1905.",

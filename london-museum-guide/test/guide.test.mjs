@@ -24,6 +24,7 @@ test('every stop has what the screen and the voice need', () => {
     assert.ok(s.story.length >= 2, `${s.id}: a story of at least two paragraphs`);
     assert.ok(s.sources.length >= 1 && s.sources.every((x) => x.url.startsWith('https://') && x.label), `${s.id}: sources`);
     if (s.pic) assert.ok(existsSync(new URL(s.pic.src, ROOT)) && s.pic.credit && s.pic.license && s.pic.page.startsWith('https://commons.wikimedia.org/'), `${s.id}: a photo needs its file, credit, licence and source page`);
+    if (s.chapters) assert.ok(s.chapters.length === s.story.length && s.chapters.every((c) => c && c.split(/\s+/).length <= 7), `${s.id}: one short chapter title per paragraph`);
     if (s.video) assert.ok(/^https:\/\/(www\.youtube\.com\/watch\?v=|youtu\.be\/)/.test(s.video.url) && s.video.title && s.video.channel, `${s.id}: a video needs a YouTube link, title and channel`);
     if (s.notice) assert.ok(s.notice.text && /^\d{4}-\d\d-\d\d$/.test(s.notice.until), `${s.id}: a notice needs text and an end date`);
   }

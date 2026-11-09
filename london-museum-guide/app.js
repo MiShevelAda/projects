@@ -292,7 +292,7 @@ function stopView(s) {
         <span class="wt"><span class="kicker">Watch</span><b>${esc(s.video.title)}</b><span class="small">${esc(s.video.channel)}${s.video.minutes ? `, ${s.video.minutes} min` : ''}${s.video.views ? `, ${esc(s.video.views)}` : ''}. Opens YouTube.</span></span>${ICON.chev}</a>` : ''}
       <section class="card story" aria-labelledby="storyH">
         <span class="kicker" id="storyH">The Story</span>
-        ${s.story.map((p, i) => `<p data-p="${i}">${esc(p)}</p>`).join('')}
+        ${s.story.map((p, i) => `${s.chapters?.[i] ? `<h3 class="chap" data-c="${i}">${i + 1}. ${esc(s.chapters[i])}</h3>` : ''}<p data-p="${i}">${esc(p)}</p>`).join('')}
       </section>
       ${s.sources?.length ? `<details class="card sources"><summary>Where These Facts Come From</summary><ul>${s.sources.map((u) => `<li><a href="${esc(u.url)}" rel="noopener" target="_blank">${esc(u.label)}</a></li>`).join('')}</ul></details>` : ''}
       ${!state.seen[s.id] && pos >= 0 && nx ? `<button type="button" class="plain" data-later>${state.later.includes(s.id) ? 'Put It Back in Order' : 'Too Busy? Do This Later'}</button>` : ''}
@@ -327,8 +327,8 @@ function stopView(s) {
     main.querySelector('[data-count]').textContent = `${found.size} of ${s.look.length}`;
   }));
   // Tap a paragraph to hear it from there.
-  main.querySelectorAll('[data-p]').forEach((p) => p.addEventListener('click', () => {
-    const at = story?.starts?.[Number(p.dataset.p) + 1];
+  main.querySelectorAll('[data-p], [data-c]').forEach((p) => p.addEventListener('click', () => {
+    const at = story?.starts?.[Number(p.dataset.p ?? p.dataset.c) + 1];
     if (at == null) return;
     if (!(state.now?.id === s.id && state.now.kind === 'story')) load(s.id, 'story');
     audio.currentTime = at;
@@ -442,7 +442,11 @@ function paintTime() {
     if (live) {
       let i = -1;
       story.starts.forEach((s, k) => { if (k > 0 && t >= s - 0.2) i = k - 1; });
-      box.querySelectorAll('[data-p]').forEach((p) => p.classList.toggle('now', Number(p.dataset.p) === Math.max(0, i)));
+      const k = Math.max(0, i);
+      box.querySelectorAll('[data-p]').forEach((p) => p.classList.toggle('now', Number(p.dataset.p) === k));
+      box.querySelectorAll('[data-c]').forEach((c) => c.classList.toggle('now', Number(c.dataset.c) === k));
+      const st = byId(id), span = main.querySelector('[data-what] span');
+      if (span && st) span.textContent = `Chapter ${k + 1} of ${st.story.length}${st.chapters?.[k] ? `: ${st.chapters[k]}` : ''}`;
     }
   }
 }
