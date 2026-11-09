@@ -196,6 +196,8 @@ function walkView() {
   const started = list.some((s) => state.seen[s.id]);
   const total = list.reduce((a, s) => a + s.minutes, 0) + (list.length - 1) * WALK_BETWEEN;
   const tc = timeCheck(state.walk, opts());
+  // Minutes of stories on this walk, from the recordings, so the version on the phone is easy to tell.
+  const narrated = Math.round(list.reduce((a, s) => a + (clip(s.id, 'story')?.seconds || 0), 0) / 60);
   const pos = nx ? list.indexOf(nx) + 1 : 0;
   main.innerHTML = `<div class="tab">
     <div><p class="eyebrow">${esc(dateLine())}</p><h1 class="large">Walk</h1></div>
@@ -208,7 +210,7 @@ function walkView() {
     ${nx ? `<section class="card assess" data-zone="${nx.zone}" aria-labelledby="upnext">
       <div class="art">${rings}${floorsArt(nx)}</div>
       <div class="body">
-        <span class="kicker">${started ? `Up Next, Stop ${pos} of ${list.length}` : `${list.length} Stops, About ${hrs(total)}`}</span>
+        <span class="kicker">${started ? `Up Next, Stop ${pos} of ${list.length}` : `${list.length} Stops, About ${hrs(total)}`}${narrated ? `, ${narrated} min of Stories` : ''}</span>
         <p class="title" id="upnext">${esc(nx.title)}</p>
         <span class="meta"><span>${esc(floorName(nx.floor))}</span><span>${nx.minutes} min</span></span>
         <a class="primary" href="#${nx.id}" data-start="${nx.id}">${started ? 'Carry On' : 'Start the Walk'}</a>
