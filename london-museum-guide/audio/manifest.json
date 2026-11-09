@@ -10,28 +10,31 @@
  "stops": {
   "building": {
    "way": {
-    "file": "b4ab238e1dd166b2.m4a",
-    "seconds": 63.74,
-    "bytes": 385744
+    "file": "783244bf2d0044e0.m4a",
+    "seconds": 115.75,
+    "bytes": 719867
    },
    "story": {
-    "file": "c6db010c66338b99.m4a",
-    "seconds": 119.35,
+    "file": "a7ea776721270cb2.m4a",
+    "seconds": 231.6,
     "starts": [
      0.5,
      3.02,
-     16.9,
-     58.19,
-     98.33
+     34.84,
+     63.09,
+     102.44,
+     129.91,
+     175.91,
+     203.82
     ],
-    "bytes": 738798
+    "bytes": 1432558
    }
   },
   "hope": {
    "way": {
-    "file": "7779b31b64efc52e.m4a",
-    "seconds": 60.9,
-    "bytes": 359817
+    "file": "d192c8f38079eb59.m4a",
+    "seconds": 102.99,
+    "bytes": 620765
    },
    "story": {
     "file": "24ed0c3118da629d.m4a",
@@ -58,34 +61,37 @@
   },
   "dinosaurs": {
    "way": {
-    "file": "dc8f9f37a5001157.m4a",
-    "seconds": 65.93,
-    "bytes": 392922
+    "file": "1aca7e44cb93083a.m4a",
+    "seconds": 111.36,
+    "bytes": 678773
    },
    "story": {
-    "file": "3d73757bf3bea86d.m4a",
-    "seconds": 437.09,
+    "file": "e054afa4c70fdc16.m4a",
+    "seconds": 914.68,
     "starts": [
      0.5,
      3.17,
-     31.24,
-     75.81,
-     141.52,
-     171.36,
-     221.35,
-     281.67,
-     307.4,
-     336.22,
-     386.4
+     70.81,
+     127.8,
+     177.71,
+     253.69,
+     334.89,
+     390.75,
+     484.83,
+     567.11,
+     615.16,
+     693.14,
+     763.04,
+     843.62
     ],
-    "bytes": 2723928
+    "bytes": 5715815
    }
   },
   "mammals": {
    "way": {
-    "file": "60b84bfd2f26b370.m4a",
-    "seconds": 64.87,
-    "bytes": 384097
+    "file": "d520a97ab2f81b1f.m4a",
+    "seconds": 109.1,
+    "bytes": 665934
    },
    "story": {
     "file": "3ec8ebf98522318c.m4a",
@@ -109,22 +115,23 @@
   },
   "darwin": {
    "way": {
-    "file": "06419975ff6b15cc.m4a",
-    "seconds": 63.95,
-    "bytes": 387493
+    "file": "0d231aa39564d708.m4a",
+    "seconds": 107.97,
+    "bytes": 658321
    },
    "story": {
-    "file": "cea62a1db622dd3a.m4a",
-    "seconds": 121.16,
+    "file": "95d64ebf57339c69.m4a",
+    "seconds": 236.4,
     "starts": [
      0.5,
      3.98,
-     30.51,
-     56.97,
-     87.56,
-     101.61
+     33.84,
+     73.81,
+     114.2,
+     155.4,
+     208.4
     ],
-    "bytes": 738570
+    "bytes": 1466501
    }
   },
   "treasures": {

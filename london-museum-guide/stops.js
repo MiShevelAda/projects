@@ -16,9 +16,10 @@ const src = (label, path) => ({ label, url: path.startsWith('http') ? path : NHM
 
 const RAW = [
   {
-    id: 'building', title: 'The Building', zone: 'outside', place: 'Outside, Cromwell Road', minutes: 5, floor: 'out', map: [80, 80],
+    id: 'building', title: 'The Building', zone: 'outside', place: 'Outside, Cromwell Road', minutes: 6, floor: 'out', map: [80, 80],
     // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
     pic: {"src": "img/building.jpg", "w": 800, "h": 534, "alt": "The terracotta front of the museum, looking up at the main entrance", "caption": "Look up at the main entrance: every surface is terracotta.", "credit": "Txllxt TxllxT", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:London_-_Cromwell_Road_-_Natural_History_Museum_1881_by_Alfred_Waterhouse_-_View_Up_at_the_Entrance_on_the_Terracotta_Tiled_Fa%C3%A7ade_II.jpg"},
+    pics: [{"src": "img/building-front.jpg", "w": 800, "h": 810, "alt": "The full terracotta front of the Natural History Museum on Cromwell Road: two tall towers either side of the arched main entrance, with long wings stretching left and right", "caption": "Step back until every arch and tower fits in your view, like this.", "credit": "Daniel Lu (User:dllu)", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Natural_History_Museum_London_front_facade_2025_dllu.jpg", "chapter": 0}, {"src": "img/building-pterosaur.jpg", "w": 800, "h": 532, "alt": "A terracotta pterosaur with folded wings, carved at the top of a column between two windows, above a band of carved leaves", "caption": "An extinct flier in clay: look for pterosaurs on the extinct side.", "credit": "Thomas Roessler", "license": "CC BY-SA 3.0", "page": "https://commons.wikimedia.org/wiki/File:Detail_on_the_Natural_History_Museum_%28165463187%29.jpg", "look": 1}, {"src": "img/building-machairodus.jpg", "w": 664, "h": 1000, "alt": "A terracotta sabre-toothed cat sitting upright on a ledge at roof level, between a window arch and a gable", "caption": "High on the roofline: a sabre-toothed cat, long extinct.", "credit": "Thomas Roessler", "license": "CC BY-SA 3.0", "page": "https://commons.wikimedia.org/wiki/File:Detail_on_the_Natural_History_Museum_%28165463167%29.jpg", "chapter": 4, "look": 0}],
     sources: [
       src('Alfred Waterhouse and the museum building', '/discover/alfred-waterhouse-museum-building-cathedral-to-nature.html'),
       src('Museum architecture (Library and Archives)', '/our-science/services/library/collections/museum-architecture.html'),
@@ -46,11 +47,15 @@ const RAW = [
     video: {"title": "How to reconstruct a dinosaur", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=O9ihuO2F2rE"},
     // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
     pic: {"src": "img/dinosaurs.jpg", "w": 800, "h": 534, "alt": "The Triceratops skull in the Dinosaurs gallery", "caption": "The Triceratops skull: find the frill and the three horns.", "credit": "Gary Todd from Xinzheng, China", "license": "CC0", "page": "https://commons.wikimedia.org/wiki/File:Triceratops_Skull_(36094064740).jpg"},
+    pics: [{"src": "img/dinosaurs-trex-model.jpg", "w": 750, "h": 1000, "alt": "The life-size animatronic Tyrannosaurus rex model in a dim, jungle-like setting, head lowered and mouth open to show its teeth", "caption": "Follow the noise: the moving T. rex, a model, not a skeleton.", "credit": "deror_avi", "license": "CC BY-SA 3.0", "page": "https://commons.wikimedia.org/wiki/File:Dinosaur_NHM_Tyrannosaurus_IMG_9145.JPG", "chapter": 11, "look": 3}],
     sources: [
       src('Dinosaurs gallery', '/visit/galleries-and-museum-map/dinosaurs.html'),
       src('Dinosaur collections', '/our-science/services/collections/palaeontology/dinosaurs.html'),
       src('Visual guide (busy galleries)', '/visit/visual-guide.html'),
       src('Family favourites self-guided tour (the T. rex)', '/visit/family-favourites-self-guided-tour.html'),
+      src("en.wikipedia.org: Scolosaurus", "https://en.wikipedia.org/wiki/Scolosaurus"),
+      src("atom.aim25.com: british museum east africa expedition 3", "https://atom.aim25.com/index.php/british-museum-east-africa-expedition-3"),
+      src("nhm.ac.uk: how did baryonyx change what we knew about spinosaurs", "https://www.nhm.ac.uk/discover/how-did-baryonyx-change-what-we-knew-about-spinosaurs.html"),
     ],
   },
   {
@@ -66,9 +71,10 @@ const RAW = [
     ],
   },
   {
-    id: 'darwin', title: 'Darwin on the Stairs', zone: 'green', place: 'Green zone, the main staircase', minutes: 5, floor: 'G', map: [80, 26],
+    id: 'darwin', title: 'Darwin on the Stairs', zone: 'green', place: 'Green zone, the main staircase', minutes: 6, floor: 'G', map: [80, 26],
     // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
     pic: {"src": "img/darwin.jpg", "w": 800, "h": 1024, "alt": "The seated statue of Charles Darwin on the main staircase", "caption": "Darwin, seated on the main staircase.", "credit": "APK", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Statue_of_Charles_Darwin_in_the_Natural_History_Museum,_London.jpg"},
+    pics: [{"src": "img/darwin-statue.jpg", "w": 668, "h": 1000, "alt": "The white marble statue of Charles Darwin seated in a chair, legs crossed, hands resting, with a long beard, against striped stone", "caption": "Darwin in white marble, seated and leaning forward, watching the hall.", "credit": "Julian Herzog", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Statue_of_Charles_Darwin_Natural_History_Museum_London_2020_01.jpg", "chapter": 0, "look": 0}, {"src": "img/darwin-statue-hall.jpg", "w": 800, "h": 600, "alt": "The Darwin statue seen from the side on the landing of the main staircase, with the staircase rising behind it", "caption": "His seat on the landing: Owen stood here instead for many years.", "credit": "Julian Herzog", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Natural_History_Museum_London_Central_Hall_Statue_of_Charles_Darwin_2020.jpg", "chapter": 2}, {"src": "img/darwin-view-from-steps.jpg", "w": 800, "h": 600, "alt": "The view from the top of the main staircase down the length of Hintze Hall, under the iron roof, with the whale skeleton in the middle and the entrance at the far end", "caption": "Turn round and look where he looks: down the hall, under Hope, to the door.", "credit": "Iridescent", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Hintze_Hall_from_steps_with_whale.jpg", "chapter": 5, "look": 1}],
     sources: [
       src('Museum highlights: Charles Darwin', '/discover/museum-highlights-charles-darwin.html'),
       src('Darwin Correspondence Project: the Boehm statue', 'https://darwinproject.ac.uk/about-darwin/portraits-charles-darwin-catalogue/213-edgar-boehm-statue-nhm'),
