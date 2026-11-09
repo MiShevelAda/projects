@@ -287,6 +287,9 @@ function stopView(s) {
         <ul class="list">${s.look.map((l, i) => `<li><button type="button" aria-pressed="${found.has(i)}" data-look="${i}"><span class="box" aria-hidden="true"></span><span class="txt">${esc(l)}</span></button></li>`).join('')}</ul>
       </section>
       ${s.tip ? `<p class="note tip"><span><b>Tip.</b> ${esc(s.tip)}</span></p>` : ''}
+      ${s.video ? `<a class="card watch" href="${esc(s.video.url)}" target="_blank" rel="noopener">
+        <span class="wicon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 7.5v9l7.5-4.5z" fill="currentColor"/></svg></span>
+        <span class="wt"><span class="kicker">Watch</span><b>${esc(s.video.title)}</b><span class="small">${esc(s.video.channel)}${s.video.minutes ? `, ${s.video.minutes} min` : ''}${s.video.views ? `, ${esc(s.video.views)}` : ''}. Opens YouTube.</span></span>${ICON.chev}</a>` : ''}
       <section class="card story" aria-labelledby="storyH">
         <span class="kicker" id="storyH">The Story</span>
         ${s.story.map((p, i) => `<p data-p="${i}">${esc(p)}</p>`).join('')}

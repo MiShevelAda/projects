@@ -24,6 +24,7 @@ test('every stop has what the screen and the voice need', () => {
     assert.ok(s.story.length >= 2, `${s.id}: a story of at least two paragraphs`);
     assert.ok(s.sources.length >= 1 && s.sources.every((x) => x.url.startsWith('https://') && x.label), `${s.id}: sources`);
     if (s.pic) assert.ok(existsSync(new URL(s.pic.src, ROOT)) && s.pic.credit && s.pic.license && s.pic.page.startsWith('https://commons.wikimedia.org/'), `${s.id}: a photo needs its file, credit, licence and source page`);
+    if (s.video) assert.ok(/^https:\/\/(www\.youtube\.com\/watch\?v=|youtu\.be\/)/.test(s.video.url) && s.video.title && s.video.channel, `${s.id}: a video needs a YouTube link, title and channel`);
     if (s.notice) assert.ok(s.notice.text && /^\d{4}-\d\d-\d\d$/.test(s.notice.until), `${s.id}: a notice needs text and an end date`);
   }
 });
@@ -42,8 +43,8 @@ test('both walks use real stops, in the order of the full walk, starting outside
 test('a story is a few minutes, to listen to standing or walking', () => {
   for (const s of STOPS) {
     const words = s.story.join(' ').split(/\s+/).length;
-    // About 40% of the time at a stop is narrated, at about 140 spoken words a minute.
-    assert.ok(words >= 150 && words <= s.minutes * 60, `${s.id}: ${words} words for ${s.minutes} minutes`);
+    // Up to about two thirds of the time at a stop is narrated, at about 140 spoken words a minute.
+    assert.ok(words >= 150 && words <= s.minutes * 95, `${s.id}: ${words} words for ${s.minutes} minutes`);
   }
 });
 

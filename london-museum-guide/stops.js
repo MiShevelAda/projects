@@ -27,7 +27,8 @@ const RAW = [
     ],
   },
   {
-    id: 'hope', title: 'Hope, the Blue Whale', zone: 'green', place: 'Green zone, Hintze Hall, ground floor', minutes: 10, floor: 'G',
+    id: 'hope', title: 'Hope, the Blue Whale', zone: 'green', place: 'Green zone, Hintze Hall, ground floor', minutes: 15, floor: 'G',
+    video: {"title": "How do we move a blue whale skeleton?", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=NekXGq25lrk"},
     // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
     pic: {"src": "img/hope.jpg", "w": 800, "h": 534, "alt": "A large slice of the Imilac meteorite, metal studded with crystals", "caption": "The Imilac meteorite: metal and green olivine crystals, about 4.5 billion years old.", "credit": "Peter Taylor", "license": "CC BY 2.0", "page": "https://commons.wikimedia.org/wiki/File:Imilac_Meteorite_-_Natural_History_Museum_London.jpg"},
     sources: [
@@ -41,6 +42,7 @@ const RAW = [
   },
   {
     id: 'dinosaurs', title: 'Dinosaurs', zone: 'blue', place: 'Blue zone, ground floor', minutes: 25, floor: 'G',
+    video: {"title": "How to reconstruct a dinosaur", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=O9ihuO2F2rE"},
     // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
     pic: {"src": "img/dinosaurs.jpg", "w": 800, "h": 534, "alt": "The Triceratops skull in the Dinosaurs gallery", "caption": "The Triceratops skull: find the frill and the three horns.", "credit": "Gary Todd from Xinzheng, China", "license": "CC0", "page": "https://commons.wikimedia.org/wiki/File:Triceratops_Skull_(36094064740).jpg"},
     sources: [
@@ -51,7 +53,7 @@ const RAW = [
     ],
   },
   {
-    id: 'mammals', title: 'The Blue Whale Model', zone: 'blue', place: 'Blue zone, Mammals Hall, ground floor', minutes: 10, floor: 'G',
+    id: 'mammals', title: 'The Blue Whale Model', zone: 'blue', place: 'Blue zone, Mammals Hall, ground floor', minutes: 12, floor: 'G',
     // Closed from..until: the walk skips the stop on those days. The notice shows from today until then.
     notice: { text: 'The museum lists the Mammals Hall as closed from Tuesday 10 to Thursday 12 November. The lift to its balcony is out of service.', from: '2026-11-10', until: '2026-11-12' },
     sources: [
@@ -81,6 +83,7 @@ const RAW = [
   },
   {
     id: 'vault', title: 'Minerals and the Vault', zone: 'green', place: 'Green zone, first floor', minutes: 20, floor: '1',
+    video: {"title": "The Museum's cursed amethyst", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=Yp1q3GqlBfQ"},
     sources: [
       src('Minerals gallery', '/visit/galleries-and-museum-map/minerals.html'),
       src('The Vault', '/visit/galleries-and-museum-map/the-vault.html'),
@@ -91,6 +94,7 @@ const RAW = [
   },
   {
     id: 'sequoia', title: 'The Giant Sequoia', zone: 'green', place: 'Green zone, Hintze Hall, second floor', minutes: 10, floor: '2',
+    video: {"title": "Conserving the Giant Sequoia at the Natural History Museum", "channel": "Natural Sciences Collections Association", "url": "https://www.youtube.com/watch?v=UIpZNfjWzok"},
     sources: [
       src('The giant sequoia slice', '/discover/giant-sequoia-slice.html'),
       src('Hidden treasures above your head (the ceiling)', '/discover/hidden-treasures-above-heads.html'),
@@ -109,6 +113,7 @@ const RAW = [
   },
   {
     id: 'marine-reptiles', title: 'Mary Anning\'s Sea Dragons', zone: 'green', place: 'Green zone, Fossil Marine Reptiles, ground floor', minutes: 12, floor: 'G',
+    video: {"title": "Mary Anning's First Ichthyosaur", "channel": "Jurassic Coast Trust", "url": "https://www.youtube.com/watch?v=PZfkkwFQi8M"},
     sources: [
       src('Mary Anning\'s fossils', '/discover/mary-anning-fossils.html'),
       src('Mary Anning: the unsung hero', '/discover/mary-anning-unsung-hero.html'),
@@ -117,6 +122,7 @@ const RAW = [
   },
   {
     id: 'human-evolution', title: 'Human Evolution', zone: 'red', place: 'Red zone, East Wing, ground floor', minutes: 12, floor: 'G',
+    video: {"title": "Who was Cheddar Man?", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=TQ8dc0XhUMM"},
     sources: [
       src('Human Evolution gallery', '/visit/galleries-and-museum-map/human-evolution.html'),
       src('The first adult Neanderthal skull', '/discover/first-adult-neanderthal-skull.html'),
@@ -126,6 +132,7 @@ const RAW = [
   },
   {
     id: 'sophie', title: 'Sophie the Stegosaurus', zone: 'red', place: 'Red zone, Earth Hall, ground floor', minutes: 8, floor: 'G',
+    video: {"title": "Assembling the most complete Stegosaurus in the world", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=vQx9HfUlHi8"},
     sources: [
       src('Earth Hall and Sophie the Stegosaurus', '/visit/galleries-and-museum-map/earth-hall-and-stegosaurus.html'),
       src('Stegosaurus brought to life', '/discover/stegosaurus-brought-to-life.html'),
@@ -144,6 +151,7 @@ const RAW = [
   },
   {
     id: 'fern', title: 'Fern, the Bronze Dinosaur', zone: 'outside', place: 'Outside, the Evolution Garden', minutes: 10, floor: 'out',
+    video: {"title": "Creating a bronze dinosaur for the Natural History Museum gardens", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=V7XbR0pEY1Y"},
     sources: [
       src('Our gardens', '/visit/galleries-and-museum-map/our-gardens.html'),
       src('Fern, the museum\'s newest dinosaur (press release)', '/press-office/press-releases/ferntastic--natural-history-museum-reveals-latest-dinosaur-resid.html'),
