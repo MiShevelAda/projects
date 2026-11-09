@@ -8,6 +8,21 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### Nobody else can reach his Claude account or spend his usage
+
+> **"Make sure my claude account isn't exposed and people can't use my tokens for other things"**
+
+**The rule underneath.** Nothing published may give anyone else a way into his Claude account or
+his usage. **What holds it, checked on the day:** (1) Ask the Guide uses the platform's `sample`
+capability, which by its own definition spends the viewer's usage, with the viewer's consent, never
+the owner's; a person he shares a link with asks on their own account. (2) No key, token or
+credential is in the repo or its history (scanned for Anthropic, GitHub, AWS and private-key
+patterns). (3) The pages declare `sample` and nothing else, so they cannot see who is viewing,
+reach his connectors, or read his files. (4) The public GitHub Pages version has no Claude access
+at all; the card hides itself. (5) **A session that publishes an artifact switches off its watch
+afterwards** (`ArtifactComments`, `watch`, `on: false`): a watch lets a comment sent to Claude on
+the page wake the session, which runs on his account. Publishing turns the watch on by default.
+
 ### Ship each tested improvement and send the link; Hope's length is right; say what else is in the room
 
 > **"Whenever a tested and improved version is ready push it and share link to artifact also the whale story was perfect length wise"**
