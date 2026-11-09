@@ -1,6 +1,7 @@
 # hosting
 
-How the museum guides are served at **https://trucora.de/museum-guides/**, on Alex's own server,
+How the museum guides are served at **https://trucora.de/museum-guides/**, on Alex's own server (live
+since 9 November 2026, installed by Alex and checked from outside the same evening),
 behind a password of their own (username `museum`). Not an app: nothing here is published on
 GitHub Pages.
 
