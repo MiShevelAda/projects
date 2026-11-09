@@ -65,9 +65,16 @@ export function nextOf(id, walk, { later = [], seen = {}, day = today() } = {}) 
     || list.slice(0, Math.max(0, i)).find((s) => !seen[s.id] && !closedOn(s, day) && s.id !== id) || null;
 }
 
-// Where the visitor is up to: the first stop of the walk not yet seen (and open today).
-export const upNext = (walk, { later = [], seen = {}, day = today() } = {}) =>
-  walkStops(walk, later).find((s) => !seen[s.id] && !closedOn(s, day)) || null;
+// Where the visitor is up to: the first stop not yet seen after the furthest one seen, so jumping ahead
+// (a family going straight to the dinosaurs) never sends anyone back to the start. Stops skipped on the
+// way come round again at the end, after the rest, like the ones put off till later.
+export function upNext(walk, { later = [], seen = {}, day = today() } = {}) {
+  const list = walkStops(walk, later);
+  const ok = (s) => !seen[s.id] && !closedOn(s, day);
+  const inOrder = list.filter((s) => !later.includes(s.id));
+  const furthest = inOrder.reduce((m, s, i) => (seen[s.id] ? i : m), -1);
+  return inOrder.slice(furthest + 1).find(ok) || list.find(ok) || null;
+}
 
 // Will the rest of the walk fit before the galleries start clearing? Minutes needed for what is
 // left, against minutes until clearing starts (HOURS.clearing). Only meaningful while open.

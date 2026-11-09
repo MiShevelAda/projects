@@ -37,6 +37,11 @@ test('next passes closed and seen stops, and comes back for one put off till lat
   assert.equal(nextOf('treasures', 'two').id, 'vault'); // opened from a link, not on this walk
   assert.equal(nextOf('fern', 'three', { seen: Object.fromEntries(STOPS.map((s) => [s.id, true])) }), null);
   assert.equal(upNext('two', { seen: { building: true, hope: true } }).id, 'dinosaurs');
+  // Straight to the dinosaurs, then Darwin: the walk carries on from there, not from the pavement outside.
+  assert.equal(upNext('two', { seen: { dinosaurs: true, darwin: true } }).id, 'vault');
+  // Skipped stops come round at the end, before nothing is left.
+  assert.equal(upNext('hour', { seen: { dinosaurs: true, darwin: true, sequoia: true } }).id, 'building');
+  assert.equal(upNext('hour', { seen: { building: true }, later: ['hope'] }).id, 'dinosaurs');
 });
 
 test('the time check offers a shorter walk when this one will not fit before clearing', () => {
