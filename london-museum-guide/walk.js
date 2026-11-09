@@ -15,21 +15,29 @@ export const today = (d = new Date()) => london(d).day;
 const hm = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
 export const clock = (mins) => `${Math.floor(mins / 60)}:${String(mins % 60).padStart(2, '0')}`;
 
+// The hours for a given day: the usual ones, or that day's own (HOURS.special, e.g. an early close).
+export const hoursOn = (day = today()) => ({ ...HOURS, ...((HOURS.special || {})[day] || {}) });
+
 // Open now? { state: 'open' | 'before' | 'after' | 'closed-day', mins: minutes until it changes }.
 export function openState(d = new Date()) {
   const { day, mins } = london(d);
-  if (HOURS.closedDays.includes(day.slice(5)) || (HOURS.closedDates || []).includes(day)) return { state: 'closed-day' };
-  const open = hm(HOURS.open), close = hm(HOURS.close);
+  const H = hoursOn(day);
+  if (H.closedDays.includes(day.slice(5)) || (H.closedDates || []).includes(day)) return { state: 'closed-day' };
+  const open = hm(H.open), close = hm(H.close);
   if (mins < open) return { state: 'before', mins: open - mins };
   if (mins >= close) return { state: 'after' };
   return { state: 'open', mins: close - mins };
 }
 
-// A stop the museum has said is closed on these dates: the walk passes it by.
-export const closedOn = (s, day = today()) => !!(s.notice?.from && s.notice.from <= day && day <= s.notice.until);
+// A stop's notices: { text, until } and optionally from, and kind: 'closed' (the default when a
+// notice has a from date: the walk passes the stop by on those days), 'late' (opens late, shown
+// only), or 'partial' (part of it closed, shown only). A notice without from is shown up to until.
+const noticesOf = (s) => s.notices || (s.notice ? [s.notice] : []);
+const active = (n, day) => (!n.from || n.from <= day) && day <= n.until;
+export const closedOn = (s, day = today()) => noticesOf(s).some((n) => n.from && (n.kind || 'closed') === 'closed' && active(n, day));
 
-// A stop's notice is shown up to and including its last day, then disappears on its own.
-export const noticeOn = (s, day = today()) => (s.notice && day <= s.notice.until ? s.notice.text : '');
+// A stop's notices are shown up to and including their last day, then disappear on their own.
+export const noticeOn = (s, day = today()) => noticesOf(s).filter((n) => day <= n.until).map((n) => n.text).join(' ');
 
 // A plain string always shows; a { text, until } point only up to its date.
 export const pointsOn = (points, day = today()) => points
@@ -69,7 +77,7 @@ export function timeCheck(walk, { later = [], seen = {}, d = new Date() } = {}) 
   const { day, mins } = london(d);
   const left = walkStops(walk, later).filter((s) => !seen[s.id] && !closedOn(s, day));
   const need = left.reduce((a, s) => a + s.minutes, 0) + Math.max(0, left.length - 1) * WALK_BETWEEN;
-  const avail = hm(HOURS.clearing) - mins;
+  const avail = hm(hoursOn(day).clearing) - mins;
   // A shorter walk that would fit, offered when this one does not.
   const order = ['three', 'two', 'hour'];
   const shorter = order.slice(order.indexOf(walk) + 1).find((w) => {

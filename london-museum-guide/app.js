@@ -14,9 +14,9 @@
 // with the screen locked, and shows on the lock screen.
 
 import { CHECKED, HOURS, MUSEUM, PRACTICAL, STOPS, TICKETS_URL, WALKS, WALK_BETWEEN } from './stops.js';
-import { closedOn, nextOf as nextIn, noticeOn, openState, pointsOn, timeCheck, upNext as upNextIn, walkStops as walkOf } from './walk.js';
+import { closedOn, hoursOn, nextOf as nextIn, noticeOn, openState, pointsOn, timeCheck, upNext as upNextIn, walkStops as walkOf } from './walk.js';
 
-const KEY = 'nhm-walk-'; // every saved setting carries this prefix: all the apps share one origin
+const KEY = MUSEUM.key; // every saved setting and cache carries this museum's prefix: all the apps share one origin
 const store = {
   get(k, d) { try { const v = localStorage.getItem(KEY + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch { /* private mode: forget it */ } },
@@ -80,23 +80,20 @@ function chapterHead(s, k) {
 // floors with this stop's floor lit. Shown in a glass card over the stop's photo.
 function mapArt(stop) {
   const [x, y] = stop.map || [80, 44];
+  const M = MUSEUM.map;
   return `<svg class="minimap" viewBox="0 0 160 100" role="img" aria-label="Map: ${esc(stop.place)}">
-    <rect class="z-orange" x="8" y="4" width="40" height="14" rx="3"/>
-    <rect class="z-blue" x="8" y="20" width="48" height="48" rx="3"/>
-    <rect class="z-green" x="58" y="12" width="52" height="56" rx="3"/>
-    <rect class="z-red" x="112" y="8" width="40" height="60" rx="3"/>
-    <rect class="garden" x="8" y="72" width="44" height="12" rx="3"/><rect class="garden" x="108" y="72" width="44" height="12" rx="3"/>
-    <line class="road" x1="4" y1="92" x2="156" y2="92"/>
-    <text class="mlabel" x="80" y="99" text-anchor="middle">Cromwell Road</text>
+    ${M.blocks.map((b) => `<rect class="${b.cls}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="3"/>${b.label ? `<text class="mlabel" x="${b.x + b.w / 2}" y="${b.y + b.h / 2 + 2.5}" text-anchor="middle">${esc(b.label)}</text>` : ''}`).join('')}
+    ${M.road.side === 'right'
+    ? `<line class="road" x1="156" y1="4" x2="156" y2="96"/><text class="mlabel" x="152" y="50" text-anchor="middle" transform="rotate(90 152 50)">${esc(M.road.label)}</text>`
+    : `<line class="road" x1="4" y1="92" x2="156" y2="92"/><text class="mlabel" x="80" y="99" text-anchor="middle">${esc(M.road.label)}</text>`}
     <circle class="ring" cx="${x}" cy="${y}" r="7"/><circle class="dot" cx="${x}" cy="${y}" r="4"/>
   </svg>`;
 }
 function floorsArt(stop) {
-  const rows = [['2', 4], ['1', 22], ['G', 40]];
-  const out = stop.floor === 'out';
-  return `<svg class="floors" viewBox="0 0 46 76" aria-hidden="true">
-    ${rows.map(([f, y]) => `<rect x="0" y="${y}" width="46" height="15" rx="5" class="${f === stop.floor ? 'on' : ''}"/><text x="23" y="${y + 11.5}" text-anchor="middle" class="${f === stop.floor ? 'on' : ''}">${f}</text>`).join('')}
-    <rect x="0" y="58" width="46" height="15" rx="5" class="${out ? 'on' : ''}"/><text x="23" y="69.5" text-anchor="middle" class="${out ? 'on' : ''}">Out</text>
+  const fl = MUSEUM.floors; // top to bottom, e.g. ['2', '1', 'G', 'out']
+  const h = 15, gap = 3;
+  return `<svg class="floors" viewBox="0 0 46 ${fl.length * (h + gap)}" style="height:${fl.length * 14}px" aria-hidden="true">
+    ${fl.map((f, i) => { const y = i * (h + gap); const on = f === stop.floor; return `<rect x="0" y="${y}" width="46" height="${h}" rx="5" class="${on ? 'on' : ''}"/><text x="23" y="${y + 11.5}" text-anchor="middle" class="${on ? 'on' : ''}">${esc(MUSEUM.floorShort?.[f] || f)}</text>`; }).join('')}
   </svg>`;
 }
 const rings = '<svg class="rings" viewBox="0 0 358 168" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><circle cx="179" cy="84" r="150"/><circle cx="179" cy="84" r="108"/><circle cx="179" cy="84" r="70"/></svg>';
@@ -106,7 +103,7 @@ function heroArt(stop) {
   return `${photo ? `<img class="heroimg" src="${esc(photo.src)}" alt="">` : rings}
     <div class="where-card">${mapArt(stop)}${floorsArt(stop)}<span class="wfloor">${esc(floorName(stop.floor))}</span></div>`;
 }
-const floorName = (f) => ({ out: 'Outside', G: 'Ground floor', 1: 'First floor', 2: 'Second floor' }[f]);
+const floorName = (f) => MUSEUM.floorNames[f] || f;
 
 // ── player ────────────────────────────────────────────────────────────────────────────────────
 
@@ -221,6 +218,7 @@ function route() {
 // Today: open or not, closing time, and anything the museum has closed today.
 function todayCard() {
   const st = openState();
+  const HOURS = hoursOn();
   const pill = { open: '<span class="pill green">Open Now</span>', before: '<span class="pill amber">Opens at 10:00</span>', after: '<span class="pill">Closed for Today</span>', 'closed-day': '<span class="pill red">Closed Today</span>' }[st.state];
   const line = { open: `Closes at ${HOURS.close}, in ${hrs(st.mins)}. Last entry ${HOURS.lastEntry}.`, before: `Open ${HOURS.open} to ${HOURS.close}. Last entry ${HOURS.lastEntry}.`, after: `Open every day ${HOURS.open} to ${HOURS.close}.`, 'closed-day': MUSEUM.closedNote }[st.state];
   const shut = STOPS.filter((s) => closedOn(s));
@@ -426,7 +424,7 @@ async function saveAll() {
     ...STOPS.flatMap((s) => [s.pic, ...(s.pics || [])]).filter(Boolean).map((p) => p.src)];
   if (!('caches' in window)) { out.textContent = 'This browser cannot save the walk. It will play while you have signal.'; return; }
   try {
-    const c = await caches.open('nhm-walk-audio-v1');
+    const c = await caches.open(`${KEY}audio-v1`);
     let n = 0;
     for (const f of files) {
       const url = new URL(f, location.href).href;

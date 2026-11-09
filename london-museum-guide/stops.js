@@ -177,6 +177,22 @@ export const WALK_BETWEEN = 3;
 // The museum this guide is for, as the app names it.
 export const MUSEUM = {
   name: 'Natural History Museum',
+  // Prefix for saved settings and caches: every app on the origin has its own.
+  key: 'nhm-walk-',
+  // Floors top to bottom as the stop pictures show them, and their names.
+  floors: ['2', '1', 'G', 'out'],
+  floorShort: { out: 'Out' },
+  floorNames: { out: 'Outside', G: 'Ground floor', 1: 'First floor', 2: 'Second floor' },
+  // A schematic plan from above, north up, Cromwell Road at the bottom; the zones as the museum colours
+  // them. Not to scale. Each stop's map: [x, y] puts its dot on it (160 x 100).
+  map: {
+    road: { label: 'Cromwell Road', side: 'bottom' },
+    blocks: [
+      { cls: 'z-orange', x: 8, y: 4, w: 40, h: 14 }, { cls: 'z-blue', x: 8, y: 20, w: 48, h: 48 },
+      { cls: 'z-green', x: 58, y: 12, w: 52, h: 56 }, { cls: 'z-red', x: 112, y: 8, w: 40, h: 60 },
+      { cls: 'garden', x: 8, y: 72, w: 44, h: 12 }, { cls: 'garden', x: 108, y: 72, w: 44, h: 12 },
+    ],
+  },
   closedNote: 'The museum is closed 24 to 26 December.',
   doneNote: 'Every stop seen. The garden path around Fern walks you through 540 million years, if you have the legs for it.',
 };
