@@ -166,6 +166,13 @@ export const WALKS = {
 // Minutes to walk from one stop to the next, on average, for the time estimates.
 export const WALK_BETWEEN = 3;
 
+// The museum this guide is for, as the app names it.
+export const MUSEUM = {
+  name: 'Natural History Museum',
+  closedNote: 'The museum is closed 24 to 26 December.',
+  doneNote: 'Every stop seen. The garden path around Fern walks you through 540 million years, if you have the legs for it.',
+};
+
 // Opening hours (London time). Galleries start clearing around 17:30.
 export const HOURS = { open: '10:00', close: '17:50', lastEntry: '17:30', clearing: '17:30', closedDays: ['12-24', '12-25', '12-26'] };
 export const TICKETS_URL = 'https://www.nhm.ac.uk/visit.html';

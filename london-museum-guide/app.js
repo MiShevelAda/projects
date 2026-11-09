@@ -1,4 +1,6 @@
-// First Walk: an unofficial audio and text guide to the Natural History Museum, London.
+// First Walk: an unofficial audio and text guide to a London museum. Everything about the museum
+// itself (its name, hours, stops and words) is in stops.js and stories.js; this file is the same for
+// every museum.
 //
 // Two tabs and a pushed page, chosen by the address (plain #names, so a stop can be bookmarked):
 //   #walk (or none)   how long have you got, today's hours, what is up next, the route
@@ -11,7 +13,7 @@
 // One <audio> element plays everything: it plays with the iPhone's silent switch on, carries on
 // with the screen locked, and shows on the lock screen.
 
-import { CHECKED, HOURS, PRACTICAL, STOPS, TICKETS_URL, WALKS, WALK_BETWEEN } from './stops.js';
+import { CHECKED, HOURS, MUSEUM, PRACTICAL, STOPS, TICKETS_URL, WALKS, WALK_BETWEEN } from './stops.js';
 import { closedOn, nextOf as nextIn, noticeOn, openState, pointsOn, timeCheck, upNext as upNextIn, walkStops as walkOf } from './walk.js';
 
 const KEY = 'nhm-walk-'; // every saved setting carries this prefix: all the apps share one origin
@@ -138,7 +140,7 @@ function mediaSession() {
   const s = byId(state.now.id);
   navigator.mediaSession.metadata = new MediaMetadata({
     title: state.now.kind === 'way' ? `The way to ${s.title}` : s.title,
-    artist: 'First Walk', album: 'Natural History Museum, unofficial guide',
+    artist: 'First Walk', album: `${MUSEUM.name}, unofficial guide`,
     artwork: [{ src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }],
   });
   const ms = navigator.mediaSession;
@@ -179,10 +181,10 @@ function route() {
 function todayCard() {
   const st = openState();
   const pill = { open: '<span class="pill green">Open Now</span>', before: '<span class="pill amber">Opens at 10:00</span>', after: '<span class="pill">Closed for Today</span>', 'closed-day': '<span class="pill red">Closed Today</span>' }[st.state];
-  const line = { open: `Closes at ${HOURS.close}, in ${hrs(st.mins)}. Last entry ${HOURS.lastEntry}.`, before: `Open ${HOURS.open} to ${HOURS.close}. Last entry ${HOURS.lastEntry}.`, after: `Open every day ${HOURS.open} to ${HOURS.close}.`, 'closed-day': 'The museum is closed 24 to 26 December.' }[st.state];
+  const line = { open: `Closes at ${HOURS.close}, in ${hrs(st.mins)}. Last entry ${HOURS.lastEntry}.`, before: `Open ${HOURS.open} to ${HOURS.close}. Last entry ${HOURS.lastEntry}.`, after: `Open every day ${HOURS.open} to ${HOURS.close}.`, 'closed-day': MUSEUM.closedNote }[st.state];
   const shut = STOPS.filter((s) => closedOn(s));
   return `<section class="card" aria-label="Today">
-    <div class="between"><b>Natural History Museum</b>${pill}</div>
+    <div class="between"><b>${esc(MUSEUM.name)}</b>${pill}</div>
     <p class="small">${esc(line)}${shut.length ? ` Closed today: ${shut.map((s) => esc(s.title)).join(', ')}.` : ''}</p>
     <a class="soft" href="${TICKETS_URL}" target="_blank" rel="noopener">Book a Free Ticket</a>
   </section>`;
@@ -211,7 +213,7 @@ function walkView() {
         <span class="meta"><span>${esc(floorName(nx.floor))}</span><span>${nx.minutes} min</span></span>
         <a class="primary" href="#${nx.id}" data-start="${nx.id}">${started ? 'Carry On' : 'Start the Walk'}</a>
       </div>
-    </section>` : `<section class="card"><p class="title1">That Is the Walk</p><p class="small">Every stop seen. The garden path around Fern walks you through 540 million years, if you have the legs for it.</p></section>`}
+    </section>` : `<section class="card"><p class="title1">That Is the Walk</p><p class="small">${esc(MUSEUM.doneNote)}</p></section>`}
     <section class="card flat" aria-label="The stops"><ul class="list route">
       ${list.map((s, i) => `<li class="${state.seen[s.id] ? 'seen' : ''} ${closedOn(s) ? 'closed' : ''}" data-zone="${s.zone}"><a href="#${s.id}">
         <span class="num">${state.seen[s.id] ? '<span class="vh">Seen. </span>' : ''}${i + 1}</span>
@@ -219,7 +221,7 @@ function walkView() {
         <span class="mins">${s.minutes} min</span>${ICON.chev}</a></li>`).join('')}
     </ul></section>
     ${a2hsCard()}
-    <p class="foot">An unofficial guide, not made by or connected to the Natural History Museum. Galleries close and things move: check the museum's website on the day.</p>
+    <p class="foot">An unofficial guide, not made by or connected to the ${esc(MUSEUM.name)}. Galleries close and things move: check the museum's website on the day.</p>
   </div>`;
   main.querySelectorAll('[data-walk]').forEach((b) => b.addEventListener('click', () => { state.walk = b.dataset.walk; store.set('walk', state.walk); walkView(); }));
   const start = main.querySelector('[data-start]');
@@ -350,7 +352,7 @@ function visitView() {
     ${PRACTICAL.map((p) => ({ ...p, points: pointsOn(p.points) })).filter((p) => p.points.length).map((p) => `<section class="card"><b>${esc(p.title)}</b><ul>${p.points.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')}
     <section class="card">
       <b>About This Guide</b>
-      <p class="small">Unofficial, and not made by or connected to the Natural History Museum. Each stop lists where its facts come from. The narrator is a recorded computer voice, Kokoro-82M, made in advance so it sounds the same on every phone and needs no signal. Photos are from Wikimedia Commons, each credited under it with its licence.</p>
+      <p class="small">Unofficial, and not made by or connected to the ${esc(MUSEUM.name)}. Each stop lists where its facts come from. The narrator is a recorded computer voice, Kokoro-82M, made in advance so it sounds the same on every phone and needs no signal. Photos are from Wikimedia Commons, each credited under it with its licence.</p>
       <button type="button" class="plain" data-reset>Start the Walk Again</button>
     </section>
     <p class="foot">Facts and practical details checked ${esc(CHECKED)}.</p>

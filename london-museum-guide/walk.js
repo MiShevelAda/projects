@@ -18,7 +18,7 @@ export const clock = (mins) => `${Math.floor(mins / 60)}:${String(mins % 60).pad
 // Open now? { state: 'open' | 'before' | 'after' | 'closed-day', mins: minutes until it changes }.
 export function openState(d = new Date()) {
   const { day, mins } = london(d);
-  if (HOURS.closedDays.includes(day.slice(5))) return { state: 'closed-day' };
+  if (HOURS.closedDays.includes(day.slice(5)) || (HOURS.closedDates || []).includes(day)) return { state: 'closed-day' };
   const open = hm(HOURS.open), close = hm(HOURS.close);
   if (mins < open) return { state: 'before', mins: open - mins };
   if (mins >= close) return { state: 'after' };
