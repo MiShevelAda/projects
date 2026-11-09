@@ -55,6 +55,22 @@ const byId = (id) => STOPS.find((s) => s.id === id);
 const clip = (id, kind) => manifest.stops[id]?.[kind];
 const here = () => (byId(location.hash.slice(1)) ? location.hash.slice(1) : null);
 
+// Which chapter of a stop's story a moment in its recording falls in (0 before it starts).
+// starts[0] is the spoken title, starts[i + 1] chapter i.
+function chapterAt(id, t) {
+  const st = clip(id, 'story')?.starts || [];
+  let i = 0;
+  st.forEach((s, k) => { if (k > 0 && t >= s - 0.2) i = k - 1; });
+  return i;
+}
+// The player's headline is the chapter's own title, with where it sits in the story under it.
+function chapterHead(s, k) {
+  const story = clip(s.id, 'story');
+  const n = s.story.length;
+  const title = s.chapters?.[k] || s.title;
+  return `<b>${esc(title)}</b><span>Chapter ${k + 1} of ${n}${story ? `, ${mins(story.seconds)}` : ', not recorded yet'}</span>`;
+}
+
 // The floors of the building, with this stop's floor lit (or a dot outside), for the pictures.
 function floorsArt(stop) {
   const rows = [['2', 10], ['1', 40], ['G', 70]];
@@ -253,6 +269,7 @@ function stopView(s) {
   const notice = noticeOn(s);
   main.innerHTML = `<div class="stopview" data-zone="${s.zone}">
     <div class="hero">${rings}${floorsArt(s)}</div>
+    <div class="topfade" aria-hidden="true"></div>
     <a class="glass" href="#walk" aria-label="Back to the walk">${ICON.back}</a>
     <div class="tab">
       <div>
@@ -270,7 +287,7 @@ function stopView(s) {
       <section class="card player" aria-label="Listen">
         <div class="row">
           <button class="play" type="button" data-play aria-label="Play the story"></button>
-          <div class="what" data-what><b>The Story</b><span>${story ? mins(story.seconds) : 'Not recorded yet'}</span></div>
+          <div class="what" data-what>${chapterHead(s, 0)}</div>
         </div>
         <button type="button" class="soft" data-tostory hidden>Skip to the Story</button>
         <input class="scrub" type="range" min="0" max="${story ? story.seconds : 0}" step="0.5" value="0" aria-label="Position in the recording" data-scrub>
@@ -398,12 +415,13 @@ function paint() {
     const on = mine && playing;
     const way = mine && state.now.kind === 'way' && !state.ended;
     p.innerHTML = on ? ICON.pause : ICON.play;
-    p.setAttribute('aria-label', on ? 'Pause' : way ? 'Play the way there' : 'Play the story');
+    p.setAttribute('aria-label', on ? 'Pause' : way ? 'Play the way there' : 'Play');
     const wayOn = way && playing;
     const story = clip(id, 'story');
     const what = main.querySelector('[data-what]');
+    const k = mine && state.now.kind === 'story' && !state.ended ? chapterAt(id, audio.currentTime) : 0;
     if (what) what.innerHTML = way ? `<b>The Way There</b><span>${wayOn ? 'Playing now' : 'Paused'}. Tap Skip to the Story when you arrive.</span>`
-      : `<b>The Story</b><span>${story ? mins(story.seconds) : 'Not recorded yet'}</span>`;
+      : chapterHead(byId(id), k);
     const ts = main.querySelector('[data-tostory]'); if (ts) ts.hidden = !way;
     const r = main.querySelector('[data-rate]'); if (r) r.textContent = `${state.rate}×`;
     const w = main.querySelector('[data-way]'); if (w) w.setAttribute('aria-pressed', String(wayOn));
@@ -417,7 +435,8 @@ function paint() {
     $('#dock-play').innerHTML = playing ? ICON.pause : ICON.play;
     $('#dock-play').setAttribute('aria-label', playing ? 'Pause' : 'Play');
     $('#dock-link').href = `#${s.id}`;
-    $('#dock-link').innerHTML = `${esc(s.title)}<span>${state.now.kind === 'way' ? (state.ended ? 'Press play when you arrive' : 'The way there') : 'The story'}</span>`;
+    const ck = chapterAt(s.id, audio.currentTime);
+    $('#dock-link').innerHTML = `${esc(s.title)}<span>${state.now.kind === 'way' ? (state.ended ? 'Press play when you arrive' : 'The way there') : esc(s.chapters?.[ck] || 'The story')}</span>`;
   }
   paintTime();
 }
@@ -445,8 +464,8 @@ function paintTime() {
       const k = Math.max(0, i);
       box.querySelectorAll('[data-p]').forEach((p) => p.classList.toggle('now', Number(p.dataset.p) === k));
       box.querySelectorAll('[data-c]').forEach((c) => c.classList.toggle('now', Number(c.dataset.c) === k));
-      const st = byId(id), span = main.querySelector('[data-what] span');
-      if (span && st) span.textContent = `Chapter ${k + 1} of ${st.story.length}${st.chapters?.[k] ? `: ${st.chapters[k]}` : ''}`;
+      const what = main.querySelector('[data-what]');
+      if (what && what.dataset.k !== String(k)) { what.innerHTML = chapterHead(byId(id), k); what.dataset.k = String(k); }
     }
   }
 }
@@ -468,6 +487,7 @@ function show(moved = true) {
   paint();
 }
 window.addEventListener('hashchange', () => show());
+window.addEventListener('scroll', () => document.body.classList.toggle('scrolled', window.scrollY > 24), { passive: true });
 // The Today card counts down; refresh it each minute on the tabs.
 setInterval(() => { if (!here() && !document.hidden) { const y = window.scrollY; route(); window.scrollTo(0, y); paint(); } }, 60000);
 
