@@ -17,6 +17,8 @@ const src = (label, path) => ({ label, url: path.startsWith('http') ? path : NHM
 const RAW = [
   {
     id: 'building', title: 'The Building', zone: 'outside', place: 'Outside, Cromwell Road', minutes: 5, floor: 'out',
+    // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
+    pic: {"src": "img/building.jpg", "w": 800, "h": 534, "alt": "The terracotta front of the museum, looking up at the main entrance", "caption": "Look up at the main entrance: every surface is terracotta.", "credit": "Txllxt TxllxT", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:London_-_Cromwell_Road_-_Natural_History_Museum_1881_by_Alfred_Waterhouse_-_View_Up_at_the_Entrance_on_the_Terracotta_Tiled_Fa%C3%A7ade_II.jpg"},
     sources: [
       src('Alfred Waterhouse and the museum building', '/discover/alfred-waterhouse-museum-building-cathedral-to-nature.html'),
       src('Museum architecture (Library and Archives)', '/our-science/services/library/collections/museum-architecture.html'),
@@ -26,6 +28,8 @@ const RAW = [
   },
   {
     id: 'hope', title: 'Hope, the Blue Whale', zone: 'green', place: 'Green zone, Hintze Hall, ground floor', minutes: 10, floor: 'G',
+    // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
+    pic: {"src": "img/hope.jpg", "w": 800, "h": 534, "alt": "A large slice of the Imilac meteorite, metal studded with crystals", "caption": "The Imilac meteorite: metal and green olivine crystals, about 4.5 billion years old.", "credit": "Peter Taylor", "license": "CC BY 2.0", "page": "https://commons.wikimedia.org/wiki/File:Imilac_Meteorite_-_Natural_History_Museum_London.jpg"},
     sources: [
       src('Museum unveils Hope the blue whale (2017)', '/discover/news/2017/july/museum-unveils-hope-the-blue-whale-skeleton.html'),
       src('Hope the blue whale: history', '/discover/hope-the-blue-whale-history.html'),
@@ -37,6 +41,8 @@ const RAW = [
   },
   {
     id: 'dinosaurs', title: 'Dinosaurs', zone: 'blue', place: 'Blue zone, ground floor', minutes: 25, floor: 'G',
+    // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
+    pic: {"src": "img/dinosaurs.jpg", "w": 800, "h": 534, "alt": "The Triceratops skull in the Dinosaurs gallery", "caption": "The Triceratops skull: find the frill and the three horns.", "credit": "Gary Todd from Xinzheng, China", "license": "CC0", "page": "https://commons.wikimedia.org/wiki/File:Triceratops_Skull_(36094064740).jpg"},
     sources: [
       src('Dinosaurs gallery', '/visit/galleries-and-museum-map/dinosaurs.html'),
       src('Dinosaur collections', '/our-science/services/collections/palaeontology/dinosaurs.html'),
@@ -57,6 +63,8 @@ const RAW = [
   },
   {
     id: 'darwin', title: 'Darwin on the Stairs', zone: 'green', place: 'Green zone, the main staircase', minutes: 5, floor: 'G',
+    // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
+    pic: {"src": "img/darwin.jpg", "w": 800, "h": 1024, "alt": "The seated statue of Charles Darwin on the main staircase", "caption": "Darwin, seated on the main staircase.", "credit": "APK", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Statue_of_Charles_Darwin_in_the_Natural_History_Museum,_London.jpg"},
     sources: [
       src('Museum highlights: Charles Darwin', '/discover/museum-highlights-charles-darwin.html'),
       src('Darwin Correspondence Project: the Boehm statue', 'https://darwinproject.ac.uk/about-darwin/portraits-charles-darwin-catalogue/213-edgar-boehm-statue-nhm'),
@@ -88,6 +96,7 @@ const RAW = [
       src('Hidden treasures above your head (the ceiling)', '/discover/hidden-treasures-above-heads.html'),
       src('Alfred Waterhouse and the museum building', '/discover/alfred-waterhouse-museum-building-cathedral-to-nature.html'),
       src("nhm.ac.uk: anning rooms", "https://www.nhm.ac.uk/visit/galleries-and-museum-map/anning-rooms.html"),
+      src("nhm.ac.uk: galleries and museum map", "https://www.nhm.ac.uk/visit/galleries-and-museum-map.html"),
     ],
   },
   {

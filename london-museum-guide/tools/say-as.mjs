@@ -14,6 +14,10 @@ export const RESPELL = [
   ['Iguanodon', 'Igwahnodon', 'ig-WAH-no-don'],
   ['sequoia', 'sikwoya', 'si-KWOY-a'],
   ['Cadogan', 'Kadduggan', 'ka-DUG-an (the script avoids saying it)'],
+  ["Gough's", "Goff's", 'Gough\'s Cave, where Cheddar Man was found: GOFF'],
+  ['Svante', 'Svanta', 'SVAN-ta'],
+  ['Pääbo', 'Pairbo', 'PAIR-bo'],
+  ['Chicxulub', 'Cheekshoolube', 'CHEEK-shoo-loob'],
 ];
 
 const ONES = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',

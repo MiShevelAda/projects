@@ -1,7 +1,7 @@
 // The guide's words and walks: every stop complete, both walks valid, the house style kept.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { CHECKED, PRACTICAL, STOPS, WALKS } from '../stops.js';
 
 const ROOT = new URL('../', import.meta.url);
@@ -23,6 +23,7 @@ test('every stop has what the screen and the voice need', () => {
     assert.ok(s.look.length >= 1 && s.look.length <= 4, `${s.id}: one to four things to look for`);
     assert.ok(s.story.length >= 2, `${s.id}: a story of at least two paragraphs`);
     assert.ok(s.sources.length >= 1 && s.sources.every((x) => x.url.startsWith('https://') && x.label), `${s.id}: sources`);
+    if (s.pic) assert.ok(existsSync(new URL(s.pic.src, ROOT)) && s.pic.credit && s.pic.license && s.pic.page.startsWith('https://commons.wikimedia.org/'), `${s.id}: a photo needs its file, credit, licence and source page`);
     if (s.notice) assert.ok(s.notice.text && /^\d{4}-\d\d-\d\d$/.test(s.notice.until), `${s.id}: a notice needs text and an end date`);
   }
 });
@@ -41,7 +42,8 @@ test('both walks use real stops, in the order of the full walk, starting outside
 test('a story is a few minutes, to listen to standing or walking', () => {
   for (const s of STOPS) {
     const words = s.story.join(' ').split(/\s+/).length;
-    assert.ok(words >= 60 && words <= 460, `${s.id}: ${words} words`);
+    // About 40% of the time at a stop is narrated, at about 140 spoken words a minute.
+    assert.ok(words >= 150 && words <= s.minutes * 60, `${s.id}: ${words} words for ${s.minutes} minutes`);
   }
 });
 

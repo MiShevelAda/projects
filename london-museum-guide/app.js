@@ -278,6 +278,7 @@ function stopView(s) {
       </section>
       <section class="card flat look" aria-labelledby="lookH">
         <div class="head between"><span class="kicker" id="lookH">Look For</span><span class="kicker" data-count>${found.size} of ${s.look.length}</span></div>
+        ${s.pic ? `<figure class="pic"><img src="${esc(s.pic.src)}" alt="${esc(s.pic.alt)}" loading="lazy" width="${s.pic.w}" height="${s.pic.h}"><figcaption>${esc(s.pic.caption)} <a href="${esc(s.pic.page)}" target="_blank" rel="noopener">Photo: ${esc(s.pic.credit)}, ${esc(s.pic.license)}</a></figcaption></figure>` : ''}
         <ul class="list">${s.look.map((l, i) => `<li><button type="button" aria-pressed="${found.has(i)}" data-look="${i}"><span class="box" aria-hidden="true"></span><span class="txt">${esc(l)}</span></button></li>`).join('')}</ul>
       </section>
       ${s.tip ? `<p class="note tip"><span><b>Tip.</b> ${esc(s.tip)}</span></p>` : ''}
@@ -345,7 +346,7 @@ function visitView() {
     ${PRACTICAL.map((p) => ({ ...p, points: pointsOn(p.points) })).filter((p) => p.points.length).map((p) => `<section class="card"><b>${esc(p.title)}</b><ul>${p.points.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')}
     <section class="card">
       <b>About This Guide</b>
-      <p class="small">Unofficial, and not made by or connected to the Natural History Museum. Each stop lists where its facts come from. The narrator is a recorded computer voice, Kokoro-82M, made in advance so it sounds the same on every phone and needs no signal.</p>
+      <p class="small">Unofficial, and not made by or connected to the Natural History Museum. Each stop lists where its facts come from. The narrator is a recorded computer voice, Kokoro-82M, made in advance so it sounds the same on every phone and needs no signal. Photos are from Wikimedia Commons, each credited under it with its licence.</p>
       <button type="button" class="plain" data-reset>Start the Walk Again</button>
     </section>
     <p class="foot">Facts and practical details checked ${esc(CHECKED)}.</p>
@@ -360,13 +361,14 @@ function visitView() {
 
 async function saveAll() {
   const out = main.querySelector('[data-progress]');
-  const files = Object.values(manifest.stops).flatMap((x) => [x.way?.file, x.story?.file]).filter(Boolean);
+  const files = [...Object.values(manifest.stops).flatMap((x) => [x.way?.file, x.story?.file]).filter(Boolean).map((f) => `audio/${f}`),
+    ...STOPS.filter((s) => s.pic).map((s) => s.pic.src)];
   if (!('caches' in window)) { out.textContent = 'This browser cannot save the walk. It will play while you have signal.'; return; }
   try {
     const c = await caches.open('nhm-walk-audio-v1');
     let n = 0;
     for (const f of files) {
-      const url = new URL(`audio/${f}`, location.href).href;
+      const url = new URL(f, location.href).href;
       if (!(await c.match(url))) { const r = await fetch(url); if (!r.ok) throw new Error(f); await c.put(url, r); }
       out.textContent = `Saved ${++n} of ${files.length}`;
     }
