@@ -18,6 +18,7 @@ const RAW = [
   {
     id: 'energy-hall', title: 'The Energy Hall', zone: 'blue', place: 'Level 0, Energy Hall', minutes: 12, floor: '0', map: [128, 52],
     pic: {"src": "img/energy-hall.jpg", "w": 800, "h": 450, "alt": "The huge red Burnley Mill Engine in the Energy Hall", "caption": "The Burnley Mill Engine: built 1903, at work until 1970.", "credit": "Philafrenzy", "license": "CC BY 2.0", "page": "https://commons.wikimedia.org/wiki/File:1903_Burnley_Ironworks_Corliss_mill_engine_in_the_Science_Museum.jpg"},
+    pics: [{"src": "img/energy-hall-eh-old-bess.jpg", "w": 960, "h": 720, "alt": "Old Bess, a tall early beam engine of dark wood and iron", "caption": "Old Bess, also known as Beelzebub.", "credit": "Chris Allen", "license": "CC BY-SA 2.0", "page": "https://commons.wikimedia.org/wiki/File:The_Science_Museum_-_%27Old_Bess%27_-_geograph.org.uk_-_3662133.jpg", "chapter": 4}],
     sources: [src('Energy Hall', '/see-and-do/energy-hall'), src('Energy Hall: school information', '/groups/energy-hall-school-info'),
       src('The big tour', `${BLOG}/the-big-tour/`), src('Highlights display', '/objects-and-stories/highlights-display'),
       src('Old Bess (Wikipedia)', 'https://en.wikipedia.org/wiki/Old_Bess_(beam_engine)')],
@@ -31,12 +32,16 @@ const RAW = [
   },
   {
     id: 'space', title: 'Space', zone: 'blue', place: 'Level 0, West Hall', minutes: 18, floor: '0', map: [30, 56],
+    pic: {"src": "img/space-space-side-by-side.jpg", "w": 960, "h": 720, "alt": "The scorched Soyuz capsule in the foreground and the Apollo 10 command module behind it, in the dark Space gallery", "caption": "Apollo 10 and the Soyuz that brought Tim Peake home, side by side.", "credit": "Matt Brown", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Soyuz_and_Apollo_side_by_side%2C_Science_Museum_2025-09-18.jpg"},
+    pics: [{"src": "img/space-space-apollo10.jpg", "w": 960, "h": 720, "alt": "The Apollo 10 command module, its metal skin streaked and pitted", "caption": "Apollo 10, call sign Charlie Brown. Peer in through the hatch window.", "credit": "Matt Brown", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Apollo_10_capsule%2C_Science_Museum_2025-09-18.jpg", "chapter": 1}, {"src": "img/space-space-soyuz.jpg", "w": 750, "h": 1000, "alt": "Close up of the blackened Soyuz TMA-19M capsule and its round hatch window", "caption": "The Soyuz TMA-19M. Walk round it and look at the scorched skin.", "credit": "Mike Peel (www.mikepeel.net)", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:At_the_Science_Museum%2C_London_2025_062.jpg", "chapter": 4}, {"src": "img/space-space-parachute.jpg", "w": 960, "h": 720, "alt": "An orange and white parachute hanging from the gallery ceiling", "caption": "Look up: the Soyuz's parachute, twenty-five metres across.", "credit": "Matt From London", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Soyuz_parachutes%2C_Science_Museum_2025-09-18.jpg", "chapter": 6, "look": 1}, {"src": "img/space-space-sharman.jpg", "w": 750, "h": 1000, "alt": "Helen Sharman's white Sokol spacesuit with blue straps and a Union flag on the arm", "caption": "Helen Sharman's Sokol suit, made to measure. Photographed in 2006.", "credit": "Alan Saunders (Kaptain Kobold)", "license": "CC BY 2.0", "page": "https://commons.wikimedia.org/wiki/File:Helen_Sharman%27s_spacesuit.jpg", "chapter": 7, "look": 2}, {"src": "img/space-space-bepi.jpg", "w": 750, "h": 1000, "alt": "The full-size BepiColombo spacecraft model, white and silver, lit blue", "caption": "BepiColombo, a full-size model of the spacecraft bound for Mercury.", "credit": "Matt From London", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:BeppeColombo%2C_Science_Museum_2025-09-18.jpg", "chapter": 10, "look": 3}],
     sources: [src('Space gallery', '/see-and-do/space'), src('Space gallery opens (press release)', '/about-us/press-office/space-gallery-opens-science-museum'),
       src('Soyuz descent module', '/soyuz-descent-module'), src('Helen Sharman', '/objects-and-stories/helen-sharman'),
       src('Apollo 10 (Wikipedia)', 'https://en.wikipedia.org/wiki/Apollo_10')],
   },
   {
     id: 'energy-revolution', title: 'Energy Revolution', zone: 'orange', place: 'Level 2, West Hall', minutes: 10, floor: '2', map: [26, 36],
+    pic: {"src": "img/energy-revolution-er-gallery.jpg", "w": 960, "h": 723, "alt": "The Energy Revolution gallery, bright and open, with the Only Breath sculpture hanging above", "caption": "The Energy Revolution gallery, with Only Breath hanging above.", "credit": "The wub", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Energy_Revolution_gallery%2C_Science_Museum%2C_London_%282%29.jpg"},
+    pics: [{"src": "img/energy-revolution-er-only-breath.jpg", "w": 960, "h": 723, "alt": "Only Breath: a hanging sculpture of copper panels and screens, opened out", "caption": "Only Breath, unfurled. Give it a moment.", "credit": "The wub", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Only_Breath_sculpture_-_Science_Museum%2C_London.jpg", "chapter": 0, "look": 0}, {"src": "img/energy-revolution-er-bersey.jpg", "w": 753, "h": 1000, "alt": "The yellow and black Bersey electric cab of 1897 in a glass case", "caption": "The Bersey electric cab of 1897, London's first electric taxi.", "credit": "The wub", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Bersey_Electrical_Cab_-_Science_Museum%2C_London.jpg", "chapter": 2, "look": 1}],
     sources: [src('Energy Revolution', '/see-and-do/energy-revolution-adani-green-energy-gallery'), src('Introducing Energy Revolution', `${BLOG}/introducing-the-new-energy-revolution-gallery/`),
       src('One million visitors', '/about-us/press-office/science-museum-celebrates-one-million-visitors-energy-revolution-adani-green')],
   },
@@ -49,6 +54,8 @@ const RAW = [
   },
   {
     id: 'clockmakers', title: "The Clockmakers' Museum", zone: 'orange', place: 'Level 2, east end', minutes: 10, floor: '2', map: [134, 30],
+    pic: {"src": "img/clockmakers-clk-exhibits.jpg", "w": 960, "h": 720, "alt": "The Clockmakers' Museum: glass cases and a tall longcase clock on a wooden floor", "caption": "The Clockmakers' Museum, inside the Science Museum.", "credit": "Lord Belbury", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Clockmaker%27s_Museum_exhibits.jpg"},
+    pics: [{"src": "img/clockmakers-clk-h5.jpg", "w": 907, "h": 1000, "alt": "Harrison's H5: a large silver watch-like timekeeper with a white enamel dial", "caption": "H5, John Harrison's fifth marine timekeeper, finished in 1770.", "credit": "Racklever at English Wikipedia", "license": "CC BY 2.5", "page": "https://commons.wikimedia.org/wiki/File:Harrison%27s_Chronometer_H5_%28cropped%29.JPG", "chapter": 1, "look": 0}, {"src": "img/clockmakers-clk-daniels.jpg", "w": 667, "h": 1000, "alt": "A George Daniels pocket watch with several small dials, on a gold chain", "caption": "A George Daniels pocket watch from the Clockmakers' collection.", "credit": "Andrewrabbott", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:George_Daniels_Grand_Complication_watch.jpg", "chapter": 3}],
     sources: [src("The Clockmakers' Museum", '/see-and-do/clockmakers-museum'), src('Happy birthday, George Daniels (2026)', `${BLOG}/happy-birthday-george-daniels/`),
       src("Clockmakers' Museum (Wikipedia)", "https://en.wikipedia.org/wiki/Clockmakers%27_Museum")],
   },
@@ -60,16 +67,21 @@ const RAW = [
   },
   {
     id: 'mathematics', title: 'Mathematics', zone: 'orange', place: 'Level 2, Winton Gallery', minutes: 12, floor: '2', map: [86, 36],
+    pic: {"src": "img/mathematics-math-2017.jpg", "w": 960, "h": 720, "alt": "The Mathematics gallery: a small biplane hanging among curving purple-lit shapes", "caption": "Mathematics: The Winton Gallery, with the Gugnunc hanging in the middle.", "credit": "Jordiferrer", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:2017_Science_Museum_%28London%29_15.jpg"},
+    pics: [{"src": "img/mathematics-math-enigma-2019.jpg", "w": 703, "h": 1000, "alt": "An Enigma machine with its keyboard and lamps in an open oak case", "caption": "The three-rotor Enigma machine in its oak case.", "credit": "Anthony O'Neil", "license": "CC BY-SA 2.0", "page": "https://commons.wikimedia.org/wiki/File:The_Machine_that_won_the_War%5E_-_geograph.org.uk_-_6217860.jpg", "chapter": 5, "look": 2}],
     sources: [src('Mathematics: The Winton Gallery', '/see-and-do/mathematics-winton-gallery'), src('The Handley Page Gugnunc', '/objects-and-stories/mathematics-and-aviation-handley-page-gugnunc'),
       src('Modelling oceans to predict floods', '/objects-and-stories/modelling-oceans-using-maths-predict-floods'), src('Launching Mathematics', `${BLOG}/by-launching-mathematics-the-winton-gallery-science-museum-soars-to-new-heights/`)],
   },
   {
     id: 'information-age', title: 'Information Age', zone: 'orange', place: 'Level 2, Information Age', minutes: 14, floor: '2', map: [64, 40],
+    pic: {"src": "img/information-age-ia-rugby.jpg", "w": 960, "h": 720, "alt": "The Rugby aerial tuning inductor: a huge open frame of wood and copper wire on a round copper base", "caption": "The Rugby coil: six metres of copper and wood, in the middle of Information Age.", "credit": "Mike Peel (www.mikepeel.net)", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:At_the_Science_Museum%2C_London_2025_131.jpg"},
+    pics: [{"src": "img/information-age-ia-gallery.jpg", "w": 960, "h": 639, "alt": "Information Age: the Rugby coil in the centre and the Broadcast zone behind it", "caption": "The zones are round the edges; the Rugby coil stands in the middle.", "credit": "Tryrobbo", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Information_Age_Gallery_at_the_Science_Museum_London.jpg", "chapter": 4}, {"src": "img/information-age-ia-baird.jpg", "w": 960, "h": 638, "alt": "Baird's early television apparatus: a black box with a large spinning disc, behind glass", "caption": "John Logie Baird's early television apparatus, in Broadcast.", "credit": "Matt Brown", "license": "CC BY 2.0", "page": "https://commons.wikimedia.org/wiki/File:John_Logie_Baird%27s_first_TV_Science_Museum%2C_London.jpg", "chapter": 5, "look": 2}],
     sources: [src('Information Age', '/see-and-do/information-age'), src('The Queen sends her first tweet', `${BLOG}/her-majesty-the-queen-sends-her-first-tweet-to-unveil-the-information-age/`),
       src('Rugby Radio Station (Wikipedia)', 'https://en.wikipedia.org/wiki/Rugby_Radio_Station')],
   },
   {
     id: 'medicine', title: 'Medicine', zone: 'green', place: 'Level 1, Wellcome Galleries', minutes: 18, floor: '1', map: [76, 62],
+    pic: {"src": "img/medicine-med-penicillin.jpg", "w": 960, "h": 778, "alt": "A small brass box with a round window showing penicillin mould, engraved From Professor Alexander Fleming 1935", "caption": "Fleming's own penicillin mould, 1935. Find it in the penicillin display.", "credit": "Science Museum London / Science and Society Picture Library", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Sample_of_penicillin_mould_presented_by_Alexander_Fleming_to_Douglas_Macleod%2C_1935_%289672239344%29.jpg"},
     sources: [src('Medicine: The Wellcome Galleries', '/see-and-do/medicine-wellcome-galleries'), src('Medicine galleries (press release)', '/about-us/press-office/medicine-galleries'),
       src('50 years with Wellcome (2026)', `${BLOG}/celebrating-50-years-of-partnership-with-wellcome/`)],
   },
@@ -80,6 +92,7 @@ const RAW = [
   },
   {
     id: 'watt-workshop', title: "James Watt's Workshop", zone: 'blue', place: 'Level 0, Energy Hall', minutes: 6, floor: '0', map: [132, 30],
+    pic: {"src": "img/watt-workshop-watt.jpg", "w": 960, "h": 720, "alt": "Inside James Watt's workshop: a lathe, shelves of jars and tools, all as he left them", "caption": "Inside James Watt's workshop, left as it was when he died in 1819.", "credit": "Frankie Roberto", "license": "CC BY 3.0", "page": "https://commons.wikimedia.org/wiki/File:James_Watt%27s_Workshop.jpg"},
     sources: [src('Energy Hall: James Watt and Our World', '/see-and-do/energy-hall'), src('Museum map, September 2026', '/sites/default/files/2026-09/Museum-Map-September-2026_0.pdf')],
   },
 ];
