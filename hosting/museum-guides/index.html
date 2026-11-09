@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Museum Guides</title>
+<meta name="description" content="Unofficial audio and text guides for a first visit to London's museums.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="natural-history-museum/icons/icon-512.png">
+<style>
+/* The landing page for the museum guides on trucora.de, behind their own password. It uses the
+   guides' own design tokens (london-museum-guide/style.css): iOS system colours, the iPhone's own
+   font, white cards on grouped grey. */
+:root {
+  --bg: #F2F2F7; --card: #FFFFFF; --label: #000000; --sec: #6C6C70; --sep: rgba(60,60,67,0.18);
+  --blue: #0088FF; --blue-text: #0066D6; --blue-bg: rgba(0,136,255,0.12);
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+  --font: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #000000; --card: #1C1C1E; --label: #FFFFFF; --sec: #AEAEB2; --sep: rgba(84,84,88,0.6);
+    --blue: #0091FF; --blue-text: #409CFF; --blue-bg: rgba(0,145,255,0.2); --shadow: none;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #000000; --card: #1C1C1E; --label: #FFFFFF; --sec: #AEAEB2; --sep: rgba(84,84,88,0.6);
+  --blue: #0091FF; --blue-text: #409CFF; --blue-bg: rgba(0,145,255,0.2); --shadow: none; color-scheme: dark;
+}
+html { font-size: 106.25%; -webkit-text-size-adjust: 100%; }
+@supports (font: -apple-system-body) { html { font: -apple-system-body; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--label); font-family: var(--font); font-size: 1rem; line-height: 1.3; }
+h1, h2, p { margin: 0; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+main { max-width: 560px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 40px) 16px calc(env(safe-area-inset-bottom) + 32px); display: flex; flex-direction: column; gap: 16px; }
+.eyebrow { font-size: 0.765rem; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--sec); }
+.large { font-size: 2rem; line-height: 1.2; font-weight: 700; }
+.lede { color: var(--sec); font-size: 1rem; line-height: 1.38; }
+.card { background: var(--card); border-radius: 22px; padding: 16px 18px; box-shadow: var(--shadow); display: flex; gap: 14px; align-items: center; color: inherit; text-decoration: none; }
+.card img { width: 64px; height: 64px; border-radius: 15px; flex: none; }
+.card .txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.card h2 { font-size: 1.18rem; font-weight: 600; line-height: 1.25; }
+.card p { color: var(--sec); font-size: 0.882rem; line-height: 1.33; }
+.card .go { color: var(--blue-text); font-weight: 600; font-size: 0.941rem; }
+.card:active { transform: scale(0.99); }
+.tip { background: var(--card); border-radius: 22px; padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px; }
+.tip h2 { font-size: 1rem; font-weight: 600; }
+.tip p { color: var(--sec); font-size: 0.882rem; line-height: 1.38; }
+.foot { font-size: 0.765rem; line-height: 1.38; color: var(--sec); text-align: center; margin: 8px 4px 0; }
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <p class="eyebrow">Based on November 2026</p>
+    <h1 class="large">Museum Guides</h1>
+  </div>
+  <p class="lede">Audio and text guides for a first visit: the must-sees in order, where to look, and a narrator in your ear. Pick the hours you have, put your headphones in, and keep the phone in your pocket.</p>
+
+  <a class="card" href="/museum-guides/natural-history-museum/">
+    <img src="/museum-guides/natural-history-museum/icons/icon-512.png" alt="">
+    <span class="txt">
+      <h2>Natural History Museum</h2>
+      <p>Hope the blue whale, the dinosaurs, a stone from Mars and a 1,300-year-old tree. 14 stops, about 2 hours 15 minutes of stories.</p>
+      <span class="go">Open the guide</span>
+    </span>
+  </a>
+
+  <a class="card" href="/museum-guides/science-museum/">
+    <img src="/museum-guides/science-museum/icons/icon-512.png" alt="">
+    <span class="txt">
+      <h2>Science Museum</h2>
+      <p>Steam engines, a capsule that came back from space, Alcock and Brown's aeroplane, and the codebreakers. 12 stops, about 1 hour 20 minutes of stories.</p>
+      <span class="go">Open the guide</span>
+    </span>
+  </a>
+
+  <div class="tip">
+    <h2>Before you go</h2>
+    <p>Open a guide in Safari, tap Share, then Add to Home Screen. On its Visit tab, save the walk for offline while you have good signal: some galleries have none.</p>
+  </div>
+
+  <p class="foot">Unofficial guides, not made by or connected to either museum, based on their galleries and exhibitions in November 2026. Galleries close and things move: check the museum's own website before you go.</p>
+</main>
+</body>
+</html>

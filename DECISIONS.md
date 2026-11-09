@@ -8,6 +8,19 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### The guides on trucora.de, behind a password, on a landing page
+
+> **"Can we host the version on a trucora landing page that is password protected? Museeum guides and then have there the different versions"**
+
+**What it changed.** A landing page, "Museum Guides", with one card per guide, at
+https://trucora.de/museum-guides/, behind a password of its own (username `museum`), separate from
+the dashboard's because it is the one he gives to friends. It follows the /dilix pattern on his
+server: files in `/srv/museum-guides`, a `basic_auth` block in Caddy added by an installer he runs
+once as root (`hosting/install-museum-guides.sh`), which verifies and rolls back, and a declaration
+under "protected" in the brand repo's URL map. **Read as**: "the different versions" are the
+guides to each museum; another museum is another card. Ask the Guide does not work there, since it
+needs a claude.ai viewer; the private claude.ai links keep it.
+
 ### Not tied to particular dates: based on the museum in November 2026
 
 > **"Also don't make it date specific maybe tell it's based on November exhibition 2026"**
