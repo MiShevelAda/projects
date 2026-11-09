@@ -246,7 +246,7 @@ function walkView() {
     <div class="seg" role="radiogroup" aria-labelledby="howlong">
       ${Object.entries(WALKS).map(([k, w]) => `<button type="button" role="radio" aria-checked="${k === state.walk}" data-walk="${k}">${esc(w.name)}</button>`).join('')}
     </div>
-    ${tc.short ? `<div class="note" role="note"><span>About ${hrs(tc.need)} of walk left, and the galleries start clearing in ${hrs(Math.max(0, tc.avail))}.</span>${tc.shorter ? `<button type="button" class="soft" data-walk="${tc.shorter}">Switch to ${esc(WALKS[tc.shorter].name)}</button>` : ''}</div>` : ''}
+    ${tc.short ? `<div class="note" role="note"><span>${tc.avail > 0 ? `About ${hrs(tc.need)} of walk left, and the galleries start clearing in ${hrs(tc.avail)}.` : 'The galleries are already clearing for closing time. The walk is best started on another day.'}</span>${tc.shorter ? `<button type="button" class="soft" data-walk="${tc.shorter}">Switch to ${esc(WALKS[tc.shorter].name)}</button>` : ''}</div>` : ''}
     ${nx ? `<section class="card assess" data-zone="${nx.zone}" aria-labelledby="upnext">
       <div class="art">${heroArt(nx)}</div>
       <div class="body">
