@@ -268,7 +268,8 @@ function stopView(s) {
           <button class="play" type="button" data-play aria-label="Play the story"></button>
           <div class="what" data-what><b>The Story</b><span>${story ? mins(story.seconds) : 'Not recorded yet'}</span></div>
         </div>
-        <input class="scrub" type="range" min="0" max="${story ? story.seconds : 0}" step="0.5" value="0" aria-label="Position in the story" data-scrub>
+        <button type="button" class="soft" data-tostory hidden>Skip to the Story</button>
+        <input class="scrub" type="range" min="0" max="${story ? story.seconds : 0}" step="0.5" value="0" aria-label="Position in the recording" data-scrub>
         <div class="times"><span data-t>0:00</span><span data-left>${story ? `-${mmss(story.seconds)}` : ''}</span></div>
         <div class="controls">
           <button type="button" class="soft" data-skip="-15" aria-label="Back 15 seconds">Back 15</button>
@@ -294,9 +295,12 @@ function stopView(s) {
         : '<a class="primary" href="#walk" data-last>Finish the Walk</a>'}
     </div>
   </div>`;
+  // The big button controls whatever of this stop is loaded: the way there or the story. After the
+  // way there has ended it plays the story; after the story has ended it plays it again.
   main.querySelector('[data-play]').addEventListener('click', () => {
-    if (state.now?.id === s.id && state.now.kind === 'story' && !state.ended) toggle(); else play(s.id, 'story');
+    if (state.now?.id === s.id && (!state.ended || state.now.kind === 'way')) toggle(); else play(s.id, 'story');
   });
+  main.querySelector('[data-tostory]').addEventListener('click', () => play(s.id, 'story'));
   main.querySelector('[data-way]')?.addEventListener('click', () => play(s.id, 'way'));
   main.querySelectorAll('[data-skip]').forEach((b) => b.addEventListener('click', () => {
     if (state.now?.id !== s.id) load(s.id, 'story');
@@ -305,7 +309,7 @@ function stopView(s) {
   main.querySelector('[data-rate]').addEventListener('click', setRate);
   const scrub = main.querySelector('[data-scrub]');
   scrub.addEventListener('input', () => {
-    if (state.now?.id !== s.id || state.now.kind !== 'story') load(s.id, 'story');
+    if (state.now?.id !== s.id) load(s.id, 'story');
     audio.currentTime = Number(scrub.value);
   });
   main.querySelectorAll('[data-look]').forEach((b) => b.addEventListener('click', () => {
@@ -383,14 +387,17 @@ function paint() {
   const id = here();
   const p = main.querySelector('[data-play]');
   if (p) {
-    const on = state.now?.id === id && state.now?.kind === 'story' && playing;
+    const mine = state.now?.id === id;
+    const on = mine && playing;
+    const way = mine && state.now.kind === 'way' && !state.ended;
     p.innerHTML = on ? ICON.pause : ICON.play;
-    p.setAttribute('aria-label', on ? 'Pause the story' : 'Play the story');
-    const wayOn = state.now?.id === id && state.now?.kind === 'way' && playing;
+    p.setAttribute('aria-label', on ? 'Pause' : way ? 'Play the way there' : 'Play the story');
+    const wayOn = way && playing;
     const story = clip(id, 'story');
     const what = main.querySelector('[data-what]');
-    if (what) what.innerHTML = wayOn ? '<b>The Way There</b><span>Playing now. Press play when you arrive.</span>'
+    if (what) what.innerHTML = way ? `<b>The Way There</b><span>${wayOn ? 'Playing now' : 'Paused'}. Tap Skip to the Story when you arrive.</span>`
       : `<b>The Story</b><span>${story ? mins(story.seconds) : 'Not recorded yet'}</span>`;
+    const ts = main.querySelector('[data-tostory]'); if (ts) ts.hidden = !way;
     const r = main.querySelector('[data-rate]'); if (r) r.textContent = `${state.rate}×`;
     const w = main.querySelector('[data-way]'); if (w) w.setAttribute('aria-pressed', String(wayOn));
   }
@@ -410,9 +417,12 @@ function paint() {
 
 function paintTime() {
   const id = here();
-  const mine = state.now?.id === id && state.now?.kind === 'story';
+  const mine = state.now?.id === id;
   const story = clip(id, 'story');
-  const t = mine ? audio.currentTime : 0, d = (mine && audio.duration) || story?.seconds || 0;
+  const cur = mine ? clip(id, state.now.kind) : story;
+  const t = mine ? audio.currentTime : 0, d = (mine && audio.duration) || cur?.seconds || 0;
+  // The mini player's progress line, on the other screens.
+  const bar = $('#dock-bar'); if (bar && state.now) { const dd = audio.duration || clip(state.now.id, state.now.kind)?.seconds || 1; bar.style.width = `${Math.min(100, (audio.currentTime / dd) * 100)}%`; }
   const scrub = main.querySelector('[data-scrub]');
   if (scrub && document.activeElement !== scrub) { scrub.max = d; scrub.value = t; }
   const tt = main.querySelector('[data-t]'); if (tt) tt.textContent = mmss(t);
@@ -420,7 +430,7 @@ function paintTime() {
   // Read along: light the paragraph being spoken. starts[0] is the title, starts[i + 1] paragraph i.
   const box = main.querySelector('.story');
   if (box) {
-    const live = mine && !audio.paused && !state.ended && story?.starts;
+    const live = mine && state.now.kind === 'story' && !audio.paused && !state.ended && story?.starts;
     box.classList.toggle('live', !!live);
     if (live) {
       let i = -1;

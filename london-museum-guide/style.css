@@ -182,3 +182,9 @@ body.stop-open .dock { bottom: calc(env(safe-area-inset-bottom, 0px) + 86px); }
 .pic img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; background: var(--fill); }
 .pic figcaption { margin-top: 6px; font-size: 0.765rem; line-height: 1.38; color: var(--sec); }
 .pic figcaption a { color: var(--sec); }
+
+/* The mini player's progress: a thin line along its bottom edge */
+.dock { position: fixed; overflow: hidden; }
+.dock-track { position: absolute; left: 20px; right: 20px; bottom: 3px; height: 3px; border-radius: 2px; background: var(--fill); }
+#dock-bar { display: block; height: 100%; width: 0; border-radius: 2px; background: var(--blue); }
+.player [data-tostory] { align-self: stretch; }
