@@ -30,7 +30,7 @@ How to answer:
 - If they want to go somewhere or hear part of the story, you may use the tools: open_stop, play_chapter, do_later.
 - Never name or imitate any real narrator or broadcaster. You are this guide's own narrator.`;
 
-function stopContext(stop, walkList, today) {
+function stopContext(stop, walkList, today, practical = '') {
   const words = (stop.story || []).map((p, i) => `${stop.chapters?.[i] ? `[Chapter ${i + 1}: ${stop.chapters[i]}] ` : ''}${p}`).join('\n').slice(0, 12000);
   return `STOP DETAILS
 Museum today: ${today}
@@ -42,7 +42,7 @@ Tip: ${stop.tip || 'none'}
 The story the visitor can hear here, by chapter:
 ${words}
 Sources for these facts: ${(stop.sources || []).map((s) => s.label).join('; ')}
-Other stops on their walk (id: title, place): ${walkList.map((s) => `${s.id}: ${s.title}, ${s.place}`).join(' | ')}`;
+Other stops on their walk (id: title, place): ${walkList.map((s) => `${s.id}: ${s.title}, ${s.place}`).join(' | ')}${practical ? `\nPractical facts from the museum's own pages (toilets, food, coats, access, tickets):\n${practical}` : ''}`;
 }
 
 const COPY = {
@@ -152,6 +152,7 @@ export async function wireAsk(root, app) {
     ans.className = 'bubble assistant thinking';
     ans.textContent = 'Thinking...';
     thread.append(you, ans);
+    thread.setAttribute('aria-busy', 'true'); // read the answer once it is whole, not in fragments
     ans.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     ctl = new AbortController();
     stopBtn.hidden = false;
@@ -161,7 +162,7 @@ export async function wireAsk(root, app) {
     const content = `${shot ? '[The visitor attached a photo they just took.] ' : ''}${q}`;
     try {
       const { text, truncated } = await sample(
-        [{ role: 'user', content: `${RULES(app.museum)}\n\n${stopContext(stop, app.walkList(), app.today())}` }, ...history, { role: 'user', content }],
+        [{ role: 'user', content: `${RULES(app.museum)}\n\n${stopContext(stop, app.walkList(), app.today(), app.practical?.() || '')}` }, ...history, { role: 'user', content }],
         { cache: false, signal: ctl.signal, modelTier: 'default', effort: 'low', images: shot ? [shot] : undefined, tools,
           onText: ({ text: t }) => { ans.classList.remove('thinking'); ans.innerHTML = paras(t); } },
       );
@@ -176,6 +177,7 @@ export async function wireAsk(root, app) {
       else if (code === 'images_unavailable') { cam.hidden = true; ans.innerHTML = '<p class="small">Photos cannot be sent from here. Ask in words instead.</p>'; }
       else { ans.innerHTML = `${err.text && code !== 'refused' ? paras(err.text) : ''}<p class="small">${esc(COPY[code] || COPY.upstream_error)}</p>`; }
     } finally {
+      thread.removeAttribute('aria-busy');
       stopBtn.hidden = true;
       form.querySelector('.send').disabled = false;
       cam.removeAttribute('aria-disabled');

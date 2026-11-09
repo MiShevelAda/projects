@@ -236,6 +236,13 @@ export const PRACTICAL = [
     'Entry is free. Book a free timed ticket on the museum\'s website: without one, you get in only if there is room.',
     'On busy days, arrive 20 minutes before your slot.',
     'Bags may be searched at every entrance.',
+    'Ticket holders skip the queue on busy days, so the free ticket is worth booking.',
+  ] },
+  { title: 'Toilets and quiet spaces', points: [
+    'There are many toilets, all marked on the museum map, with accessible toilets and baby change.',
+    'The T. rex Restaurant, by Fossil Marine Reptiles, has toilets, an accessible toilet and a baby care room.',
+    'A Changing Places toilet is on the ground floor of the Blue Zone.',
+    'Quiet spaces: the Images of Nature gallery and the Contemplation Room, both in the Blue Zone.',
   ] },
   { title: 'When to go', points: [
     'The museum says weekday afternoons are quietest, and mornings and weekends busiest.',
@@ -246,6 +253,7 @@ export const PRACTICAL = [
     'Step-free: the East Gate, on the corner of Cromwell Road and Exhibition Road, has a ramp. It is wide but steep.',
     'Exhibition Road: into Earth Hall. It is sometimes closed at busy times.',
     'Queen\'s Gate, on the west side: step-free, open until 17:00.',
+    'From South Kensington station, the subway tunnel gives step-free access to the Central Entrance, through the Subway Gate.',
   ] },
   { title: 'Closed or different in November 2026', points: [
     'Creepy Crawlies is closed. A new family gallery opens there in autumn 2027.',
@@ -256,6 +264,8 @@ export const PRACTICAL = [
   { title: 'Food and coats', points: [
     'Central Cafe, behind Hintze Hall. T. rex Restaurant, by Fossil Marine Reptiles, from 11:00. Earth Hall Cafe, by the Exhibition Road entrance.',
     'Coats go to the cloakroom at the Exhibition Road entrance. The one at Cromwell Road takes only large bags and suitcases.',
+    'Cloakroom prices: coat £4, umbrella £3.',
+    'Bring your own lunch to the Picnic Area on the lower ground floor.',
   ] },
   { title: 'Paid exhibitions in November 2026', points: [
     { text: 'Jurassic Oceans: Monsters of the Deep, until 3 January 2027.', until: '2027-01-03' },

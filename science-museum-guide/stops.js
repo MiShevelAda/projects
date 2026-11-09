@@ -46,8 +46,8 @@ const RAW = [
       src('One million visitors', '/about-us/press-office/science-museum-celebrates-one-million-visitors-energy-revolution-adani-green')],
   },
   {
-    id: 'flight', title: 'Flight', zone: 'red', place: 'Level 3, Flight', minutes: 16, floor: '3', map: [40, 24],
-    pic: {"src": "img/flight.jpg", "w": 800, "h": 358, "alt": "The Vickers Vimy biplane hanging in Flight", "caption": "The Vickers Vimy that Alcock and Brown flew across the Atlantic in 1919.", "credit": "Andrew Bone", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Vickers_Vimy_(1919)_-_Science_Museum_London_2026-03-30.jpg"},
+    id: 'flight', title: 'Flight', zone: 'red', place: 'Level 3, Flight', minutes: 16, floor: '3', map: [62, 24],
+    pic: {"src": "img/flight.jpg", "w": 800, "h": 358, "alt": "The Vickers Vimy biplane standing on the floor of the Flight gallery", "caption": "The Vickers Vimy that Alcock and Brown flew across the Atlantic in 1919.", "credit": "Andrew Bone", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Vickers_Vimy_(1919)_-_Science_Museum_London_2026-03-30.jpg"},
     sources: [src('Flight', '/see-and-do/flight'), src('Refreshed Flight gallery (2024)', `${BLOG}/refreshed-flight-gallery-looks-to-the-skies/`),
       src('The first non-stop transatlantic flight', `${BLOG}/the-first-non-stop-transatlantic-flight/`), src('Wonderful Miss Johnson', `${BLOG}/wonderful-miss-johnson/`),
       src('Spirit of Innovation', `${BLOG}/spirit-of-innovation-the-worlds-fastest-electric-aircraft/`)],
@@ -146,6 +146,10 @@ export const PRACTICAL = [
     'Bags may be searched.',
   ] },
   { title: 'When to go', points: ['The museum says it is quieter from mid-afternoon on weekdays in term time.'] },
+  { title: 'Toilets', points: [
+    'Accessible toilets are on every level. Ask a member of staff, or see the museum map.',
+    'The Changing Places toilet is on Level 0, next to the Hans Rausing Lecture Theatre. It opens with a RADAR key, and staff can let you in.',
+  ] },
   { title: 'Getting in', points: [
     'Exhibition Road, SW7 2DD. Under-12s must be with an adult aged 18 or over.',
     'Nearest step-free stations: Knightsbridge, 15 to 20 minutes\' walk; Earl\'s Court, 20 to 25.',
@@ -153,7 +157,9 @@ export const PRACTICAL = [
   { title: 'Bags and coats', points: ['No staffed cloakroom. Card-only lockers on Level -1, by lift A and by lift F: £3 coats, £5 rucksacks, £7 carry-on. Suitcases are not allowed.'] },
   { title: 'Access', points: [
     'No step-free access to the mezzanines of Making the Modern World and Flight.',
-    'Wheelchairs, folding stools and ear defenders at the Information Desk in the Energy Hall. Changing Places toilet on Level 0, next to the Hans Rausing Lecture Theatre.',
+    'Wheelchairs, folding stools and ear defenders at the Information Desk in the Energy Hall. Book a manual wheelchair in advance on 033 0058 0058.',
+    'If the entrance queue is a barrier, ask a member of staff for priority entry.',
+    'Most lifts announce the floor and have Braille on the buttons.',
   ] },
   { title: 'Food', points: [
     'Energy Café, Level 0, 10:00 to 17:30. Space Café, Level 0, weekdays 11:00 to 15:30, weekends 11:00 to 16:00.',

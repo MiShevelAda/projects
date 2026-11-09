@@ -351,6 +351,7 @@ function stopView(s) {
         <span class="kicker" id="findH">Find It</span>
         <p>${esc(s.find)}</p>
         ${s.arrive ? `<p class="arrive">${esc(s.arrive)}</p>` : ''}
+        ${s.walking?.length ? `<details class="onway"><summary>On the Way Here, in Words</summary>${s.walking.map((w) => `<p>${esc(w)}</p>`).join('')}</details>` : ''}
         ${clip(s.id, 'way') ? '<button type="button" class="soft" data-way>Hear the Way</button>' : ''}
       </section>
       <section class="card player" aria-label="Listen">
@@ -363,9 +364,10 @@ function stopView(s) {
         <div class="times"><span data-t>0:00</span><span data-left>${story ? `-${mmss(story.seconds)}` : ''}</span></div>
         <div class="controls">
           <button type="button" class="soft" data-skip="-15" aria-label="Back 15 seconds">Back 15</button>
-          <button type="button" class="soft" data-rate aria-label="Speed">${state.rate}×</button>
+          <button type="button" class="soft" data-rate aria-label="Speed ${state.rate}×">${state.rate}×</button>
           <button type="button" class="soft" data-skip="15" aria-label="Forward 15 seconds">Forward 15</button>
         </div>
+        ${s.chapters?.length > 1 && story?.starts ? `<details class="chapters"><summary>Chapters, ${s.chapters.length}</summary><ol>${s.chapters.map((c, i) => `<li><button type="button" data-chapter="${i}"><span>${i + 1}. ${esc(c)}</span><span class="at">${mmss(story.starts[i + 1] || 0)}</span></button></li>`).join('')}</ol></details>` : ''}
       </section>
       ${!state.seen[s.id] && pos >= 0 && nx ? `<button type="button" class="plain" data-later>${state.later.includes(s.id) ? 'Put It Back in Order' : 'Too Busy? Do This Later'}</button>` : ''}
       ${askCard(s)}
@@ -392,6 +394,10 @@ function stopView(s) {
   </div>`;
   // The big button controls whatever of this stop is loaded: the way there or the story. After the
   // way there has ended it plays the story; after the story has ended it plays it again.
+  main.querySelectorAll('[data-chapter]').forEach((b) => b.addEventListener('click', () => {
+    const at = story?.starts?.[Number(b.dataset.chapter) + 1]; if (at == null) return;
+    load(s.id, 'story'); audio.currentTime = at; play(s.id, 'story');
+  }));
   main.querySelector('[data-share]')?.addEventListener('click', () => shareText(`${s.title}, ${MUSEUM.name}: ${s.remember}`));
   main.querySelector('[data-play]').addEventListener('click', () => {
     if (state.now?.id === s.id && (!state.ended || state.now.kind === 'way')) toggle(); else play(s.id, 'story');
@@ -441,7 +447,8 @@ function stopView(s) {
   // Ask the Guide: shown only where the viewer can ask Claude (the private link).
   wireAsk(main, {
     stop: s, museum: MUSEUM.name, toast, walkList: () => walkStops(),
-    today: () => { const st = openState(), H = hoursOn(); return `${dateLine()}, ${st.state === 'open' ? `open now until ${H.close}, last entry ${H.lastEntry}` : st.state === 'closed-day' ? 'closed today' : `open ${H.open} to ${H.close}`}${noticeOn(s) ? `. Notice for this stop: ${noticeOn(s)}` : ''}. This guide is based on the museum as it was in ${CHECKED}: if asked about what is on or where something is, say things may have changed since`; },
+    practical: () => PRACTICAL.map((p) => `${p.title}: ${pointsOn(p.points).join(' ')}`).join('\n'),
+    today: () => { const st = openState(), H = hoursOn(); return `${dateLine()}, ${st.state === 'open' ? `open now until ${H.close}, last entry ${H.lastEntry}` : st.state === 'closed-day' ? 'closed today' : `open ${H.open} to ${H.close}`}${noticeOn(s) ? `. Notice for this stop: ${noticeOn(s)}` : ''}. . On this walk: ${seenOn(walkStops())} of ${walkStops().length} stops seen, about ${hrs(minsLeft(walkStops()))} of walking and listening left. This guide is based on the museum as it was in ${CHECKED}: if asked about what is on or where something is, say things may have changed since`; },
     openStop: (id) => { if (!byId(id)) throw new Error(`no stop ${id}`); location.hash = `#${id}`; play(id, 'way'); return 'opened'; },
     playChapter: (n) => {
       const at = story?.starts?.[Math.max(1, Math.min(s.story.length, Math.round(n)))];
@@ -459,14 +466,14 @@ function visitView() {
     <div><p class="eyebrow">Based on ${esc(CHECKED)}</p><h1 class="large">Visit</h1></div>
     ${todayCard()}
     <section class="card" aria-labelledby="offH" data-offline>
-      <b id="offH">No Signal in the Galleries?</b>
+      <h2 class="cardh" id="offH">No Signal in the Galleries?</h2>
       <p class="small">Save every recording on this phone before you go in. It takes ${total ? `about ${Math.ceil(total / 1e6)} MB` : 'a few megabytes'}.</p>
       <button type="button" class="soft" data-save>Save the Walk for Offline</button>
       <p class="small progress" data-progress role="status"></p>
     </section>
-    ${PRACTICAL.map((p) => ({ ...p, points: pointsOn(p.points) })).filter((p) => p.points.length).map((p) => `<section class="card"><b>${esc(p.title)}</b><ul>${p.points.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')}
+    ${PRACTICAL.map((p) => ({ ...p, points: pointsOn(p.points) })).filter((p) => p.points.length).map((p) => `<section class="card"><h2 class="cardh">${esc(p.title)}</h2><ul>${p.points.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('')}
     <section class="card">
-      <b>About This Guide</b>
+      <h2 class="cardh">About This Guide</h2>
       <p class="small">Unofficial, and not made by or connected to the ${esc(MUSEUM.name)}. Each stop lists where its facts come from. The narrator is a recorded computer voice, Kokoro-82M, made in advance so it sounds the same on every phone and needs no signal. Photos are from Wikimedia Commons, each credited under it with its licence.</p>
       <button type="button" class="plain" data-reset>Start the Walk Again</button>
     </section>
@@ -475,7 +482,7 @@ function visitView() {
   main.querySelector('[data-save]').addEventListener('click', saveAll);
   // Saving for offline needs the offline helper (sw.js), which the website version has and the private
   // claude.ai link cannot run. Where it is missing, say so instead of promising what will not happen.
-  swReady.then((ok) => { const c = main.querySelector('[data-offline]'); if (!ok && c) c.innerHTML = '<b id="offH">No Signal in the Galleries?</b><p class="small">This version cannot save the walk for offline use, so the recordings need signal. Keep your mobile data on. The words are always on screen, even without it.</p>'; });
+  swReady.then((ok) => { const c = main.querySelector('[data-offline]'); if (!ok && c) c.innerHTML = '<h2 class="cardh" id="offH">No Signal in the Galleries?</h2><p class="small">This version cannot save the walk for offline use, so the recordings need signal. Keep your mobile data on. The words are always on screen, even without it.</p>'; });
   main.querySelector('[data-reset]').addEventListener('click', () => {
     state.seen = {}; state.found = {}; state.later = [];
     store.set('seen', {}); store.set('found', {}); store.set('later', []);
@@ -519,7 +526,7 @@ function paint() {
     if (what) what.innerHTML = way ? `<b>The Way There</b><span>${wayOn ? 'Playing now' : 'Paused'}. Tap Skip to the Story when you arrive.</span>`
       : chapterHead(byId(id), k);
     const ts = main.querySelector('[data-tostory]'); if (ts) ts.hidden = !way;
-    const r = main.querySelector('[data-rate]'); if (r) r.textContent = `${state.rate}×`;
+    const r = main.querySelector('[data-rate]'); if (r) { r.textContent = `${state.rate}×`; r.setAttribute('aria-label', `Speed ${state.rate}×`); }
     const w = main.querySelector('[data-way]'); if (w) w.setAttribute('aria-pressed', String(wayOn));
   }
   // The mini player shows what is playing on every screen except that stop's own.
@@ -547,6 +554,7 @@ function paintTime() {
   const bar = $('#dock-bar'); if (bar && state.now) { const dd = audio.duration || clip(state.now.id, state.now.kind)?.seconds || 1; bar.style.width = `${Math.min(100, (audio.currentTime / dd) * 100)}%`; }
   const scrub = main.querySelector('[data-scrub]');
   if (scrub && document.activeElement !== scrub) { scrub.max = d; scrub.value = t; }
+  if (scrub) scrub.setAttribute('aria-valuetext', `${mmss(t)} of ${mmss(d)}`);
   const tt = main.querySelector('[data-t]'); if (tt) tt.textContent = mmss(t);
   const left = main.querySelector('[data-left]'); if (left && d) left.textContent = `-${mmss(d - t)}`;
   // Read along: light the paragraph being spoken. starts[0] is the title, starts[i + 1] paragraph i.
@@ -588,7 +596,9 @@ function show(moved = true) {
 window.addEventListener('hashchange', () => show());
 window.addEventListener('scroll', () => document.body.classList.toggle('scrolled', window.scrollY > 24), { passive: true });
 // The Today card counts down; refresh it each minute on the tabs.
-setInterval(() => { if (!here() && !document.hidden) { const y = window.scrollY; route(); window.scrollTo(0, y); paint(); } }, 60000);
+// Once a minute the Today card is brought up to date in place. Rebuilding the whole screen used to throw
+// a screen reader back to the top and wipe messages such as "Saved".
+setInterval(() => { if (!here() && !document.hidden) { const t = main.querySelector('section[aria-label="Today"]'); if (t) t.outerHTML = todayCard(); } }, 60000);
 
 async function boot() {
   try { const r = await fetch('audio/manifest.json', { cache: 'no-cache' }); if (r.ok) manifest = await r.json(); } catch { /* offline with nothing cached: the text guide still works */ }
