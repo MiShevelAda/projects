@@ -51,4 +51,5 @@ the app's own prefix, and a service worker must never delete a cache it does not
 | Folder | What it is |
 |---|---|
 | `bike-fit-coach/` | Phone web app: checks his bike position through the camera, with spoken guidance. Live at https://mishevelada.github.io/projects/bike-fit-coach/ |
+| `london-museum-guide/` | First Walk: phone web app, an unofficial audio and text guide to the Natural History Museum, London. Narration recorded with Kokoro-82M from `stops.js` (`tools/README.md`); `npm test` fails if a stop's recording is older than its words. Live at https://mishevelada.github.io/projects/london-museum-guide/ once on `main` |
 | `bike-fitting/` | AI Bike Fit, the video analysis tool (Python), **vendored** from guzlz/ai-bike-fit, AGPL-3.0. Update by re-copying upstream; edit nothing in place. Its own `CLAUDE.md` and `/bikefit` skill (pet names, roasting) are upstream's and apply inside that folder only |

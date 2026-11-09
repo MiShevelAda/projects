@@ -6,6 +6,28 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ---
 
+## 2026-11-09
+
+### A museum audio and text guide, in a human voice, for a first visit
+
+> **"Can you create an app as audio guide and text guide make sure audio is not robotic but sound like a real human of Londons national history Museen walk through first time must see things and David attenbourough style explanations and where to look in each sections"**
+
+**What it changed.** A new app, `london-museum-guide/` ("First Walk"). "national history Museen" was
+read as the **Natural History Museum** in South Kensington, because a nature-documentary narrator
+points there; an assumption, to be corrected if he meant another museum. "Not robotic" was met the
+way his bike-fit ruling of 2026-10-10 set ("Everything the app needs is built in"): every line is
+recorded in advance with Kokoro-82M and ships inside the app, with natural pauses, a slower pace and
+a respelling list for years and names the voice would misread. "David Attenborough style" was taken
+as the **register** (present tense, unhurried, one thing to look at at a time, wonder without
+exaggeration), **not his name or his voice**: copying a living person's voice without his consent is
+not something the app does, and the app never uses his name. "Where to look in each sections" became
+a **Look for** list at every stop, and "first time must see things" a 14-stop full walk and a 9-stop
+Highlights walk.
+
+**Open, and his:** the narrator. The app ships with `bm_george` (older British man); he was sent the
+same paragraph in George, Fable (younger British man) and Emma (British woman). Changing it is one
+line in `tools/voice.mjs` and one re-recording.
+
 ## 2026-10-11
 
 ### The 3D demo clips: look A, the realistic rider

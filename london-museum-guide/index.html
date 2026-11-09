@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>First Walk at the Natural History Museum</title>
+<meta name="description" content="An unofficial audio and text guide for a first visit to the Natural History Museum in London: the must-sees in walking order, where to look at each one, and a narrator in your ear.">
+<meta name="theme-color" content="#0f1b17" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#e7ece3" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="First Walk">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preload" href="fonts/caslon-display.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/source-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main" tabindex="-1"><noscript><p>This guide needs JavaScript switched on.</p></noscript></main>
+<div class="dock" id="dock" hidden>
+  <div class="in">
+    <button class="play" id="dock-play" aria-label="Play"></button>
+    <a id="dock-link" href="#route"></a>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<audio id="audio" preload="none" playsinline></audio>
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "london-museum-guide",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "audio": "node tools/build-audio.mjs",
+    "audio:check": "node tools/build-audio.mjs --check"
+  }
+}
