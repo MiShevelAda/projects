@@ -251,5 +251,9 @@ body.scrolled .topfade { opacity: 1; }
 .ask .photo input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .ask .photo:focus-within { outline: 3px solid var(--blue); outline-offset: 2px; }
 .ask .photo[aria-disabled='true'] { opacity: 0.5; pointer-events: none; }
-.askform .send { appearance: none; border: 0; border-radius: 22px; min-height: 44px; padding: 8px 16px; background: var(--blue); color: #fff; font-weight: 700; }
+.askform .send { appearance: none; border: 0; border-radius: 50%; width: 44px; height: 44px; padding: 0; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; }
+.askform .send svg { width: 22px; height: 22px; }
+.askform input:placeholder-shown + .send { opacity: 0.45; }
+/* The keyboard is up: nothing floats over the question box. */
+body.typing .bottombar, body.typing .tabbar, body.typing .tabfade, body.typing .dock { display: none !important; }
 .askform .send:disabled { opacity: 0.5; }

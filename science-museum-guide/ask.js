@@ -61,18 +61,20 @@ const threads = new Map(); // stop id -> [{ role, content }], this visit only
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const paras = (t) => t.split(/\n{2,}/).map((p) => `<p>${esc(p.trim()).replace(/\n/g, '<br>')}</p>`).join('');
 
+export const ICON_SEND = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 export const ICON_CAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h3l1.6-2.4h6.8L17 7.5h3a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18V9A1.5 1.5 0 0 1 4 7.5z" fill="currentColor"/><circle cx="12" cy="13" r="3.6" fill="var(--card)"/></svg>';
 
 // The card's markup; hidden until the viewer is known to be able to ask.
 export function askCard(stop) {
   return `<section class="card ask" data-ask hidden aria-labelledby="askH">
     <div class="between"><span class="kicker" id="askH">Ask the Guide</span><span class="small">On your Claude account</span></div>
+    <p class="small">Type a question and tap the arrow. Or take a photo of something in front of you, and the guide tells you what it is.</p>
     ${(stop.ask || []).length ? `<div class="chips">${stop.ask.map((q) => `<button type="button" class="soft chip" data-q>${esc(q)}</button>`).join('')}</div>` : ''}
     <div class="thread" data-thread aria-live="polite"></div>
     <form class="askform" data-askform>
       <label class="vh" for="askq">Type a question about ${esc(stop.title)}</label>
       <input id="askq" type="text" placeholder="Type a question" enterkeyhint="send" autocomplete="off" maxlength="500">
-      <button type="submit" class="send">Ask</button>
+      <button type="submit" class="send" aria-label="Send the question">${ICON_SEND}</button>
     </form>
     <label class="soft photo" data-cam hidden>${ICON_CAM}<span>Take a Photo and Ask</span><input type="file" accept="image/*" capture="environment" data-photo></label>
     <button type="button" class="plain" data-askstop hidden>Stop</button>
@@ -113,6 +115,15 @@ export async function wireAsk(root, app) {
     if (shot) send(input.value.trim() || 'What am I looking at?', shot);
   });
   card.querySelectorAll('[data-q]').forEach((b) => b.addEventListener('click', () => send(b.textContent, null)));
+  // While typing, the keyboard takes the bottom of the screen: the floating bars (Next, the player,
+  // the tabs) step aside so they never sit on the question box, and the box is scrolled into view.
+  input.addEventListener('focus', () => {
+    document.body.classList.add('typing');
+    setTimeout(() => form.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350);
+  });
+  // The bars come back only after the tap that took focus away has finished; returning at once would
+  // put the Next bar under the finger that is tapping the arrow, and the tap would be lost.
+  input.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== input) document.body.classList.remove('typing'); }, 400));
   stopBtn.addEventListener('click', () => ctl?.abort());
 
   const tools = limits?.tools ? [

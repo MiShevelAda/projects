@@ -8,6 +8,16 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### A visible way to send, and nothing on top of what you are typing
+
+> **"Also when typing text there should be an enter button those details shouldn't be missed"**
+> **"What's the difference between ask and take a picture"**
+
+**The rules underneath.** (1) Every text box has a send button you can see, beside it, and the
+keyboard's own key sends too. (2) While the keyboard is up, nothing floats over the box: the Next
+bar, the player and the tabs step aside and come back after. (3) When two choices sit together,
+the screen says in one line how they differ, so nobody has to ask.
+
 ### Two buttons never lead to the same place
 
 > **"Take photo and ask CTA leads to same"**
