@@ -97,13 +97,7 @@ main:focus { outline: none; }
 .assess .primary { margin-top: 8px; }
 .rings { position: absolute; inset: 0; width: 100%; height: 100%; }
 .rings circle { fill: color-mix(in srgb, var(--z) 14%, transparent); }
-.floors { position: relative; width: 132px; height: 104px; }
-.floors rect { fill: color-mix(in srgb, var(--z) 26%, var(--card)); }
-.floors rect.on { fill: var(--z); }
-.floors text { font: 700 13px var(--rounded); fill: var(--sec); }
-.floors text.on { fill: #fff; }
-.floors .ground { stroke: var(--sec); stroke-width: 2; stroke-linecap: round; }
-.floors .you { fill: var(--z); }
+
 
 /* The route: a grouped list, like Settings */
 .list { list-style: none; margin: 0; padding: 0; }
@@ -218,3 +212,23 @@ body.scrolled .topfade { opacity: 1; }
 .zoom [data-zoom-body] { max-width: 600px; width: 100%; }
 .zpic img { display: block; width: 100%; height: auto; max-height: 70vh; object-fit: contain; border-radius: 12px; }
 .zpic figcaption { color: #d1d1d6; } .zpic figcaption a { color: #d1d1d6; }
+
+/* The hero: the stop's photo, with a glass card on one side showing where it is (map and floor) */
+.stopview .hero { height: calc(env(safe-area-inset-top, 0px) + 236px); align-items: flex-end; justify-content: flex-start; padding: 0 0 12px max(16px, env(safe-area-inset-left)); }
+.assess .art { height: clamp(0px, calc((26px - 1rem) * 1000), 168px); align-items: flex-end; justify-content: flex-start; padding: 0 0 10px 12px; }
+.heroimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero::after, .assess .art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(transparent 45%, rgba(0,0,0,0.35)); pointer-events: none; }
+.where-card { position: relative; z-index: 1; display: grid; grid-template-columns: 112px 34px; grid-template-rows: auto auto; gap: 2px 8px; align-items: end; padding: 8px 10px 6px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-line); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
+.minimap { width: 112px; height: 70px; }
+.minimap rect { opacity: 0.38; } .minimap .garden { fill: #34C759; opacity: 0.22; }
+.minimap .z-orange { fill: var(--z-orange); } .minimap .z-blue { fill: var(--z-blue); } .minimap .z-green { fill: var(--z-green); } .minimap .z-red { fill: var(--z-red); }
+.minimap .road { stroke: var(--sec); stroke-width: 2; stroke-linecap: round; }
+.minimap .mlabel { font: 600 7px var(--font); fill: var(--sec); }
+.minimap .dot { fill: var(--label); stroke: var(--card); stroke-width: 1.5; }
+.minimap .ring { fill: none; stroke: var(--label); stroke-width: 1.5; opacity: 0.5; }
+.floors { width: 34px; height: 56px; }
+.floors rect { fill: color-mix(in srgb, var(--z) 22%, transparent); }
+.floors rect.on { fill: var(--z); }
+.floors text { font: 700 10px var(--rounded); fill: var(--sec); }
+.floors text.on { fill: #fff; }
+.wfloor { grid-column: 1 / -1; font-size: 0.706rem; font-weight: 700; color: var(--label); }

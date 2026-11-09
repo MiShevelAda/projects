@@ -29,6 +29,7 @@ test('every stop has what the screen and the voice need', () => {
       assert.ok(existsSync(new URL(p.src, ROOT)) && p.credit && p.license && p.page.startsWith('https://commons.wikimedia.org/'), `${s.id}: photo ${p.src} needs its file, credit, licence and source page`);
       assert.ok((p.look != null && p.look < s.look.length) || (p.chapter != null && p.chapter < s.story.length), `${s.id}: photo ${p.src} must belong to a Look For item or a chapter that exists`);
     }
+    assert.ok(Array.isArray(s.map) && s.map[0] >= 0 && s.map[0] <= 160 && s.map[1] >= 0 && s.map[1] <= 100, `${s.id}: a place on the map`);
     if (s.video) assert.ok(/^https:\/\/(www\.youtube\.com\/watch\?v=|youtu\.be\/)/.test(s.video.url) && s.video.title && s.video.channel, `${s.id}: a video needs a YouTube link, title and channel`);
     if (s.notice) assert.ok(s.notice.text && /^\d{4}-\d\d-\d\d$/.test(s.notice.until), `${s.id}: a notice needs text and an end date`);
   }

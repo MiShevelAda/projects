@@ -16,7 +16,7 @@ const src = (label, path) => ({ label, url: path.startsWith('http') ? path : NHM
 
 const RAW = [
   {
-    id: 'building', title: 'The Building', zone: 'outside', place: 'Outside, Cromwell Road', minutes: 5, floor: 'out',
+    id: 'building', title: 'The Building', zone: 'outside', place: 'Outside, Cromwell Road', minutes: 5, floor: 'out', map: [80, 80],
     // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
     pic: {"src": "img/building.jpg", "w": 800, "h": 534, "alt": "The terracotta front of the museum, looking up at the main entrance", "caption": "Look up at the main entrance: every surface is terracotta.", "credit": "Txllxt TxllxT", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:London_-_Cromwell_Road_-_Natural_History_Museum_1881_by_Alfred_Waterhouse_-_View_Up_at_the_Entrance_on_the_Terracotta_Tiled_Fa%C3%A7ade_II.jpg"},
     sources: [
@@ -27,7 +27,7 @@ const RAW = [
     ],
   },
   {
-    id: 'hope', title: 'Hope, the Blue Whale', zone: 'green', place: 'Green zone, Hintze Hall, ground floor', minutes: 15, floor: 'G',
+    id: 'hope', title: 'Hope, the Blue Whale', zone: 'green', place: 'Green zone, Hintze Hall, ground floor', minutes: 15, floor: 'G', map: [80, 44],
     video: {"title": "How do we move a blue whale skeleton?", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=NekXGq25lrk"},
     // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
     pic: {"src": "img/hope.jpg", "w": 800, "h": 534, "alt": "A large slice of the Imilac meteorite, metal studded with crystals", "caption": "The Imilac meteorite: metal and green olivine crystals, about 4.5 billion years old.", "credit": "Peter Taylor", "license": "CC BY 2.0", "page": "https://commons.wikimedia.org/wiki/File:Imilac_Meteorite_-_Natural_History_Museum_London.jpg"},
@@ -41,7 +41,7 @@ const RAW = [
     ],
   },
   {
-    id: 'dinosaurs', title: 'Dinosaurs', zone: 'blue', place: 'Blue zone, ground floor', minutes: 25, floor: 'G',
+    id: 'dinosaurs', title: 'Dinosaurs', zone: 'blue', place: 'Blue zone, ground floor', minutes: 25, floor: 'G', map: [32, 44],
     video: {"title": "How to reconstruct a dinosaur", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=O9ihuO2F2rE"},
     // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
     pic: {"src": "img/dinosaurs.jpg", "w": 800, "h": 534, "alt": "The Triceratops skull in the Dinosaurs gallery", "caption": "The Triceratops skull: find the frill and the three horns.", "credit": "Gary Todd from Xinzheng, China", "license": "CC0", "page": "https://commons.wikimedia.org/wiki/File:Triceratops_Skull_(36094064740).jpg"},
@@ -53,7 +53,7 @@ const RAW = [
     ],
   },
   {
-    id: 'mammals', title: 'The Blue Whale Model', zone: 'blue', place: 'Blue zone, Mammals Hall, ground floor', minutes: 12, floor: 'G',
+    id: 'mammals', title: 'The Blue Whale Model', zone: 'blue', place: 'Blue zone, Mammals Hall, ground floor', minutes: 12, floor: 'G', map: [32, 26],
     // Closed from..until: the walk skips the stop on those days. The notice shows from today until then.
     notice: { text: 'The museum lists the Mammals Hall as closed from Tuesday 10 to Thursday 12 November. The lift to its balcony is out of service.', from: '2026-11-10', until: '2026-11-12' },
     sources: [
@@ -64,7 +64,7 @@ const RAW = [
     ],
   },
   {
-    id: 'darwin', title: 'Darwin on the Stairs', zone: 'green', place: 'Green zone, the main staircase', minutes: 5, floor: 'G',
+    id: 'darwin', title: 'Darwin on the Stairs', zone: 'green', place: 'Green zone, the main staircase', minutes: 5, floor: 'G', map: [80, 26],
     // A photo of the easiest thing to miss, freely licensed on Wikimedia Commons, with its credit.
     pic: {"src": "img/darwin.jpg", "w": 800, "h": 1024, "alt": "The seated statue of Charles Darwin on the main staircase", "caption": "Darwin, seated on the main staircase.", "credit": "APK", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Statue_of_Charles_Darwin_in_the_Natural_History_Museum,_London.jpg"},
     sources: [
@@ -75,14 +75,14 @@ const RAW = [
     ],
   },
   {
-    id: 'treasures', title: 'Treasures', zone: 'green', place: 'Green zone, first floor', minutes: 15, floor: '1',
+    id: 'treasures', title: 'Treasures', zone: 'green', place: 'Green zone, first floor', minutes: 15, floor: '1', map: [80, 34],
     sources: [
       src('Highlights of the Treasures gallery', '/discover/highlights-of-the-treasures-gallery.html'),
       src('Treasures in the Cadogan Gallery', '/visit/galleries-and-museum-map/treasures-in-the-cadogan-gallery.html'),
     ],
   },
   {
-    id: 'vault', title: 'Minerals and the Vault', zone: 'green', place: 'Green zone, first floor', minutes: 20, floor: '1',
+    id: 'vault', title: 'Minerals and the Vault', zone: 'green', place: 'Green zone, first floor', minutes: 20, floor: '1', map: [96, 30],
     video: {"title": "The Museum's cursed amethyst", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=Yp1q3GqlBfQ"},
     sources: [
       src('Minerals gallery', '/visit/galleries-and-museum-map/minerals.html'),
@@ -93,7 +93,7 @@ const RAW = [
     ],
   },
   {
-    id: 'sequoia', title: 'The Giant Sequoia', zone: 'green', place: 'Green zone, Hintze Hall, second floor', minutes: 10, floor: '2',
+    id: 'sequoia', title: 'The Giant Sequoia', zone: 'green', place: 'Green zone, Hintze Hall, second floor', minutes: 10, floor: '2', map: [80, 22],
     video: {"title": "Conserving the Giant Sequoia at the Natural History Museum", "channel": "Natural Sciences Collections Association", "url": "https://www.youtube.com/watch?v=UIpZNfjWzok"},
     sources: [
       src('The giant sequoia slice', '/discover/giant-sequoia-slice.html'),
@@ -104,7 +104,7 @@ const RAW = [
     ],
   },
   {
-    id: 'nature-and-us', title: 'Nature and Us', zone: 'green', place: 'Green zone, second floor, new in 2026', minutes: 12, floor: '2',
+    id: 'nature-and-us', title: 'Nature and Us', zone: 'green', place: 'Green zone, second floor, new in 2026', minutes: 12, floor: '2', map: [92, 26],
     sources: [
       src('Nature and Us opens to the public (press release)', '/press-office/the-natural-history-museum-opens-nature-and-us-to-the-public-tom.html'),
       src('Nature and Us: visual guide and directions', '/visit/galleries-and-museum-map/nature-and-us/visual-guide-for-the-nature-and-us-gallery.html'),
@@ -112,7 +112,7 @@ const RAW = [
     ],
   },
   {
-    id: 'marine-reptiles', title: 'Mary Anning\'s Sea Dragons', zone: 'green', place: 'Green zone, Fossil Marine Reptiles, ground floor', minutes: 12, floor: 'G',
+    id: 'marine-reptiles', title: 'Mary Anning\'s Sea Dragons', zone: 'green', place: 'Green zone, Fossil Marine Reptiles, ground floor', minutes: 12, floor: 'G', map: [98, 48],
     video: {"title": "Mary Anning's First Ichthyosaur", "channel": "Jurassic Coast Trust", "url": "https://www.youtube.com/watch?v=PZfkkwFQi8M"},
     sources: [
       src('Mary Anning\'s fossils', '/discover/mary-anning-fossils.html'),
@@ -121,7 +121,7 @@ const RAW = [
     ],
   },
   {
-    id: 'human-evolution', title: 'Human Evolution', zone: 'red', place: 'Red zone, East Wing, ground floor', minutes: 12, floor: 'G',
+    id: 'human-evolution', title: 'Human Evolution', zone: 'red', place: 'Red zone, East Wing, ground floor', minutes: 12, floor: 'G', map: [124, 44],
     video: {"title": "Who was Cheddar Man?", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=TQ8dc0XhUMM"},
     sources: [
       src('Human Evolution gallery', '/visit/galleries-and-museum-map/human-evolution.html'),
@@ -131,7 +131,7 @@ const RAW = [
     ],
   },
   {
-    id: 'sophie', title: 'Sophie the Stegosaurus', zone: 'red', place: 'Red zone, Earth Hall, ground floor', minutes: 8, floor: 'G',
+    id: 'sophie', title: 'Sophie the Stegosaurus', zone: 'red', place: 'Red zone, Earth Hall, ground floor', minutes: 8, floor: 'G', map: [130, 34],
     video: {"title": "Assembling the most complete Stegosaurus in the world", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=vQx9HfUlHi8"},
     sources: [
       src('Earth Hall and Sophie the Stegosaurus', '/visit/galleries-and-museum-map/earth-hall-and-stegosaurus.html'),
@@ -141,7 +141,7 @@ const RAW = [
     ],
   },
   {
-    id: 'kobe', title: 'The Earthquake Room', zone: 'red', place: 'Red zone, Volcanoes and Earthquakes, second floor', minutes: 15, floor: '2',
+    id: 'kobe', title: 'The Earthquake Room', zone: 'red', place: 'Red zone, Volcanoes and Earthquakes, second floor', minutes: 15, floor: '2', map: [136, 24],
     sources: [
       src('Volcanoes and Earthquakes gallery', '/visit/galleries-and-museum-map/volcanoes-and-earthquakes.html'),
       src('Exhibits with impact: self-guided tour (the Kobe simulator)', '/visit/exhibits-impact-adults-self-guided-tour.html'),
@@ -150,7 +150,7 @@ const RAW = [
     ],
   },
   {
-    id: 'fern', title: 'Fern, the Bronze Dinosaur', zone: 'outside', place: 'Outside, the Evolution Garden', minutes: 10, floor: 'out',
+    id: 'fern', title: 'Fern, the Bronze Dinosaur', zone: 'outside', place: 'Outside, the Evolution Garden', minutes: 10, floor: 'out', map: [130, 80],
     video: {"title": "Creating a bronze dinosaur for the Natural History Museum gardens", "channel": "Natural History Museum", "url": "https://www.youtube.com/watch?v=V7XbR0pEY1Y"},
     sources: [
       src('Our gardens', '/visit/galleries-and-museum-map/our-gardens.html'),

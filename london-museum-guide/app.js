@@ -75,16 +75,37 @@ function chapterHead(s, k) {
   return `<b>${esc(title)}</b><span>Chapter ${k + 1} of ${n}${story ? `, ${mins(story.seconds)}` : ', not recorded yet'}</span>`;
 }
 
-// The floors of the building, with this stop's floor lit (or a dot outside), for the pictures.
+// Where the stop is: a schematic map of the museum from above (north up, Cromwell Road at the
+// bottom; the zones as the museum colours them, not to scale) with a dot on the stop, and the
+// floors with this stop's floor lit. Shown in a glass card over the stop's photo.
+function mapArt(stop) {
+  const [x, y] = stop.map || [80, 44];
+  return `<svg class="minimap" viewBox="0 0 160 100" role="img" aria-label="Map: ${esc(stop.place)}">
+    <rect class="z-orange" x="8" y="4" width="40" height="14" rx="3"/>
+    <rect class="z-blue" x="8" y="20" width="48" height="48" rx="3"/>
+    <rect class="z-green" x="58" y="12" width="52" height="56" rx="3"/>
+    <rect class="z-red" x="112" y="8" width="40" height="60" rx="3"/>
+    <rect class="garden" x="8" y="72" width="44" height="12" rx="3"/><rect class="garden" x="108" y="72" width="44" height="12" rx="3"/>
+    <line class="road" x1="4" y1="92" x2="156" y2="92"/>
+    <text class="mlabel" x="80" y="99" text-anchor="middle">Cromwell Road</text>
+    <circle class="ring" cx="${x}" cy="${y}" r="7"/><circle class="dot" cx="${x}" cy="${y}" r="4"/>
+  </svg>`;
+}
 function floorsArt(stop) {
-  const rows = [['2', 10], ['1', 40], ['G', 70]];
+  const rows = [['2', 4], ['1', 22], ['G', 40]];
   const out = stop.floor === 'out';
-  return `<svg class="floors" viewBox="0 0 132 104" aria-hidden="true">
-    ${rows.map(([f, y]) => `<rect x="${out ? 34 : 16}" y="${y}" width="${out ? 92 : 100}" height="24" rx="7" class="${f === stop.floor ? 'on' : ''}"/><text x="${out ? 46 : 28}" y="${y + 17}" class="${f === stop.floor ? 'on' : ''}">${f}</text>`).join('')}
-    ${out ? '<line class="ground" x1="4" y1="100" x2="128" y2="100"/><circle class="you" cx="16" cy="88" r="9"/>' : ''}
+  return `<svg class="floors" viewBox="0 0 46 76" aria-hidden="true">
+    ${rows.map(([f, y]) => `<rect x="0" y="${y}" width="46" height="15" rx="5" class="${f === stop.floor ? 'on' : ''}"/><text x="23" y="${y + 11.5}" text-anchor="middle" class="${f === stop.floor ? 'on' : ''}">${f}</text>`).join('')}
+    <rect x="0" y="58" width="46" height="15" rx="5" class="${out ? 'on' : ''}"/><text x="23" y="69.5" text-anchor="middle" class="${out ? 'on' : ''}">Out</text>
   </svg>`;
 }
 const rings = '<svg class="rings" viewBox="0 0 358 168" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><circle cx="179" cy="84" r="150"/><circle cx="179" cy="84" r="108"/><circle cx="179" cy="84" r="70"/></svg>';
+// The stop's picture with the where-card on top; without a photo, the zone colour and rings.
+function heroArt(stop) {
+  const photo = stop.pic || stop.pics?.[0];
+  return `${photo ? `<img class="heroimg" src="${esc(photo.src)}" alt="">` : rings}
+    <div class="where-card">${mapArt(stop)}${floorsArt(stop)}<span class="wfloor">${esc(floorName(stop.floor))}</span></div>`;
+}
 const floorName = (f) => ({ out: 'Outside', G: 'Ground floor', 1: 'First floor', 2: 'Second floor' }[f]);
 
 // ── player ────────────────────────────────────────────────────────────────────────────────────
@@ -228,7 +249,7 @@ function walkView() {
     </div>
     ${tc.short ? `<div class="note" role="note"><span>About ${hrs(tc.need)} of walk left, and the galleries start clearing in ${hrs(Math.max(0, tc.avail))}.</span>${tc.shorter ? `<button type="button" class="soft" data-walk="${tc.shorter}">Switch to ${esc(WALKS[tc.shorter].name)}</button>` : ''}</div>` : ''}
     ${nx ? `<section class="card assess" data-zone="${nx.zone}" aria-labelledby="upnext">
-      <div class="art">${rings}${floorsArt(nx)}</div>
+      <div class="art">${heroArt(nx)}</div>
       <div class="body">
         <span class="kicker">${started ? `Up Next, Stop ${pos} of ${list.length}` : `${list.length} Stops, About ${hrs(total)}`}${narrated ? `, ${narrated} min of Stories` : ''}</span>
         <p class="title" id="upnext">${esc(nx.title)}</p>
@@ -272,7 +293,7 @@ function stopView(s) {
   const story = clip(s.id, 'story');
   const notice = noticeOn(s);
   main.innerHTML = `<div class="stopview" data-zone="${s.zone}">
-    <div class="hero">${rings}${floorsArt(s)}</div>
+    <div class="hero">${heroArt(s)}</div>
     <div class="topfade" aria-hidden="true"></div>
     <a class="glass" href="#walk" aria-label="Back to the walk">${ICON.back}</a>
     <div class="tab">
