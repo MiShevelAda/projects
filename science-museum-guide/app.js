@@ -15,8 +15,9 @@
 
 import { CHECKED, HOURS, MUSEUM, PRACTICAL, STOPS, TICKETS_URL, WALKS, WALK_BETWEEN } from './stops.js';
 import { askCard, wireAsk } from './ask.js';
-import { closedOn, hoursOn, nextOf as nextIn, noticeOn, openState, pointsOn, timeCheck, upNext as upNextIn, walkStops as walkOf } from './walk.js';
+import { closedOn, hoursOn, london, nextOf as nextIn, noticeOn, openState, pointsOn, timeCheck, upNext as upNextIn, walkStops as walkOf } from './walk.js';
 
+let swReady = Promise.resolve(false); // true once the offline helper is running
 const KEY = MUSEUM.key; // every saved setting and cache carries this museum's prefix: all the apps share one origin
 const store = {
   get(k, d) { try { const v = localStorage.getItem(KEY + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
@@ -171,7 +172,7 @@ audio.addEventListener('ended', () => {
   paint();
 });
 for (const ev of ['play', 'pause', 'loadedmetadata', 'ratechange']) audio.addEventListener(ev, () => { paint(); mediaState(); });
-audio.addEventListener('timeupdate', () => { paintTime(); });
+audio.addEventListener('timeupdate', () => { paintTime(); if (state.now?.kind === 'story' && audio.currentTime > 60 && !state.seen[state.now.id]) markSeen(state.now.id); });
 audio.addEventListener('error', () => { if (state.now) toast('The sound did not load. With no signal, the words are all on the screen.'); });
 
 function mediaSession() {
@@ -230,6 +231,45 @@ function todayCard() {
   </section>`;
 }
 
+// Behavioural design from research, applied with restraint (DECISIONS.md, 2026-11-09): progress you can
+// see (the goal-gradient effect), a question the next stop answers (the curiosity gap), one fact to
+// remember per stop and a real ending (the peak-end rule), and a break at halfway (museum fatigue).
+// No streaks, points or notifications: the visitor is looking at a whale, not a phone.
+const seenOn = (list) => list.filter((s) => state.seen[s.id]).length;
+const minsLeft = (list) => { const left = list.filter((s) => !state.seen[s.id]); return left.reduce((a, s) => a + s.minutes, 0) + Math.max(0, left.length - 1) * WALK_BETWEEN; };
+// "Finishing around 13:33", on London time, only while the museum is open.
+function finishAt(list) {
+  if (openState().state !== 'open') return '';
+  const { mins } = london(new Date()), end = mins + minsLeft(list);
+  return `, finishing around ${String(Math.floor(end / 60) % 24).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
+}
+const progressBar = (done, of, label) => `<div class="walkbar" role="progressbar" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="${of}" aria-valuenow="${done}"><span style="width:${of ? Math.round((done / of) * 100) : 0}%"></span></div>`;
+async function shareText(text) {
+  try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e?.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(text); toast('Copied. Paste it into a message or a post.'); } catch { toast('Sharing does not work from here. Press and hold the text to copy it.'); }
+}
+function bestOf(list) {
+  const seen = list.filter((s) => state.seen[s.id] && s.remember);
+  return seen.length <= 3 ? seen : [seen[0], seen[Math.floor(seen.length / 2)], seen[seen.length - 1]];
+}
+function visitText(list) {
+  const seen = seenOn(list), spotted = list.reduce((a, s) => a + (state.found[s.id]?.length || 0), 0), best = bestOf(list)[0];
+  return `I spent ${WALKS[state.walk].name.toLowerCase()} at the ${MUSEUM.name}: ${seen} stops, ${spotted} things spotted.${best ? ` The one to remember: ${best.remember}` : ''}`;
+}
+function doneCard(list) {
+  const seen = list.filter((s) => state.seen[s.id]);
+  const spotted = list.reduce((a, s) => a + (state.found[s.id]?.length || 0), 0);
+  const heard = Math.round(seen.reduce((a, s) => a + (clip(s.id, 'story')?.seconds || 0), 0) / 60);
+  const best = bestOf(list);
+  return `<section class="card done" aria-labelledby="doneH">
+    <p class="title1" id="doneH">You Did It</p>
+    <div class="stats"><span><b>${seen.length}</b>stops</span><span><b>${spotted}</b>things spotted</span><span><b>${heard}</b>min of stories</span></div>
+    ${best.length ? `<span class="kicker">The Ones to Remember</span><ul class="best">${best.map((x) => `<li><b>${esc(x.title)}.</b> ${esc(x.remember)}</li>`).join('')}</ul>` : ''}
+    <button type="button" class="primary" data-sharevisit>Share My Visit</button>
+    <p class="small">${esc(MUSEUM.doneNote)}</p>
+  </section>`;
+}
+
 function walkView() {
   const list = walkStops();
   const nx = upNext();
@@ -250,12 +290,14 @@ function walkView() {
     ${nx ? `<section class="card assess" data-zone="${nx.zone}" aria-labelledby="upnext">
       <div class="art">${heroArt(nx)}</div>
       <div class="body">
-        <span class="kicker">${started ? `Up Next, Stop ${pos} of ${list.length}` : `${list.length} Stops, About ${hrs(total)}`}${narrated ? `, ${narrated} min of Stories` : ''}</span>
+        <span class="kicker">${started ? `Up Next, Stop ${pos} of ${list.length}` : `${list.length} Stops, About ${hrs(total)}${narrated ? `, ${narrated} min of Stories` : ''}`}</span>
+        ${started ? `${progressBar(seenOn(list), list.length, 'Stops seen on this walk')}<span class="small">${seenOn(list)} of ${list.length} stops seen, about ${hrs(minsLeft(list))} to go${finishAt(list)}</span>` : ''}
         <p class="title" id="upnext">${esc(nx.title)}</p>
+        ${nx.hook ? `<p class="hook">${esc(nx.hook)}</p>` : ''}
         <span class="meta"><span>${esc(floorName(nx.floor))}</span><span>${nx.minutes} min</span></span>
         <a class="primary" href="#${nx.id}" data-start="${nx.id}">${started ? 'Carry On' : 'Start the Walk'}</a>
       </div>
-    </section>` : `<section class="card"><p class="title1">That Is the Walk</p><p class="small">${esc(MUSEUM.doneNote)}</p></section>`}
+    </section>` : started ? doneCard(list) : `<section class="card"><p class="title1">That Is the Walk</p><p class="small">${esc(MUSEUM.doneNote)}</p></section>`}
     <section class="card flat" aria-label="The stops"><ul class="list route">
       ${list.map((s, i) => `<li class="${state.seen[s.id] ? 'seen' : ''} ${closedOn(s) ? 'closed' : ''}" data-zone="${s.zone}"><a href="#${s.id}">
         <span class="num">${state.seen[s.id] ? '<span class="vh">Seen. </span>' : ''}${i + 1}</span>
@@ -270,6 +312,7 @@ function walkView() {
   // Starting from the route plays the way to the stop, inside the tap.
   start?.addEventListener('click', () => play(start.dataset.start, 'way'));
   main.querySelector('[data-a2hs-hide]')?.addEventListener('click', () => { store.set('a2hs', 'hidden'); walkView(); });
+  main.querySelector('[data-sharevisit]')?.addEventListener('click', () => shareText(visitText(list)));
 }
 
 // Safari on an iPhone, not yet on the Home Screen: three steps, like bike-fit's card.
@@ -300,8 +343,10 @@ function stopView(s) {
         <p class="eyebrow">${pos >= 0 ? `Stop ${pos + 1} of ${list.length}` : 'Not on this walk'}, ${s.minutes} min</p>
         <h1 class="title1">${esc(s.title)}</h1>
         <p class="where">${esc(s.place)}</p>
+        ${pos >= 0 ? progressBar(seenOn(list), list.length, 'Stops seen on this walk') : ''}
       </div>
       ${notice ? `<p class="note" role="note">${closedOn(s) ? '<b>Closed today.</b> ' : ''}${esc(notice)}</p>` : ''}
+      ${pos >= 0 && list.length >= 5 && pos + 1 === Math.ceil(list.length / 2) && MUSEUM.breakNote ? `<p class="note" role="note"><span><b>Halfway.</b> ${esc(MUSEUM.breakNote)}</span></p>` : ''}
       <section class="card" aria-labelledby="findH">
         <span class="kicker" id="findH">Find It</span>
         <p>${esc(s.find)}</p>
@@ -322,12 +367,14 @@ function stopView(s) {
           <button type="button" class="soft" data-skip="15" aria-label="Forward 15 seconds">Forward 15</button>
         </div>
       </section>
+      ${!state.seen[s.id] && pos >= 0 && nx ? `<button type="button" class="plain" data-later>${state.later.includes(s.id) ? 'Put It Back in Order' : 'Too Busy? Do This Later'}</button>` : ''}
       ${askCard(s)}
       <section class="card flat look" aria-labelledby="lookH">
         <div class="head between"><span class="kicker" id="lookH">Look For</span><span class="kicker" data-count>${found.size} of ${s.look.length}</span></div>
         ${s.pic ? figure(s.pic, 'pic') : ''}
         <ul class="list">${s.look.map((l, i) => { const lp = picFor(s, 'look', i); return `<li class="${lp ? 'has-thumb' : ''}"><button type="button" aria-pressed="${found.has(i)}" data-look="${i}"><span class="box" aria-hidden="true"></span><span class="txt">${esc(l)}</span></button>${lp ? `<button type="button" class="thumb" data-zoom="${esc(lp.src)}" aria-label="See a photo: ${esc(lp.alt)}"><img src="${esc(lp.src)}" alt="" loading="lazy"></button>` : ''}</li>`; }).join('')}</ul>
       </section>
+      ${s.remember ? `<section class="card remember" aria-labelledby="remH"><span class="kicker" id="remH">The One to Remember</span><p class="rem">${esc(s.remember)}</p><button type="button" class="soft" data-share>Share This</button></section>` : ''}
       ${s.tip ? `<p class="note tip"><span><b>Tip.</b> ${esc(s.tip)}</span></p>` : ''}
       ${s.video ? `<a class="card watch" href="${esc(s.video.url)}" target="_blank" rel="noopener">
         <span class="wicon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 7.5v9l7.5-4.5z" fill="currentColor"/></svg></span>
@@ -337,15 +384,15 @@ function stopView(s) {
         ${s.story.map((p, i) => { const cp = picFor(s, 'chapter', i); return `${s.chapters?.[i] ? `<h3 class="chap" data-c="${i}">${i + 1}. ${esc(s.chapters[i])}</h3>` : ''}${cp ? figure(cp, 'cpic') : ''}<p data-p="${i}">${esc(p)}</p>`; }).join('')}
       </section>
       ${s.sources?.length ? `<details class="card sources"><summary>Where These Facts Come From</summary><ul>${s.sources.map((u) => `<li><a href="${esc(u.url)}" rel="noopener" target="_blank">${esc(u.label)}</a></li>`).join('')}</ul></details>` : ''}
-      ${!state.seen[s.id] && pos >= 0 && nx ? `<button type="button" class="plain" data-later>${state.later.includes(s.id) ? 'Put It Back in Order' : 'Too Busy? Do This Later'}</button>` : ''}
     </div>
     <div class="bottombar">
-      ${nx ? `<a class="primary" href="#${nx.id}" data-next="${nx.id}">Next: ${esc(nx.title)}<small>Plays the way there</small></a>`
+      ${nx ? `<a class="primary" href="#${nx.id}" data-next="${nx.id}">Next: ${esc(nx.title)}<small>${nx.hook ? esc(nx.hook) : 'Plays the way there'}</small></a>`
         : '<a class="primary" href="#walk" data-last>Finish the Walk</a>'}
     </div>
   </div>`;
   // The big button controls whatever of this stop is loaded: the way there or the story. After the
   // way there has ended it plays the story; after the story has ended it plays it again.
+  main.querySelector('[data-share]')?.addEventListener('click', () => shareText(`${s.title}, ${MUSEUM.name}: ${s.remember}`));
   main.querySelector('[data-play]').addEventListener('click', () => {
     if (state.now?.id === s.id && (!state.ended || state.now.kind === 'way')) toggle(); else play(s.id, 'story');
   });
@@ -365,6 +412,7 @@ function stopView(s) {
     const i = Number(b.dataset.look);
     found.has(i) ? found.delete(i) : found.add(i);
     state.found[s.id] = [...found]; store.set('found', state.found);
+    if (found.size) markSeen(s.id);
     b.setAttribute('aria-pressed', String(found.has(i)));
     main.querySelector('[data-count]').textContent = `${found.size} of ${s.look.length}`;
   }));
@@ -410,7 +458,7 @@ function visitView() {
   main.innerHTML = `<div class="tab info">
     <div><p class="eyebrow">Based on ${esc(CHECKED)}</p><h1 class="large">Visit</h1></div>
     ${todayCard()}
-    <section class="card" aria-labelledby="offH">
+    <section class="card" aria-labelledby="offH" data-offline>
       <b id="offH">No Signal in the Galleries?</b>
       <p class="small">Save every recording on this phone before you go in. It takes ${total ? `about ${Math.ceil(total / 1e6)} MB` : 'a few megabytes'}.</p>
       <button type="button" class="soft" data-save>Save the Walk for Offline</button>
@@ -425,6 +473,9 @@ function visitView() {
     <p class="foot">Stories, facts and practical details are based on the museum as it was in ${esc(CHECKED)}.</p>
   </div>`;
   main.querySelector('[data-save]').addEventListener('click', saveAll);
+  // Saving for offline needs the offline helper (sw.js), which the website version has and the private
+  // claude.ai link cannot run. Where it is missing, say so instead of promising what will not happen.
+  swReady.then((ok) => { const c = main.querySelector('[data-offline]'); if (!ok && c) c.innerHTML = '<b id="offH">No Signal in the Galleries?</b><p class="small">This version cannot save the walk for offline use, so the recordings need signal. Keep your mobile data on. The words are always on screen, even without it.</p>'; });
   main.querySelector('[data-reset]').addEventListener('click', () => {
     state.seen = {}; state.found = {}; state.later = [];
     store.set('seen', {}); store.set('found', {}); store.set('later', []);
@@ -542,6 +593,6 @@ setInterval(() => { if (!here() && !document.hidden) { const y = window.scrollY;
 async function boot() {
   try { const r = await fetch('audio/manifest.json', { cache: 'no-cache' }); if (r.ok) manifest = await r.json(); } catch { /* offline with nothing cached: the text guide still works */ }
   show(false);
-  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  if ('serviceWorker' in navigator && location.protocol === 'https:') swReady = navigator.serviceWorker.register('sw.js').then(() => true, () => false);
 }
 boot();

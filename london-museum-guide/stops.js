@@ -217,7 +217,8 @@ export const MUSEUM = {
     ],
   },
   closedNote: 'The museum is closed 24 to 26 December.',
-  doneNote: 'Every stop seen. The garden path around Fern walks you through 540 million years, if you have the legs for it.',
+  breakNote: 'Halfway, and about when museum legs start to complain. The Central Cafe is behind Hintze Hall, and the Earth Hall Cafe is by the Exhibition Road entrance.',
+  doneNote: 'If you have the legs for more, the garden path around Fern walks you through 540 million years.',
 };
 
 // Opening hours (London time). Galleries start clearing around 17:30.

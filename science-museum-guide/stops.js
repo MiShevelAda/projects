@@ -124,7 +124,8 @@ export const MUSEUM = {
     ],
   },
   closedNote: 'The museum is closed today.',
-  doneNote: 'Every stop seen. Wonderlab, upstairs, has real lightning, if you have a ticket and any energy left.',
+  breakNote: 'Halfway, and about when museum legs start to complain. The Energy Café is on Level 0, and the Shake Bar is on Level 3.',
+  doneNote: 'If you have a ticket and any energy left, Wonderlab, upstairs, has real lightning.',
 };
 
 // Opening hours (London time). Galleries start to close 30 minutes before the museum.

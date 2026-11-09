@@ -200,7 +200,7 @@ body.scrolled .topfade { opacity: 1; }
 
 /* Photos for Look For items (a thumbnail on the row) and chapters (full width above the text) */
 .look li.has-thumb { display: grid; grid-template-columns: minmax(0, 1fr) 76px; align-items: center; }
-.look .thumb { appearance: none; border: 0; padding: 0; margin-right: 14px; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background: var(--fill); }
+.look .thumb { display: block; min-height: 0; flex: none; appearance: none; border: 0; padding: 0; margin-right: 14px; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background: var(--fill); }
 .look .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cpic { margin: 2px 0 4px; }
 .cpic img { display: block; width: 100%; height: auto; border-radius: 14px; background: var(--fill); }
@@ -257,3 +257,15 @@ body.scrolled .topfade { opacity: 1; }
 /* The keyboard is up: nothing floats over the question box. */
 body.typing .bottombar, body.typing .tabbar, body.typing .tabfade, body.typing .dock { display: none !important; }
 .askform .send:disabled { opacity: 0.5; }
+
+/* Behavioural design: progress you can see, a teaser for the next stop, one fact to remember, an ending. */
+.walkbar { height: 6px; border-radius: 3px; background: var(--fill); overflow: hidden; margin-top: 8px; }
+.walkbar span { display: block; height: 100%; border-radius: 3px; background: var(--blue); transition: width 0.4s ease; }
+@media (prefers-reduced-motion: reduce) { .walkbar span { transition: none; } }
+.assess .hook { color: var(--label); font-size: 0.941rem; line-height: 1.33; }
+.remember .rem { font-size: 1.12rem; font-weight: 600; line-height: 1.38; }
+.done .stats { display: flex; gap: 12px; }
+.done .stats span { flex: 1; background: var(--bg); border-radius: 14px; padding: 10px 8px; text-align: center; color: var(--sec); font-size: 0.765rem; }
+.done .stats b { display: block; color: var(--label); font-size: 1.6rem; line-height: 1.1; }
+.done .best { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
+.bottombar .primary small { white-space: normal; }

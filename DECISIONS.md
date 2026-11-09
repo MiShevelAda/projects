@@ -8,6 +8,20 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### Behavioural design from research, applied with restraint
+
+> **"Think what the best apps use based on behavioral psychology research design and usage and apply it"**
+
+**What it changed.** Five findings, each with its source in the commit and the code comment: progress
+you can see, with what is left and the finishing time (the goal-gradient effect, Kivetz, Urminsky
+and Zheng 2006); a question on the Next button that the next stop answers (the curiosity gap,
+Loewenstein 1994); one fact to remember per stop and a real ending, "You Did It" with what you saw
+and Share My Visit (the peak-end rule, Kahneman); and a break suggestion at the halfway stop
+(museum fatigue). **Deliberately not used:** streaks, points, badges and notifications. They build
+daily habits, a museum visit is one afternoon, and they pull the eyes onto the phone, which breaks
+the guide's first rule. Endowed progress (a fake head start) was left out for the same reason:
+progress shown is always real.
+
 ### A visible way to send, and nothing on top of what you are typing
 
 > **"Also when typing text there should be an enter button those details shouldn't be missed"**
