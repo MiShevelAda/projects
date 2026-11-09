@@ -2,7 +2,7 @@
 
 An unofficial audio and text guide for a first visit to the Science Museum in London. It walks you
 through the must-sees in order, tells you where to look at each one, and has a narrator in your ear,
-in the same voice and manner as First Walk at the Natural History Museum next door: unhurried,
+in the same voice and manner as the Natural History Museum Guide next door: unhurried,
 curious, a little dry, and always pointing you at something real.
 
 **Private.** Like the Natural History Museum guide, this is opened from a private claude.ai link,
