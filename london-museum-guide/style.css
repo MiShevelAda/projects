@@ -232,3 +232,25 @@ body.scrolled .topfade { opacity: 1; }
 .floors text { font: 700 10px var(--rounded); fill: var(--sec); }
 .floors text.on { fill: #fff; }
 .wfloor { grid-column: 1 / -1; font-size: 0.706rem; font-weight: 700; color: var(--label); }
+
+/* Ask the Guide: suggested questions, the conversation, a question box with a camera button */
+.ask .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ask .chip { align-self: auto; text-align: left; }
+.ask .thread { display: flex; flex-direction: column; gap: 8px; }
+.ask .thread:empty { display: none; }
+.bubble { border-radius: 18px; padding: 10px 14px; max-width: 92%; font-size: 0.941rem; line-height: 1.42; display: flex; flex-direction: column; gap: 6px; }
+.bubble p { margin: 0; }
+.bubble.user { align-self: flex-end; background: var(--blue); color: #fff; }
+.bubble.user img { width: 100%; max-width: 220px; border-radius: 12px; }
+.bubble.assistant { align-self: flex-start; background: var(--fill); }
+.bubble.thinking { color: var(--sec); }
+.askform { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+.askform input[type=text] { min-height: 44px; border-radius: 22px; border: 1px solid var(--sep); background: var(--bg); padding: 8px 16px; font-size: 1rem; min-width: 0; }
+.askform .cam { width: 44px; height: 44px; border-radius: 50%; background: var(--blue-bg); color: var(--blue-text); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.askform .cam[hidden] { display: none; }
+.askform .cam svg { width: 22px; height: 22px; }
+.askform .cam input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.askform .send { appearance: none; border: 0; border-radius: 22px; min-height: 44px; padding: 8px 16px; background: var(--blue); color: #fff; font-weight: 700; }
+.askform .send:disabled { opacity: 0.5; }
+.ask .preview { display: flex; align-items: center; gap: 10px; }
+.ask .preview img { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; }

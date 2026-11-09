@@ -12,7 +12,7 @@ const sw = read('sw.js'), app = read('app.js'), html = read('index.html');
 test('every file the service worker keeps for offline exists', () => {
   const core = JSON.parse(sw.match(/const CORE = (\[[^\]]*\])/)[1].replace(/'/g, '"'));
   for (const f of core) if (f !== './') assert.ok(existsSync(new URL(f, ROOT)), `${f} is in CORE but missing`);
-  for (const f of ['app.js', 'walk.js', 'stops.js', 'stories.js', 'style.css']) assert.ok(core.includes(`./${f}`), `${f} not kept offline`);
+  for (const f of ['app.js', 'walk.js', 'stops.js', 'stories.js', 'ask.js', 'style.css']) assert.ok(core.includes(`./${f}`), `${f} not kept offline`);
 });
 
 test('caches and saved settings carry the app prefix, and the worker deletes only its own', () => {

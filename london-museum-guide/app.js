@@ -14,6 +14,7 @@
 // with the screen locked, and shows on the lock screen.
 
 import { CHECKED, HOURS, MUSEUM, PRACTICAL, STOPS, TICKETS_URL, WALKS, WALK_BETWEEN } from './stops.js';
+import { askCard, wireAsk } from './ask.js';
 import { closedOn, hoursOn, nextOf as nextIn, noticeOn, openState, pointsOn, timeCheck, upNext as upNextIn, walkStops as walkOf } from './walk.js';
 
 const KEY = MUSEUM.key; // every saved setting and cache carries this museum's prefix: all the apps share one origin
@@ -321,6 +322,7 @@ function stopView(s) {
           <button type="button" class="soft" data-skip="15" aria-label="Forward 15 seconds">Forward 15</button>
         </div>
       </section>
+      ${askCard(s)}
       <section class="card flat look" aria-labelledby="lookH">
         <div class="head between"><span class="kicker" id="lookH">Look For</span><span class="kicker" data-count>${found.size} of ${s.look.length}</span></div>
         ${s.pic ? figure(s.pic, 'pic') : ''}
@@ -388,6 +390,18 @@ function stopView(s) {
     if (state.later.includes(s.id)) { toast(`${s.title} moved to the end of the walk.`); location.hash = `#${nx.id}`; play(nx.id, 'way'); } else stopView(s);
   });
   main.querySelector('[data-next]')?.addEventListener('click', () => { markSeen(s.id); play(nx.id, 'way'); });
+  // Ask the Guide: shown only where the viewer can ask Claude (the private link).
+  wireAsk(main, {
+    stop: s, museum: MUSEUM.name, toast, walkList: () => walkStops(),
+    today: () => { const st = openState(), H = hoursOn(); return `${dateLine()}, ${st.state === 'open' ? `open now until ${H.close}, last entry ${H.lastEntry}` : st.state === 'closed-day' ? 'closed today' : `open ${H.open} to ${H.close}`}${noticeOn(s) ? `. Notice for this stop: ${noticeOn(s)}` : ''}`; },
+    openStop: (id) => { if (!byId(id)) throw new Error(`no stop ${id}`); location.hash = `#${id}`; play(id, 'way'); return 'opened'; },
+    playChapter: (n) => {
+      const at = story?.starts?.[Math.max(1, Math.min(s.story.length, Math.round(n)))];
+      if (at == null) throw new Error('no such chapter');
+      load(s.id, 'story'); audio.currentTime = at; play(s.id, 'story'); return 'playing';
+    },
+    doLater: () => { if (!state.later.includes(s.id)) { state.later = [...state.later, s.id]; store.set('later', state.later); } toast(`${s.title} moved to the end of the walk.`); return 'moved'; },
+  });
   main.querySelector('[data-last]')?.addEventListener('click', () => markSeen(s.id));
 }
 
