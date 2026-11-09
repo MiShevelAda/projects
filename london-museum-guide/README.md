@@ -13,29 +13,33 @@ the museum's own website on the day.
 
 ## Using it
 
-1. Open the link in Safari on an iPhone, or Chrome on Android. Put your headphones in.
-2. Choose **Full walk** (14 stops, about 3 hours) or **Highlights** (9 stops, about 2 hours).
-3. Tap **Start the walk**. The voice tells you where to stand. When you are there, press play: on
-   the screen, on your headphones, or on the lock screen.
-4. When a story ends, the voice tells you the way to the next stop, then waits for you again. You
-   can keep the phone in your pocket the whole time.
+1. Open the link in Safari on an iPhone (or Chrome on Android), tap **Share**, then **Add to Home
+   Screen**, and open it from there. It then works full screen and without signal.
+2. On **Visit**, tap **Save the Walk for Offline** while you have good signal.
+3. On **Walk**, answer **How Long Have You Got?** (1, 2 or 3 hours) and tap **Start the Walk**.
+   Headphones in. The voice tells you the way, gives you something to listen to while you walk, and
+   tells you how you will know you have arrived. Then press play: on the screen, the headphones or
+   the lock screen.
+4. When a story ends, the way to the next stop plays by itself, then it waits for you again. The
+   phone can stay in your pocket.
 
-On each stop: **Look for** is two to four things to find (tap each one when you have), and **The
-story** is every word the narrator says, lit up paragraph by paragraph as it is spoken. Tap a
-paragraph to hear it from there.
+On each stop: **Find It** with **You are there when**, the story player, **Look For** (things to
+spot, ticked as you find them), an insider **Tip** where there is one, **The Story** lit up paragraph
+by paragraph as it is spoken (tap one to hear it from there), and **Too Busy? Do This Later**, which
+moves the stop to the end of the walk. The **Walk** tab shows whether the museum is open now and
+until when, on London time, anything closed today, and warns if the rest of the walk will not fit
+before the galleries start clearing, offering a shorter walk that does.
 
-Before you go in, open **Before you go** and tap **Save the walk for offline**, so the galleries
-without signal do not matter. **Before you go** also has the opening hours, entrances and anything
-closed. A closure the museum has announced (the Mammals Hall, 10 to 12 November 2026) is skipped
-on those days and its notice disappears afterwards on its own.
+Why each of these exists: `JOBS.md`.
 
 ## How it is made
 
 | File | What it is |
 |---|---|
-| `stops.js` | Every stop: where it is, how to find it, what to look for, the story, and the sources for each fact. The text guide and the recordings both come from here |
+| `stops.js` | Every stop: where it is, its floor, zone, time, the walks, opening hours, and the sources for each fact |
+| `stories.js` | Every stop's words: how to find it, you are there when, look for, the story, the piece for the walk, the tip. The text guide and the recordings both come from here |
 | `walk.js` | The walk's rules: the next stop, closures, dated notices |
-| `app.js`, `index.html`, `style.css` | The app: three screens (the route, a stop, before you go), one audio player |
+| `app.js`, `index.html`, `style.css` | The app, in the bike-fit app's design: two tabs (Walk, Visit), a stop page, one audio player |
 | `sw.js` | Offline: keeps the app and, once played or saved, every recording |
 | `audio/` | The narration, two recordings a stop (the way there and the story), and `manifest.json` |
 | `tools/` | How the narration is recorded: see `tools/README.md` |
@@ -47,7 +51,7 @@ voice's default, with longer pauses between sentences and paragraphs, and a list
 (`tools/say-as.mjs`) for words it would otherwise get wrong: it would read 1891 as "one thousand
 eight hundred and ninety one" and Kobe as one syllable.
 
-**Changing the words:** edit `stops.js`, then `npm run audio` re-records only the stops whose words
+**Changing the words:** edit `stories.js`, then `npm run audio` re-records only the stops whose words
 changed, and `npm test` fails until it has.
 
 **Facts** were checked on 9 November 2026, from the museum's own pages wherever possible; each stop
