@@ -27,7 +27,12 @@ export const STORIES = {
    "South Kensington is not full of museums by accident. After the Great Exhibition of 1851, its profits bought land here for museums and colleges, which is why you are surrounded by them. The natural history collections, meanwhile, were bursting out of the British Museum in Bloomsbury, and Richard Owen spent years arguing that they needed a home of their own.",
    "He got one, and he got it on a grand scale. Victorian building projects, like modern ones, were rarely early and rarely small. This one was worth the wait."
   ],
-  "tip": "Arriving with a wheelchair or a pushchair? The East Gate, on the corner with Exhibition Road, has a ramp: wide, but steep."
+  "tip": "Arriving with a wheelchair or a pushchair? The East Gate, on the corner with Exhibition Road, has a ramp: wide, but steep.",
+  "ask": [
+   "Is the whole building really made of clay?",
+   "What happened to the statue of Adam?",
+   "Why are the extinct animals on the right?"
+  ]
  },
  "hope": {
   "find": "Go in through the main entrance. Hope is the whale skeleton hanging over the great hall in front of you. If you have found a whale, you have found her.",
@@ -50,7 +55,7 @@ export const STORIES = {
    "Stay under that jaw. Her baleen hung from it, and that is how scientists know where she went. It is keratin, like your fingernails, and once laid down it never changes. The team read the carbon in more than a hundred samples, each about four weeks of her life, and matched them against computer whales sent along different routes through a model ocean. Out came her travels: warm subtropical Atlantic waters, the long migration north past Ireland and back, then an erratic final year consistent with a pregnancy, though the museum says it is impossible to be certain. She was about fifteen, born around 1876, the year of the first telephone call. The bones tell you what she was. The baleen tells you what she was doing.",
    "Look at her whole, and think about the name. It was chosen as a symbol of our power to shape a more sustainable future. Blue whales were hunted almost to extinction in the twentieth century, until hunting them commercially was banned in 1966. The museum estimates there were about two hundred and fifty thousand in the 1800s, just four hundred by 1966, and about twenty thousand today. That they are still out there at all is the hope she stands for.",
    "Now walk along the bays down the sides of the hall. In one stands a mastodon, dug up on a Missouri farm in 1840 by a showman, Albert Koch, who brought it to London as a monster. He padded it with extra bones and wood until it was twice the size of a real mastodon, set the tusks sideways, and called it the Missouri Leviathan. Richard Owen bought it in 1844, for two thousand dollars down and a thousand dollars a year for life. Koch lived another twenty-two years. Owen rebuilt it into what the museum calls the first accurate mount of a mastodon anywhere, and it still stands much as he left it. Look at the tusks: they are his correction.",
-   "A few bays on is Mantellisaurus, one of the most complete skeletons of its kind in the world, named after Gideon Mantell, the Sussex doctor who was one of the very first people to study dinosaurs. Mantell once put Iguanodon's spike on its nose, until more than thirty skeletons turned up in a Belgian coal mine in 1878 and showed it was a thumb. This hall is a gallery of second opinions.",
+   "A few bays on is Mantellisaurus, one of the most complete dinosaur fossils ever found in the UK, the museum says, named after Gideon Mantell, the Sussex doctor who was one of the very first people to study dinosaurs. Mantell once put Iguanodon's spike on its nose, until more than thirty skeletons turned up in a Belgian coal mine in 1878 and showed it was a thumb. This hall is a gallery of second opinions.",
    "And somewhere along the bays is a slice of the Imilac meteorite, from the Atacama Desert in Chile. It is a kind of meteorite called a pallasite: shining metal, studded with green crystals of olivine, the gem we call peridot. It is about four and a half billion years old, as old as the solar system. So the oldest thing in this hall is not the whale at all. It is a stone from space, being very modest about it.",
    "Before you leave the hall, one more nudge. Look up past her, at the painted ceiling. Don't linger. Later on this walk you will be up on the top balcony, much closer to it, and to her."
   ],
@@ -74,7 +79,12 @@ export const STORIES = {
    "The skeleton you are about to meet began as a stranding. In March 1891 a blue whale came ashore on a sandbar near Wexford, on the south-east coast of Ireland, and the museum bought her that same year.",
    "Blue whales are the largest animals ever known to have lived, bigger than any dinosaur. They feed on krill, tiny shrimp-like animals, and they do it by the tonne. They have no teeth at all; instead they strain their food through comb-like plates called baleen. Keep your neck loose. You will need it."
   ],
-  "tip": "Save your best photograph of her for the top balcony, later on this walk. It is one of the best views of her in the museum."
+  "tip": "Save your best photograph of her for the top balcony, later on this walk. It is one of the best views of her in the museum.",
+  "ask": [
+   "Is that real bone?",
+   "How did they get her through the doors?",
+   "Why is she called Hope?"
+  ]
  },
  "dinosaurs": {
   "find": "From Hintze Hall, take the corridor on the left side of the hall, towards the Darwin Centre. The Dinosaurs gallery is the third doorway on the left. At busy times there is a queue. Count the doorways: one, two, dinosaurs.",
@@ -112,7 +122,12 @@ export const STORIES = {
    "This museum has been in the dinosaur business since before it opened. Its founder, Richard Owen, coined the word dinosaur in the 1840s, from the Greek for terrible lizard. He had only a handful of bones and teeth to go on, all found in England, and he guessed, correctly, that they belonged to a group of animals nobody had named before.",
    "He guessed wrong about what they looked like, as we will see. But the name stuck, and the queue you may be about to join is, in a sense, his fault."
   ],
-  "tip": "One of the busiest galleries in the museum, with a queue at busy times. The museum says weekday afternoons are its quietest."
+  "tip": "One of the busiest galleries in the museum, with a queue at busy times. The museum says weekday afternoons are its quietest.",
+  "ask": [
+   "Is the T. rex jaw real bone?",
+   "Did Iguanodon really have a spike on its nose?",
+   "Could I outrun a T. rex?"
+  ]
  },
  "mammals": {
   "find": "Leave Dinosaurs and follow the signs along the Mammals gallery. At its end, turn right for the Mammals Hall. Don't stop for the smaller mammals on the way. The big one is waiting.",
@@ -150,6 +165,11 @@ export const STORIES = {
   "walking": [
    "The model you are about to meet was made in the 1930s, when whaling was at its height and the blue whale was being hunted towards extinction. Its makers worked from photographs and from the measurements of a single female, killed by a British research team in 1925.",
    "They built it where it stands, out of wood and plaster. It is one of the museum's best loved objects, and it has outlasted almost everything else from its decade, including, for a while, the whale skeleton that hung above it."
+  ],
+  "ask": [
+   "Is that a real whale?",
+   "Why does it look so fat?",
+   "Is there really a phone book inside?"
   ]
  },
  "darwin": {
@@ -177,6 +197,11 @@ export const STORIES = {
   "walking": [
    "Charles Darwin sailed round the world on HMS Beagle as a young man, from 1831 to 1836, and then spent more than twenty years thinking, collecting, writing letters and breeding pigeons before he published On the Origin of Species in 1859. He disliked controversy and was often unwell, which did not stop the controversy from finding him.",
    "He died in 1882 and was buried in Westminster Abbey, close to Isaac Newton. Not bad, for a man whose big idea had upset so many people."
+  ],
+  "ask": [
+   "Why was Darwin moved off the stairs?",
+   "Were Darwin and Owen ever friends?",
+   "Who is the man in the portrait beside him?"
   ]
  },
  "treasures": {
@@ -212,6 +237,11 @@ export const STORIES = {
   "walking": [
    "The room you are heading to is the museum's greatest hits. Of its many millions of specimens, only a handful made it in, each chosen because it changed what we know, or how we came to know it.",
    "Two of them are linked by a coincidence of dates. In 1859 Darwin published his argument that living things change over immense spans of time. Two years later a slab of limestone from a quarry in Germany gave up an animal that looked part bird and part reptile. Timing like that is hard to arrange."
+  ],
+  "ask": [
+   "Is the Moon rock real?",
+   "How did Owen predict the moa from one bone?",
+   "Is Archaeopteryx a bird or a dinosaur?"
   ]
  },
  "vault": {
@@ -251,7 +281,12 @@ export const STORIES = {
    "The Minerals gallery has barely changed since the museum opened in 1881. A Victorian visitor would still recognise it, cabinets and all. Minerals are the building blocks of rocks: each one is a natural solid with its own recipe of chemical elements and its own way of stacking its atoms.",
    "Most are not especially precious. A few are worth a fortune, because they are rare, hard and beautiful all at once. The museum keeps the most valuable at the far end, in a room called the Vault. The name is a clue."
   ],
-  "tip": "One of the quietest rooms in the museum. If you need a breather, take it here."
+  "tip": "One of the quietest rooms in the museum. If you need a breather, take it here.",
+  "ask": [
+   "Is the curse real?",
+   "How do we know Nakhla is from Mars?",
+   "Why does the top diamond change colour?"
+  ]
  },
  "sequoia": {
   "find": "Go back to Hintze Hall and climb to the second floor, the top balcony. The great slice of tree trunk stands up there, with Hope below you. Yes, more climbing. The view is worth it.",
@@ -281,7 +316,12 @@ export const STORIES = {
    "Giant sequoias grow naturally in only one place on Earth: a scattering of groves on the western slopes of the Sierra Nevada mountains, in California. They are among the largest living things there are, and some still standing are thousands of years old.",
    "In the late nineteenth century loggers went after them with saws and axes, and the trees were so vast that felling one could take a team days. Much of the timber, being brittle, turned out to be fit for little more than fence posts and matchsticks. The one you are about to see came down in 1891."
   ],
-  "tip": "The entrance beside the sequoia is the Anning Rooms, for members only. You are not missing a gallery."
+  "tip": "The entrance beside the sequoia is the Anning Rooms, for members only. You are not missing a gallery.",
+  "ask": [
+   "How old was the tree when it was cut down?",
+   "Why is it called a sequoia?",
+   "Who was Graman Kwasi?"
+  ]
  },
  "nature-and-us": {
   "find": "From the sequoia, carry on along the top balcony to the other side of the hall. The entrance is on your left. Hope will keep you company on the way.",
@@ -316,6 +356,11 @@ export const STORIES = {
   "walking": [
    "During the Second World War the museum was hit by bombs, and in the autumn of 1940 its botany department, home of the herbarium, took a direct hit. A herbarium is a library of plants: millions of specimens, each pressed flat on paper and labelled with where and when it was collected.",
    "The room you are heading for was handed over to that collection and closed to the public for more than eighty years. It reopened in September 2026 as a trial gallery, which means that, for once, your opinion of a museum gallery may actually change it."
+  ],
+  "ask": [
+   "Why was this room closed for so long?",
+   "Was Jenny really a talking fish?",
+   "How old is the handaxe?"
   ]
  },
  "marine-reptiles": {
@@ -350,7 +395,12 @@ export const STORIES = {
    "Mary Anning was born in 1799 in Lyme Regis, on the Dorset coast, where the cliffs are packed with fossils from the age of dinosaurs. Her family was poor, and they sold what they found to tourists. The cliffs crumble in winter storms, which is when the best fossils appear, and also when hunting them is most dangerous.",
    "In 1833 a landslide killed her dog, Tray, and very nearly killed her too. She kept going. The skeletons you are about to see are the result."
   ],
-  "tip": "The T. rex Restaurant is by this gallery, open from 11:00, if anyone in your party needs feeding."
+  "tip": "The T. rex Restaurant is by this gallery, open from 11:00, if anyone in your party needs feeding.",
+  "ask": [
+   "Did Mary Anning find the first ichthyosaur?",
+   "Are these skeletons real bone or plaster?",
+   "Why was Mary not at the Geological Society meeting?"
+  ]
  },
  "human-evolution": {
   "find": "Follow the signs for the Red Zone, through the Birds and Lasting Impressions galleries, into the East Wing. Human Evolution is next to Earth Hall, close to Sophie the stegosaurus. If you meet a stegosaurus, you are very close.",
@@ -383,6 +433,11 @@ export const STORIES = {
   "walking": [
    "Our species is about three hundred thousand years old, which makes us newcomers. For most of that time we were not alone. Neanderthals lived across Europe and western Asia for hundreds of thousands of years. They made tools, used fire and survived ice ages, and they disappeared about forty thousand years ago.",
    "Before they did, our ancestors met them, and sometimes had children with them. That is why many people alive today carry a little Neanderthal DNA. Your family tree, in other words, is more interesting than you thought."
+  ],
+  "ask": [
+   "Is that a cigarette in his mouth?",
+   "Do I have Neanderthal DNA?",
+   "Was Cheddar Man the first Briton?"
   ]
  },
  "sophie": {
@@ -413,7 +468,12 @@ export const STORIES = {
    "Stegosaurus lived in the late Jurassic, about a hundred and fifty million years ago. Tyrannosaurus rex lived roughly eighty million years after that, near the very end of the age of dinosaurs. Which means that T. rex is closer in time to you than it is to a Stegosaurus.",
    "Walk with that thought for a moment. The age of dinosaurs was so long that some of its most famous animals never met, and never could have. The one you are about to see has the added distinction of being more complete than any other of her kind."
   ],
-  "tip": "The Earth Hall Cafe is by the Exhibition Road entrance, if you want a break before the escalator."
+  "tip": "The Earth Hall Cafe is by the Exhibition Road entrance, if you want a break before the escalator.",
+  "ask": [
+   "Is Sophie really a female?",
+   "How do you weigh a dinosaur?",
+   "Did Stegosaurus have two brains?"
+  ]
  },
  "kobe": {
   "find": "Ride the escalator up through the globe. At the top, turn left into Volcanoes and Earthquakes. The earthquake room, set up like a Japanese supermarket, is at the back. The museum says it can be upsetting for some people, so skip it if you would rather.",
@@ -452,7 +512,12 @@ export const STORIES = {
    "Japan is one of the most earthquake-prone countries in the world, because it sits where several of the great plates of the Earth's crust meet. Earthquakes there are part of life, and the country has learned more than most about building for them.",
    "Even so, nothing prepared the city of Kobe for the morning of the seventeenth of January 1995. You are about to step into a room that remembers it. The museum says it can be upsetting for some people, and it is perfectly fine to skip it."
   ],
-  "tip": "No ticket is needed. The museum warns that some people find it upsetting, so skipping it is perfectly fine."
+  "tip": "No ticket is needed. The museum warns that some people find it upsetting, so skipping it is perfectly fine.",
+  "ask": [
+   "How long did the Kobe earthquake last?",
+   "How were the Pompeii casts made?",
+   "Does Britain get earthquakes?"
+  ]
  },
  "fern": {
   "find": "Go back down to the ground floor and leave by the Exhibition Road entrance. Fern stands outside in the Evolution Garden, the museum's east garden; staff at the door can point you to her. In icy weather the garden can close at short notice. She is the large bronze dinosaur. You will know.",
@@ -482,6 +547,11 @@ export const STORIES = {
    "Dippy, the Diplodocus whose copy you are about to meet, was a gift. In the early twentieth century the American industrialist Andrew Carnegie had a Diplodocus skeleton dug up in the American West, and plaster casts of it were sent to museums around the world. London's was made in 1905.",
    "For decades Dippy greeted visitors in Hintze Hall, and when he made way for Hope, plenty of people minded. He went on a tour of the country instead, and while he toured, his bones were scanned. That is where this story ends: outside, in bronze."
   ],
-  "tip": "A second bronze dinosaur, a Hypsilophodon, stands nearby. See if you can find it."
+  "tip": "A second bronze dinosaur, a Hypsilophodon, stands nearby. See if you can find it.",
+  "ask": [
+   "How does Fern hold herself up?",
+   "What did Dippy get wrong?",
+   "What did Diplodocus eat?"
+  ]
  }
 };

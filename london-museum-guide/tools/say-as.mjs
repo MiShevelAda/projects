@@ -18,6 +18,17 @@ export const RESPELL = [
   ['Svante', 'Svanta', 'SVAN-ta'],
   ['Pääbo', 'Pairbo', 'PAIR-bo'],
   ['Chicxulub', 'Cheekshoolube', 'CHEEK-shoo-loob'],
+  ['Enigmacursor', 'Enigma cursor', 'e-NIG-ma KUR-sor, not EN-ig-mack'],
+  ['Ichthyotitan', 'Ichthyo-titan', 'ICK-thee-oh-TIE-tan, not ick-thee-OT-i-tan'],
+  ['Deinonychus', 'Dynonnikus', 'dye-NON-ick-us, not DAY-non-itch-us'],
+  ['Dinosauria', 'Dyno-sauria', 'dye-no-SOR-ia, as in dinosaur'],
+  ['Lhwyd', 'Lloyd', 'Edward Lhwyd: said like Lloyd, not spelt out letter by letter'],
+  ['Türkiye', 'Turkeeyeh', 'TUR-kee-yeh'],
+  ['Wollemi', 'Wollem-eye', 'the Wollemi pine: WOL-em-eye'],
+  ["a'a", 'ah-hah', 'the Hawaiian lava, two syllables: AH-ah'],
+  ['pahoehoe', 'pa-hoy-hoy', 'the Hawaiian lava: pa-HOY-hoy'],
+  ["Pele's", "Paylay's", "Pele's hair: PAY-lay, the Hawaiian volcano goddess"],
+  ['Sequoyah', 'Sikwoya', 'si-KWOY-a, like the tree'],
 ];
 
 const ONES = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',

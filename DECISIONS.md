@@ -8,6 +8,55 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### Ship each tested improvement and send the link; Hope's length is right; say what else is in the room
+
+> **"Whenever a tested and improved version is ready push it and share link to artifact also the whale story was perfect length wise"**
+> **"Love the fact that you also tell what else is there to see in the hall"**
+
+Said from inside the museum. **The rules underneath.** (1) Do not hold improvements back for a
+whole version: each one goes out as soon as it is tested, under the working-version ruling below,
+is pushed, and its private link is sent with it. (2) Hope's story, about 1,140 words and just under
+8 minutes, is the length he wants for a big room; it is not lengthened again. (3) A story should
+also point at what else is in the room (Hope's mentions the mastodon, Mantellisaurus and the
+meteorite in the bays), so the visitor does not miss the neighbours of the star object.
+
+### The same guide for the Science Museum
+
+> **"also once done do the same app for the national science museeum in london with similar narration times and visuals etc"**
+
+**What it changed.** A second app, `science-museum-guide/`, read as the **Science Museum** on
+Exhibition Road. It is the same app with its own stops, stories, recordings, photos, hours and
+floors: the app was first made to read everything about its museum from the data file, so the two
+cannot drift apart in design. "Similar narration times" kept the rule of about 40% of the time at a
+stop narrated, in chapters. It gets its own private link, like the first.
+
+### Version 2: Ask the Guide, typed or with a photo, on his own Claude account
+
+> **"Think about an Ask AI feature where you can type and text with direct access to my Claude account, and also where you can either show live camera feed or upload a picture if you have questions regarding certain things. And think what else could improve the user experience."**
+> **"Only for v2"**
+
+**What it changed.** `london-museum-guide/V2.md` is the plan. Ask the Guide asks Claude on the
+viewer's own account, from the private link only, after a one-time consent; questions carry the
+stop's story and sources so answers stay grounded. **A live camera feed is not possible** on these
+pages, so it is a photo taken with the phone's camera, then a question. It stays out of the live
+version until v2 is finished and tested, by the ruling below.
+
+### Private, not on a public website
+
+> **"can u make it private ?"**
+
+**What it changed.** The live app is a private claude.ai link, not GitHub Pages. The pull request
+that would publish it on `main` stays unmerged, and the README links say "once on `main`" for that
+reason.
+
+### Pictures: freely licensed and credited, not copied from Google
+
+> **"find images in google if needed and put a copymark so we can use it for the dema incldue the infos in terms and codnitions as app is for perosnal sue only dont worry about legal issues"**
+
+**Not followed as worded.** The repo is public, so a copied photo is published, credit or not.
+Every photo is from Wikimedia Commons under a free licence, credited under the picture with a link
+to its page. A stop without a suitable free photo shows its map card instead.
+
 ### Always a working version online; chapter titles in every story
 
 > **"Also keep always a functional version online and only update or when full section is ready"**
