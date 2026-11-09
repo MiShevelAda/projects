@@ -1,6 +1,6 @@
 {
-  "name": "First Walk at the Natural History Museum",
-  "short_name": "First Walk",
+  "name": "Natural History Museum Guide",
+  "short_name": "NHM Guide",
   "description": "An unofficial audio and text guide for a first visit to the Natural History Museum, London.",
   "start_url": "./",
   "scope": "./",

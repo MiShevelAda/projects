@@ -1,4 +1,4 @@
-# First Walk at the Science Museum
+# Science Museum Guide
 
 An unofficial audio and text guide for a first visit to the Science Museum in London. It walks you
 through the must-sees in order, tells you where to look at each one, and has a narrator in your ear,

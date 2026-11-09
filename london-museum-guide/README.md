@@ -1,4 +1,4 @@
-# First Walk at the Natural History Museum
+# Natural History Museum Guide
 
 An unofficial audio and text guide for a first visit to the Natural History Museum in London. It
 walks you through the must-sees in order, tells you where to look at each one, and has a narrator

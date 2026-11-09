@@ -8,6 +8,18 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### Each app is named after its museum, not "Walk"
+
+> **"Also chnage name instead of walk it should be the name of the Museeum"**
+
+**What it changed.** The large heading on the home screen, which said "Walk", now says the
+museum's name: "Natural History Museum", "Science Museum". The apps are named "Natural History
+Museum Guide" and "Science Museum Guide" (Home Screen: "NHM Guide", "Science Guide"), no longer
+"First Walk" and "Science Walk". **Read as**, and he can correct it: the heading and the app's
+name. "Guide" is kept on the name so the app is never taken for the museum's own; every screen
+still says it is unofficial. The Walk tab keeps its name, because a museum's name does not fit a
+tab, and the Today card is now titled "Today" so the name is not said twice.
+
 ### Nobody else can reach his Claude account or spend his usage
 
 > **"Make sure my claude account isn't exposed and people can't use my tokens for other things"**

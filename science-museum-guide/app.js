@@ -1,4 +1,4 @@
-// First Walk: an unofficial audio and text guide to a London museum. Everything about the museum
+// An unofficial audio and text guide to a London museum. Everything about the museum
 // itself (its name, hours, stops and words) is in stops.js and stories.js; this file is the same for
 // every museum.
 //
@@ -179,7 +179,7 @@ function mediaSession() {
   const s = byId(state.now.id);
   navigator.mediaSession.metadata = new MediaMetadata({
     title: state.now.kind === 'way' ? `The way to ${s.title}` : s.title,
-    artist: 'First Walk', album: `${MUSEUM.name}, unofficial guide`,
+    artist: MUSEUM.name, album: 'Unofficial guide',
     artwork: [{ src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }],
   });
   const ms = navigator.mediaSession;
@@ -224,7 +224,7 @@ function todayCard() {
   const line = { open: `Closes at ${HOURS.close}, in ${hrs(st.mins)}. Last entry ${HOURS.lastEntry}.`, before: `Open ${HOURS.open} to ${HOURS.close}. Last entry ${HOURS.lastEntry}.`, after: `Open every day ${HOURS.open} to ${HOURS.close}.`, 'closed-day': MUSEUM.closedNote }[st.state];
   const shut = STOPS.filter((s) => closedOn(s));
   return `<section class="card" aria-label="Today">
-    <div class="between"><b>${esc(MUSEUM.name)}</b>${pill}</div>
+    <div class="between"><b>Today</b>${pill}</div>
     <p class="small">${esc(line)}${shut.length ? ` Closed today: ${shut.map((s) => esc(s.title)).join(', ')}.` : ''}</p>
     <a class="soft" href="${TICKETS_URL}" target="_blank" rel="noopener">Book a Free Ticket</a>
   </section>`;
@@ -240,7 +240,7 @@ function walkView() {
   const narrated = Math.round(list.reduce((a, s) => a + (clip(s.id, 'story')?.seconds || 0), 0) / 60);
   const pos = nx ? list.indexOf(nx) + 1 : 0;
   main.innerHTML = `<div class="tab">
-    <div><p class="eyebrow">${esc(dateLine())}</p><h1 class="large">Walk</h1></div>
+    <div><p class="eyebrow">${esc(dateLine())}</p><h1 class="large">${esc(MUSEUM.name)}</h1></div>
     ${todayCard()}
     <h2 class="h2" id="howlong">How Long Have You Got?</h2>
     <div class="seg" role="radiogroup" aria-labelledby="howlong">

@@ -1,6 +1,6 @@
 {
-  "name": "First Walk at the Science Museum",
-  "short_name": "Science Walk",
+  "name": "Science Museum Guide",
+  "short_name": "Science Guide",
   "description": "An unofficial audio and text guide for a first visit to the Science Museum, London.",
   "start_url": "./",
   "scope": "./",
