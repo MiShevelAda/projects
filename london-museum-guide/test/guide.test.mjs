@@ -19,7 +19,7 @@ test('every stop has what the screen and the voice need', () => {
     assert.ok(s.minutes > 0, `${s.id}: minutes`);
     assert.ok(FLOORS.has(s.floor), `${s.id}: floor`);
     assert.ok(s.arrive?.length > 10, `${s.id}: how you know you have arrived`);
-    assert.ok(!s.walking || (Array.isArray(s.walking) && s.walking.length <= 2), `${s.id}: walking is one or two paragraphs`);
+    assert.ok(!s.walking || (Array.isArray(s.walking) && s.walking.length <= 5 && s.walking.join(' ').split(/\s+/).length <= 260), `${s.id}: the piece for the walk is short, at most 260 words`);
     assert.ok(s.look.length >= 1 && s.look.length <= 4, `${s.id}: one to four things to look for`);
     assert.ok(s.story.length >= 2, `${s.id}: a story of at least two paragraphs`);
     assert.ok(s.sources.length >= 1 && s.sources.every((x) => x.url.startsWith('https://') && x.label), `${s.id}: sources`);
