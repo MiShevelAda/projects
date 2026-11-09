@@ -8,6 +8,15 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### Two buttons never lead to the same place
+
+> **"Take photo and ask CTA leads to same"**
+
+**The rule underneath.** Every button on a screen does something different, and says so. The camera
+was an unlabelled icon beside Ask, and taking a photo only attached it, so both ended at Ask. Now
+"Take a Photo and Ask" is its own labelled button that asks the moment the photo is taken (with
+the typed question, or "What am I looking at?"), and Ask is for typed questions only.
+
 ### The guides on trucora.de, behind a password, on a landing page
 
 > **"Can we host the version on a trucora landing page that is password protected? Museeum guides and then have there the different versions"**

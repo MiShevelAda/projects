@@ -69,13 +69,12 @@ export function askCard(stop) {
     <div class="between"><span class="kicker" id="askH">Ask the Guide</span><span class="small">On your Claude account</span></div>
     ${(stop.ask || []).length ? `<div class="chips">${stop.ask.map((q) => `<button type="button" class="soft chip" data-q>${esc(q)}</button>`).join('')}</div>` : ''}
     <div class="thread" data-thread aria-live="polite"></div>
-    <div class="preview" data-preview hidden><img alt="Your photo" data-preview-img><button type="button" class="plain" data-unphoto>Remove photo</button></div>
     <form class="askform" data-askform>
-      <label class="vh" for="askq">Your question about ${esc(stop.title)}</label>
-      <input id="askq" type="text" placeholder="Ask about this stop" enterkeyhint="send" autocomplete="off" maxlength="500">
-      <label class="cam" data-cam hidden><span class="vh">Take a photo to ask about</span>${ICON_CAM}<input type="file" accept="image/*" capture="environment" data-photo></label>
-      <button type="submit" class="send" aria-label="Ask">Ask</button>
+      <label class="vh" for="askq">Type a question about ${esc(stop.title)}</label>
+      <input id="askq" type="text" placeholder="Type a question" enterkeyhint="send" autocomplete="off" maxlength="500">
+      <button type="submit" class="send">Ask</button>
     </form>
+    <label class="soft photo" data-cam hidden>${ICON_CAM}<span>Take a Photo and Ask</span><input type="file" accept="image/*" capture="environment" data-photo></label>
     <button type="button" class="plain" data-askstop hidden>Stop</button>
   </section>`;
 }
@@ -99,21 +98,21 @@ export async function wireAsk(root, app) {
   const form = card.querySelector('[data-askform]');
   const input = card.querySelector('#askq');
   const photoIn = card.querySelector('[data-photo]');
-  const preview = card.querySelector('[data-preview]');
   const stopBtn = card.querySelector('[data-askstop]');
-  let photo = null, ctl = null;
+  let ctl = null;
   const turns = threads.get(stop.id) || [];
   threads.set(stop.id, turns);
   // Show the conversation so far (this visit), so leaving and coming back keeps it.
   thread.innerHTML = turns.map((t) => `<div class="bubble ${t.role}">${t.role === 'user' ? `<p>${esc(t.content)}</p>` : paras(t.content)}</div>`).join('');
 
+  // A photo is a question of its own: taking it asks at once, with whatever is typed, or "What am I
+  // looking at?". There is no second tap, so the photo button and Ask never lead to the same place.
   photoIn.addEventListener('change', () => {
-    photo = photoIn.files?.[0] || null;
-    preview.hidden = !photo;
-    if (photo) preview.querySelector('img').src = URL.createObjectURL(photo);
+    const shot = photoIn.files?.[0] || null;
+    photoIn.value = '';
+    if (shot) send(input.value.trim() || 'What am I looking at?', shot);
   });
-  card.querySelector('[data-unphoto]').addEventListener('click', () => { photo = null; photoIn.value = ''; preview.hidden = true; });
-  card.querySelectorAll('[data-q]').forEach((b) => b.addEventListener('click', () => { input.value = b.textContent; form.requestSubmit(); }));
+  card.querySelectorAll('[data-q]').forEach((b) => b.addEventListener('click', () => send(b.textContent, null)));
   stopBtn.addEventListener('click', () => ctl?.abort());
 
   const tools = limits?.tools ? [
@@ -125,12 +124,16 @@ export async function wireAsk(root, app) {
       execute: () => app.doLater() },
   ] : undefined;
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const q = input.value.trim() || (photo ? 'What am I looking at?' : '');
-    if (!q) return;
+    const q = input.value.trim();
+    if (!q) { input.focus(); return; }
+    send(q, null);
+  });
+
+  async function send(q, shot) {
+    if (ctl) return; // one question at a time
     input.value = '';
-    const shot = photo;
     const you = document.createElement('div');
     you.className = 'bubble user';
     you.innerHTML = `${shot ? `<img src="${URL.createObjectURL(shot)}" alt="Your photo">` : ''}<p>${esc(q)}</p>`;
@@ -139,10 +142,10 @@ export async function wireAsk(root, app) {
     ans.textContent = 'Thinking...';
     thread.append(you, ans);
     ans.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    photo = null; photoIn.value = ''; preview.hidden = true;
     ctl = new AbortController();
     stopBtn.hidden = false;
     form.querySelector('.send').disabled = true;
+    cam.setAttribute('aria-disabled', 'true');
     const history = turns.slice(-6);
     const content = `${shot ? '[The visitor attached a photo they just took.] ' : ''}${q}`;
     try {
@@ -164,7 +167,8 @@ export async function wireAsk(root, app) {
     } finally {
       stopBtn.hidden = true;
       form.querySelector('.send').disabled = false;
+      cam.removeAttribute('aria-disabled');
       ctl = null;
     }
-  });
+  }
 }
