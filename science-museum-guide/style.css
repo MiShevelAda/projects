@@ -281,3 +281,10 @@ html { scroll-padding-bottom: 150px; }
 .chapters .at { color: var(--sec); font-variant-numeric: tabular-nums; }
 .onway summary { cursor: pointer; font-weight: 600; color: var(--blue-text); min-height: 44px; display: flex; align-items: center; }
 .onway p { color: var(--sec); margin-top: 8px; }
+
+/* Numbered chapter buttons in the player: always visible, one tap to jump, the playing one filled. */
+.chapnav { display: flex; flex-direction: column; gap: 6px; }
+.chaprow { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: none; scroll-snap-type: x proximity; }
+.chaprow::-webkit-scrollbar { display: none; }
+.chapnum { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--blue-bg); color: var(--blue-text); font: inherit; font-weight: 700; font-variant-numeric: tabular-nums; scroll-snap-align: center; cursor: pointer; }
+.chapnum.now { background: var(--blue-fill); color: #fff; }

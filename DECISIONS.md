@@ -8,6 +8,15 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### Chapters you can see and pick
+
+> **"i should be able to select chapter eg dinausuars 1-13 i shouzld be able somebhuow to select chapters"**
+
+**The rule underneath.** A control that exists but looks like a link has not been built. The
+chapter list was a small collapsed "Chapters, 13" that read as text, so the player now shows a row of
+numbered buttons, 1 to 13, always visible, the one playing filled, one tap to jump; the titles are a
+tap further down.
+
 ### Behavioural design from research, applied with restraint
 
 > **"Think what the best apps use based on behavioral psychology research design and usage and apply it"**

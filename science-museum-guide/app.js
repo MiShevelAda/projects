@@ -367,7 +367,8 @@ function stopView(s) {
           <button type="button" class="soft" data-rate aria-label="Speed ${state.rate}×">${state.rate}×</button>
           <button type="button" class="soft" data-skip="15" aria-label="Forward 15 seconds">Forward 15</button>
         </div>
-        ${s.chapters?.length > 1 && story?.starts ? `<details class="chapters"><summary>Chapters, ${s.chapters.length}</summary><ol>${s.chapters.map((c, i) => `<li><button type="button" data-chapter="${i}"><span>${i + 1}. ${esc(c)}</span><span class="at">${mmss(story.starts[i + 1] || 0)}</span></button></li>`).join('')}</ol></details>` : ''}
+        ${s.chapters?.length > 1 && story?.starts ? `<div class="chapnav" role="group" aria-label="Chapters"><span class="kicker">Chapters</span><div class="chaprow" data-chaprow>${s.chapters.map((c, i) => `<button type="button" class="chapnum" data-chapter="${i}" aria-label="Chapter ${i + 1}: ${esc(c)}">${i + 1}</button>`).join('')}</div></div>
+        <details class="chapters"><summary>All chapter titles</summary><ol>${s.chapters.map((c, i) => `<li><button type="button" data-chapter="${i}"><span>${i + 1}. ${esc(c)}</span><span class="at">${mmss(story.starts[i + 1] || 0)}</span></button></li>`).join('')}</ol></details>` : ''}
       </section>
       ${!state.seen[s.id] && pos >= 0 && nx ? `<button type="button" class="plain" data-later>${state.later.includes(s.id) ? 'Put It Back in Order' : 'Too Busy? Do This Later'}</button>` : ''}
       ${askCard(s)}
@@ -525,6 +526,12 @@ function paint() {
     const k = mine && state.now.kind === 'story' && !state.ended ? chapterAt(id, audio.currentTime) : 0;
     if (what) what.innerHTML = way ? `<b>The Way There</b><span>${wayOn ? 'Playing now' : 'Paused'}. Tap Skip to the Story when you arrive.</span>`
       : chapterHead(byId(id), k);
+    // The numbered chapter buttons show which chapter is playing, and keep it in view.
+    main.querySelectorAll('.chapnum').forEach((b) => {
+      const on = !way && Number(b.dataset.chapter) === k;
+      if (on !== b.classList.contains('now')) { b.classList.toggle('now', on); if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); }
+      if (on) { const row = b.parentElement; const x = b.offsetLeft - row.clientWidth / 2 + b.clientWidth / 2; if (Math.abs(row.scrollLeft - x) > b.clientWidth) row.scrollLeft = x; }
+    });
     const ts = main.querySelector('[data-tostory]'); if (ts) ts.hidden = !way;
     const r = main.querySelector('[data-rate]'); if (r) { r.textContent = `${state.rate}×`; r.setAttribute('aria-label', `Speed ${state.rate}×`); }
     const w = main.querySelector('[data-way]'); if (w) w.setAttribute('aria-pressed', String(wayOn));
