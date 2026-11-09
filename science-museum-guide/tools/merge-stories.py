@@ -2,22 +2,29 @@
 #   python3 tools/merge-stories.py <stories.json>
 # The words (find, arrive, look, story, walking, tip) go to stories.js, one object per stop, and the
 # same fields are removed from stops.js, so each sentence lives in one place only. Every URL in a
-# stop's facts_added is added to that stop's sources in stops.js.
-import json, re, sys
+# stop's facts_added is added to that stop's sources in stops.js. A file may carry only some fields
+# of a stop (say, a new walking piece and the suggested questions): those replace the old ones and
+# everything else that stop already has in stories.js is kept.
+import json, os, re, sys
 from urllib.parse import urlparse
 
-FIELDS = ['find', 'arrive', 'look', 'story', 'chapters', 'walking', 'tip']
+FIELDS = ['find', 'arrive', 'look', 'story', 'chapters', 'walking', 'tip', 'ask', 'hook', 'remember']
 src = json.load(open(sys.argv[1]))
 stops = open('stops.js').read()
 
 out = {}
+if os.path.exists('stories.js'):
+    t = open('stories.js').read()
+    out = json.loads(t[t.index('export const STORIES = ') + 23:t.rindex(';')])
 for sid, d in src.items():
     if f"id: '{sid}'" not in stops:
         sys.exit(f'unknown stop {sid}')
     o = {k: d[k] for k in FIELDS if d.get(k)}
     if isinstance(o.get('walking'), str):
         o['walking'] = [o['walking']]
-    out[sid] = o
+    if o.get('story') and len(o.get('chapters') or o['story']) != len(o['story']):
+        sys.exit(f'{sid}: {len(o["story"])} paragraphs but {len(o.get("chapters", []))} chapter titles')
+    out[sid] = {**out.get(sid, {}), **o}
     # Remove the old words from this stop's block in stops.js.
     start = stops.index(f"id: '{sid}'")
     end = stops.find("\n  },\n", start)
@@ -30,7 +37,7 @@ for sid, d in src.items():
     urls = []
     for f in d.get('facts_added') or []:
         urls += re.findall(r'https?://[^\s)\]"\']+', json.dumps(f))
-    have = set(re.findall(r"'(https?://[^']+)'", block)) | {'https://www.nhm.ac.uk' + p for p in re.findall(r"'(/[^']+)'\)", block)}
+    have = set(re.findall(r"'(https?://[^']+)'", block)) | {'https://www.sciencemuseum.org.uk' + p for p in re.findall(r"'(/[^']+)'\)", block)}
     add = []
     for u in dict.fromkeys(x.rstrip('.,;') for x in urls):
         if u in have:
@@ -55,4 +62,4 @@ if "import { STORIES } from './stories.js';" not in stops:
     stops = stops.replace("export const STOPS = RAW.map((s, i) => ({ ...s, n: i + 1 }));",
                           "export const STOPS = RAW.map((s, i) => ({ ...s, ...STORIES[s.id], n: i + 1 }));")
 open('stops.js', 'w').write(stops)
-print(f'merged {len(out)} stops')
+print(f'merged {len(src)} stops into {len(out)}')

@@ -1,6 +1,7 @@
-// The words of the Science Museum walk: how to find each stop, how you know you are there, what to
-// look for, the story by chapter, and the piece for the walk there. Checked against the sources in
-// stops.js. Edit here, then npm run audio.
+// The words of the walk: how to find each stop, how you know you are there, what to look for, the
+// story, and the piece for the walk there. Written for the ear, witty, and checked against the
+// sources listed with each stop in stops.js. Made from the storyteller's file by
+// tools/merge-stories.py; edit here, then npm run audio.
 export const STORIES = {
  "energy-hall": {
   "find": "Come in by the main entrance on Exhibition Road. You are already in it: the first hall inside the door is the Energy Hall. Walk towards the huge red engine. People have tried to miss it. Nobody has managed.",
@@ -38,7 +39,9 @@ export const STORIES = {
    "Which engine here is the oldest?",
    "Why was Old Bess called Beelzebub?",
    "What did the Lap Engine actually do?"
-  ]
+  ],
+  "hook": "Which engine here was given a devil's name, and why?",
+  "remember": "The Burnley Mill Engine was still at work in 1970, the year after people walked on the Moon."
  },
  "wells-clock": {
   "find": "From the Energy Hall, walk straight on, west, along the long corridor and past the bank of lifts, lift D, into Making the Modern World. The south side of the gallery is behind screens marked closed for refurbishment. The Wells clock is in the open part. If you cannot see it, ask a member of staff: the museum says it is on display, but not where. A clock, keeping you waiting.",
@@ -72,7 +75,9 @@ export const STORIES = {
    "Why does this clock have no face?",
    "How old is the clock, really?",
    "What is the ship doing in this gallery?"
-  ]
+  ],
+  "hook": "Can a clock from about 1390 still strike the hours?",
+  "remember": "The Wells clock's face stayed at work in Somerset, and its brains came to London."
  },
  "space": {
   "find": "Keep walking west to the far end of Making the Modern World, past lift E and stairs E, into the West Hall at the back of the museum, following the signs for Space. It is next to the IMAX ticket desk. Space, for once, is closer than you think.",
@@ -118,7 +123,9 @@ export const STORIES = {
    "Why is the capsule called Charlie Brown?",
    "How hot did the Soyuz get coming home?",
    "Is the Moon rock real?"
-  ]
+  ],
+  "hook": "If Apollo 10's capsule is Charlie Brown, where is Snoopy now?",
+  "remember": "The museum says Apollo 10 remains the fastest crewed vehicle ever: nearly forty thousand kilometres an hour on the way home."
  },
  "energy-revolution": {
   "find": "From Space, take lift F or stairs F, at the north side of the West Hall by the Space Café, up to Level 2. Energy Revolution is the whole of this floor of the West Hall. You cannot walk here from Information Age: this hall connects to the rest of the museum only on Levels 0 and 3. It keeps itself to itself.",
@@ -154,7 +161,9 @@ export const STORIES = {
    "What was the 1897 taxi powered by?",
    "What went wrong with the 1958 fusion headline?",
    "How big is a full turbine blade?"
-  ]
+  ],
+  "hook": "What became of the great fusion headline of 1958?",
+  "remember": "The museum calls the Bersey cab the first electric taxi hailed by Londoners: in 1897, in Queen Victoria's reign."
  },
  "flight": {
   "find": "Back to lift F or stairs F, and up one more floor to Level 3. The West Hall on this floor is closed for refurbishment, so follow the corridor from the lift towards the main building, past lift E, into the west end of Flight. On the one-hour and two-hour walks, take lift F straight up from Space. Either way, you are going up. It seems appropriate.",
@@ -196,7 +205,9 @@ export const STORIES = {
    "How did Alcock and Brown find their way?",
    "Why did they land in a bog?",
    "Which aircraft here is the fastest?"
-  ]
+  ],
+  "hook": "Where did the first non-stop flight across the Atlantic land?",
+  "remember": "Amy Johnson set out for Australia when her longest flight had been London to Hull, and planned her route with a ruler."
  },
  "clockmakers": {
   "find": "Walk the length of Flight and leave by its east end, by lift D. Keep going east past lift C: Wonderlab's entrance and ticket desk are just beyond it. Carry on past the Shake Bar and the picnic area to lift A and stairs A in the far corner. Go down one floor to Level 2. The Gallery Café is just ahead of you; the Clockmakers' Museum is the gallery beside the lifts, in the north-east corner of the floor. You are right on time.",
@@ -232,7 +243,9 @@ export const STORIES = {
    "What made Harrison's H5 special?",
    "How can a clock run four months on one wind?",
    "Did Hillary's watch really go to the top?"
-  ]
+  ],
+  "hook": "Which watch here does the museum say went to the top of the world?",
+  "remember": "Tompion's grandfather clock runs four months on a single winding: wind it at New Year and forget it until May."
  },
  "science-city": {
   "find": "Science City is next door, filling the middle of this end of the floor, south of the Clockmakers' Museum. Follow its walkway round. The clocks will keep.",
@@ -268,7 +281,9 @@ export const STORIES = {
    "Why was London a science city without a university?",
    "What is on Blaeu's globes?",
    "What did Hooke see under his microscope?"
-  ]
+  ],
+  "hook": "What did Robert Hooke see that gave us the word cell?",
+  "remember": "By 1800 London was a world centre of science, yet it had no university until the 1820s."
  },
  "mathematics": {
   "find": "Walk west out of Science City past lift C and stairs C. Mathematics is the next room. Coming straight from Flight on the two-hour walk? Walk east from Flight to lift C or stairs C and go down one floor: Mathematics is just west of them. If the room has an aeroplane in it, you have done your sums right.",
@@ -306,7 +321,9 @@ export const STORIES = {
    "Why is the gallery shaped like that?",
    "What did the North Sea machine predict?",
    "How did the Enigma machine work?"
-  ]
+  ],
+  "hook": "Which aircraft lost a prize, yet the winner flew on its idea?",
+  "remember": "Kazuo Ishiguro's father kept an electronic model of the North Sea in his garage; Kazuo has said it looked like the inside of a Tardis."
  },
  "information-age": {
   "find": "Keep going west out of Mathematics, past lift D and stairs D. Information Age is the next gallery. Just inside the entrance, look for a cactus. Yes, a cactus. Indoors. In London.",
@@ -346,7 +363,9 @@ export const STORIES = {
    "What were the Rugby masts for?",
    "Why is there a cactus by the door?",
    "What are the two objects from 1985?"
-  ]
+  ],
+  "hook": "What did the Queen take off to send her first tweet?",
+  "remember": "The tall cactus by the entrance is not a cactus: it is a mobile phone mast in disguise."
  },
  "medicine": {
   "find": "Cross Information Age to its far, west end and take stairs E or lift E down one floor to Level 1. You come out at Faith, Hope and Fear, the west end of Medicine: The Wellcome Galleries. This stop walks you east through all five rooms. You are coming in at the back. Nobody will mind.",
@@ -390,7 +409,9 @@ export const STORIES = {
    "What is special about the penicillin mould?",
    "Why is there a cantaloupe in the story?",
    "Who took Photo 51?"
-  ]
+  ],
+  "hook": "What did the Oxford team grow penicillin in?",
+  "remember": "In Illinois, Mary Hunt found a rotting cantaloupe whose mould made six times more penicillin than Fleming's."
  },
  "engineers": {
   "find": "Leave Medicine and Bodies by its east end, past lift C and stairs C. Technicians: The David Sainsbury Gallery is ahead of you; Engineers is beyond it, in the north-east corner by lift A. Two galleries, and neither costs a penny.",
@@ -428,7 +449,9 @@ export const STORIES = {
    "Is the gallery really made of yoghurt pots?",
    "What does the robot arm do?",
    "Which engineer here should I know?"
-  ]
+  ],
+  "hook": "Which breakfast leftover helped build the Engineers gallery?",
+  "remember": "The Virtual Heart was built by the bioengineer Dr Jazmin Aguado Sierra from scans of her own heart."
  },
  "watt-workshop": {
   "find": "Take lift A or stairs A, in the corner of Engineers, down to Level 0. You come out in the corner of the Energy Hall where you started. James Watt and Our World is right beside you, on the north side of the hall. From Medicine on the two-hour walk, keep walking east through Technicians to lift A. From Flight on the one-hour walk, walk east along Level 3 past Wonderlab to lift A, and go down to Level 0. Yes, you have been here before. That was the plan.",
@@ -461,6 +484,8 @@ export const STORIES = {
    "Why was the workshop never tidied?",
    "What is a watt, exactly?",
    "What did Watt make besides engines?"
-  ]
+  ],
+  "hook": "What does James Watt's steam engine have to do with teacups?",
+  "remember": "James Watt's attic workshop is preserved as it was when he died in 1819, with eight thousand four hundred and thirty objects."
  }
 };

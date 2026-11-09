@@ -39,7 +39,9 @@ export const STORIES = {
    "Is the whole building really made of clay?",
    "What happened to the statue of Adam?",
    "Why are the extinct animals on the right?"
-  ]
+  ],
+  "hook": "Who stood above the main door until the Second World War?",
+  "remember": "The clay animals on the front were cast in Staffordshire, at a factory whose usual line was sanitary pipes."
  },
  "hope": {
   "find": "Go in through the main entrance. Hope is the whale skeleton hanging over the great hall in front of you. If you have found a whale, you have found her.",
@@ -92,7 +94,9 @@ export const STORIES = {
    "Is that real bone?",
    "How did they get her through the doors?",
    "Why is she called Hope?"
-  ]
+  ],
+  "hook": "How did a whale with a six-metre skull fit through the door?",
+  "remember": "The museum estimates about two hundred and fifty thousand blue whales in the 1800s, just four hundred by 1966, and about twenty thousand today."
  },
  "dinosaurs": {
   "find": "From Hintze Hall, take the corridor on the left side of the hall, towards the Darwin Centre. The Dinosaurs gallery is the third doorway on the left. At busy times there is a queue. Count the doorways: one, two, dinosaurs.",
@@ -142,7 +146,9 @@ export const STORIES = {
    "Is the T. rex jaw real bone?",
    "Did Iguanodon really have a spike on its nose?",
    "Could I outrun a T. rex?"
-  ]
+  ],
+  "hook": "Who would win a race: you or a T. rex?",
+  "remember": "This jaw was first named Dynamosaurus, until in 1906 Tyrannosaurus won: children queue for a T. rex instead."
  },
  "mammals": {
   "find": "Leave Dinosaurs and follow the signs along the Mammals gallery. At its end, turn right for the Mammals Hall. Don't stop for the smaller mammals on the way. The big one is waiting.",
@@ -185,7 +191,9 @@ export const STORIES = {
    "Is that a real whale?",
    "Why does it look so fat?",
    "Is there really a phone book inside?"
-  ]
+  ],
+  "hook": "Why is the whale model so much fatter than a real blue whale?",
+  "remember": "According to the museum's own history, a telephone directory and some coins were left inside the model before it was sealed."
  },
  "darwin": {
   "find": "Go back to Hintze Hall and climb the main staircase at its far end. Darwin sits on the landing, halfway up. He has been expecting you.",
@@ -220,7 +228,9 @@ export const STORIES = {
    "Why was Darwin moved off the stairs?",
    "Were Darwin and Owen ever friends?",
    "Who is the man in the portrait beside him?"
-  ]
+  ],
+  "hook": "Who took Darwin's place on the stairs while he was away?",
+  "remember": "Darwin's statue came with a disclaimer, read out at its unveiling by his own champion, Huxley."
  },
  "treasures": {
   "find": "Carry on up to the first floor. Treasures has an entrance on each side of the main staircase. Take the one on your left as you face Darwin, if you can: a giant extinct bird is waiting just inside. Either door will do, though. The treasures are not fussy.",
@@ -268,7 +278,9 @@ export const STORIES = {
    "Is the Moon rock real?",
    "How did Owen predict the moa from one bone?",
    "Is Archaeopteryx a bird or a dinosaur?"
-  ]
+  ],
+  "hook": "Why is there a piece of the Moon in a natural history museum?",
+  "remember": "Darwin never used the word evolution in the first edition of On the Origin of Species; its very last word is evolved."
  },
  "vault": {
   "find": "On the first floor, follow the signs for Minerals along the balcony. Walk the length of the Minerals gallery; the Vault is at its far end. They have saved the shiny ones for last.",
@@ -319,7 +331,9 @@ export const STORIES = {
    "Is the curse real?",
    "How do we know Nakhla is from Mars?",
    "Why does the top diamond change colour?"
-  ]
+  ],
+  "hook": "Why was a purple stone sealed away in seven boxes?",
+  "remember": "The smudge in one tiny vial is millions of diamonds, made around dying stars before the solar system existed."
  },
  "sequoia": {
   "find": "Go back to Hintze Hall and climb to the second floor, the top balcony. The great slice of tree trunk stands up there, with Hope below you. Yes, more climbing. The view is worth it.",
@@ -361,7 +375,9 @@ export const STORIES = {
    "How old was the tree when it was cut down?",
    "Why is it called a sequoia?",
    "Who was Graman Kwasi?"
-  ]
+  ],
+  "hook": "How long did it take to dust a tree thirteen centuries old?",
+  "remember": "This sequoia was more than thirteen hundred years old when it was felled: the conservators counted one thousand, three hundred and forty-one rings."
  },
  "nature-and-us": {
   "find": "From the sequoia, carry on along the top balcony to the other side of the hall. The entrance is on your left. Hope will keep you company on the way.",
@@ -407,7 +423,9 @@ export const STORIES = {
    "Was Jenny really a talking fish?",
    "How old is the handaxe?"
   ],
-  "tip": "Soon after it opened, one review found part of this room screened off. If you meet a barrier, skip what you cannot reach; the rest still works."
+  "tip": "Soon after it opened, one review found part of this room screened off. If you meet a barrier, skip what you cannot reach; the rest still works.",
+  "hook": "Why was this gallery closed to visitors for over eighty years?",
+  "remember": "Jenny, advertised as a talking fish, was, the museum says, a monk seal trained to say mama and papa."
  },
  "marine-reptiles": {
   "find": "Go back down to the ground floor of Hintze Hall. Stand with your back to the main entrance, facing the staircase. Go through the archways on your right, just before the stairs. If you reach the stairs, you have gone a step too far.",
@@ -453,7 +471,9 @@ export const STORIES = {
    "Did Mary Anning find the first ichthyosaur?",
    "Are these skeletons real bone or plaster?",
    "Why was Mary not at the Geological Society meeting?"
-  ]
+  ],
+  "hook": "Why did Europe's most famous anatomist suspect a fake?",
+  "remember": "Cuvier doubted Mary Anning's plesiosaur, then, the museum says, she sold him one for three times the price."
  },
  "human-evolution": {
   "find": "Follow the signs for the Red Zone, through the Birds and Lasting Impressions galleries, into the East Wing. Human Evolution is next to Earth Hall, close to Sophie the stegosaurus. If you meet a stegosaurus, you are very close. Stop at the entrance before you go in: the first thing to see is on the wall outside.",
@@ -502,7 +522,9 @@ export const STORIES = {
    "Do I have Neanderthal DNA?",
    "Was Cheddar Man the first Briton?"
   ],
-  "tip": "By the handaxe you can touch, the museum's own guide describes a film of a flint-knapper making a handaxe and then butchering a deer. With small children, or a delicate stomach, keep your eyes on the handaxe."
+  "tip": "By the handaxe you can touch, the museum's own guide describes a film of a flint-knapper making a handaxe and then butchering a deer. With small children, or a delicate stomach, keep your eyes on the handaxe.",
+  "hook": "Why did the most famous man from Cheddar never taste the cheese?",
+  "remember": "Our species sometimes had children with Neanderthals, so many of us carry a percent or two of Neanderthal DNA."
  },
  "sophie": {
   "find": "Earth Hall is the tall hall at the heart of the Red Zone, on the ground floor of the East Wing. From Human Evolution it is right next door. From anywhere else, go down to the ground floor of Hintze Hall and follow the signs for the Red Zone and Earth Hall. Sophie stands in the hall. She is the one with plates down her back.",
@@ -543,7 +565,9 @@ export const STORIES = {
    "Is Sophie really a female?",
    "How do you weigh a dinosaur?",
    "Did Stegosaurus have two brains?"
-  ]
+  ],
+  "hook": "Which part of a Stegosaurus is named after a cartoon?",
+  "remember": "T. rex lived closer in time to you than to Sophie the Stegosaurus."
  },
  "kobe": {
   "find": "Ride the escalator up through the globe. At the top, turn left into Volcanoes and Earthquakes. The story starts at the very beginning of the gallery and walks you through it; the earthquake room, set up like a Japanese supermarket, is at the back. The museum says that room can be upsetting for some people, so skip it if you would rather.",
@@ -594,7 +618,9 @@ export const STORIES = {
    "How long did the Kobe earthquake last?",
    "How were the Pompeii casts made?",
    "Does Britain get earthquakes?"
-  ]
+  ],
+  "hook": "How fast are the Earth's plates drifting?",
+  "remember": "Britain has a few hundred small earthquakes a year; the biggest, on Dogger Bank in 1931, was felt as far as Norway."
  },
  "fern": {
   "find": "Go back down to the ground floor and leave by the Exhibition Road entrance. Fern stands outside in the Evolution Garden, the museum's east garden; staff at the door can point you to her. In icy weather the garden can close at short notice. She is the large bronze dinosaur. You will know.",
@@ -637,6 +663,8 @@ export const STORIES = {
    "How does Fern hold herself up?",
    "What did Dippy get wrong?",
    "What did Diplodocus eat?"
-  ]
+  ],
+  "hook": "Which of Dippy's bones was upside down for over a century?",
+  "remember": "On the garden path through time, our whole species fits in the last six centimetres, about a palm's width."
  }
 };

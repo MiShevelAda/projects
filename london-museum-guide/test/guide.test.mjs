@@ -75,3 +75,11 @@ test('the guide is not tied to particular days: no dated closures, early closing
   }
   assert.match(CHECKED, /^[A-Z][a-z]+ \d{4}$/, 'CHECKED is a month and year, not a day');
 });
+
+test('every stop has a question for the Next button and one fact to remember', () => {
+  for (const s of STOPS) {
+    assert.ok(s.hook && s.hook.length <= 70 && s.hook.trim().endsWith('?'), `${s.id}: a short question that the stop answers`);
+    assert.ok(s.remember && s.remember.length <= 150 && /[.]$/.test(s.remember.trim()), `${s.id}: one sentence to remember`);
+    for (const t of [s.hook, s.remember]) assert.ok(!/[—–()!]/.test(t), `${s.id}: house style`);
+  }
+});
