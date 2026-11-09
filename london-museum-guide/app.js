@@ -240,7 +240,7 @@ function walkView() {
   const narrated = Math.round(list.reduce((a, s) => a + (clip(s.id, 'story')?.seconds || 0), 0) / 60);
   const pos = nx ? list.indexOf(nx) + 1 : 0;
   main.innerHTML = `<div class="tab">
-    <div><p class="eyebrow">${esc(dateLine())}</p><h1 class="large">${esc(MUSEUM.name)}</h1></div>
+    <div><p class="eyebrow">Based on ${esc(CHECKED)}</p><h1 class="large">${esc(MUSEUM.name)}</h1></div>
     ${todayCard()}
     <h2 class="h2" id="howlong">How Long Have You Got?</h2>
     <div class="seg" role="radiogroup" aria-labelledby="howlong">
@@ -263,7 +263,7 @@ function walkView() {
         <span class="mins">${s.minutes} min</span>${ICON.chev}</a></li>`).join('')}
     </ul></section>
     ${a2hsCard()}
-    <p class="foot">An unofficial guide, not made by or connected to the ${esc(MUSEUM.name)}. Galleries close and things move: check the museum's website on the day.</p>
+    <p class="foot">An unofficial guide, not made by or connected to the ${esc(MUSEUM.name)}, based on its galleries and exhibitions in ${esc(CHECKED)}. Galleries close and things move: check the museum's website before you go.</p>
   </div>`;
   main.querySelectorAll('[data-walk]').forEach((b) => b.addEventListener('click', () => { state.walk = b.dataset.walk; store.set('walk', state.walk); walkView(); }));
   const start = main.querySelector('[data-start]');
@@ -393,7 +393,7 @@ function stopView(s) {
   // Ask the Guide: shown only where the viewer can ask Claude (the private link).
   wireAsk(main, {
     stop: s, museum: MUSEUM.name, toast, walkList: () => walkStops(),
-    today: () => { const st = openState(), H = hoursOn(); return `${dateLine()}, ${st.state === 'open' ? `open now until ${H.close}, last entry ${H.lastEntry}` : st.state === 'closed-day' ? 'closed today' : `open ${H.open} to ${H.close}`}${noticeOn(s) ? `. Notice for this stop: ${noticeOn(s)}` : ''}`; },
+    today: () => { const st = openState(), H = hoursOn(); return `${dateLine()}, ${st.state === 'open' ? `open now until ${H.close}, last entry ${H.lastEntry}` : st.state === 'closed-day' ? 'closed today' : `open ${H.open} to ${H.close}`}${noticeOn(s) ? `. Notice for this stop: ${noticeOn(s)}` : ''}. This guide is based on the museum as it was in ${CHECKED}: if asked about what is on or where something is, say things may have changed since`; },
     openStop: (id) => { if (!byId(id)) throw new Error(`no stop ${id}`); location.hash = `#${id}`; play(id, 'way'); return 'opened'; },
     playChapter: (n) => {
       const at = story?.starts?.[Math.max(1, Math.min(s.story.length, Math.round(n)))];
@@ -408,7 +408,7 @@ function stopView(s) {
 function visitView() {
   const total = Object.values(manifest.stops).reduce((a, x) => a + (x.story?.bytes || 0) + (x.way?.bytes || 0), 0);
   main.innerHTML = `<div class="tab info">
-    <div><p class="eyebrow">${esc(dateLine())}</p><h1 class="large">Visit</h1></div>
+    <div><p class="eyebrow">Based on ${esc(CHECKED)}</p><h1 class="large">Visit</h1></div>
     ${todayCard()}
     <section class="card" aria-labelledby="offH">
       <b id="offH">No Signal in the Galleries?</b>
@@ -422,7 +422,7 @@ function visitView() {
       <p class="small">Unofficial, and not made by or connected to the ${esc(MUSEUM.name)}. Each stop lists where its facts come from. The narrator is a recorded computer voice, Kokoro-82M, made in advance so it sounds the same on every phone and needs no signal. Photos are from Wikimedia Commons, each credited under it with its licence.</p>
       <button type="button" class="plain" data-reset>Start the Walk Again</button>
     </section>
-    <p class="foot">Facts and practical details checked ${esc(CHECKED)}.</p>
+    <p class="foot">Stories, facts and practical details are based on the museum as it was in ${esc(CHECKED)}.</p>
   </div>`;
   main.querySelector('[data-save]').addEventListener('click', saveAll);
   main.querySelector('[data-reset]').addEventListener('click', () => {

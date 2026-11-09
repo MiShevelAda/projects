@@ -41,5 +41,6 @@ The same app as `london-museum-guide/`, with its own `stops.js`, `stories.js`, r
 and offline cache names (`sm-walk-`). See `../london-museum-guide/README.md` and `tools/README.md`
 for how the narration is recorded and checked.
 
-**Facts** were checked on 9 November 2026, from the museum's own pages and blog wherever possible;
+**The guide is based on the museum as it was in November 2026**, with no closures for particular
+days. Facts were checked from the museum's own pages and blog wherever possible;
 each stop lists its sources under **Where these facts come from**.

@@ -113,7 +113,7 @@ export const STORIES = {
    "Space, the gallery you are heading for, opened on Saturday the twentieth of September 2025, and it is free. It replaced Exploring Space, which opened in 1986 and ran for nearly forty years, until 2025, so if you came to this museum as a child, that is probably where you met your first rocket. Apollo 10, one of the stars of the new gallery, used to stand in the gallery you are walking through now. It moved house for this, a short trip by its standards.",
    "This year, 2026, is also the thirty-fifth anniversary of Helen Sharman's flight, and her spacesuit is waiting for you in there too. Thirty-five years on, it has aged better than most of us. Keep an ear out as you go: the next stop has astronauts, a cartoon dog, a piece of the Moon, and a very large parachute. Two capsules are waiting. One of them still holds a speed record."
   ],
-  "tip": "Space Café is next door: weekdays 11:00 to 15:30, weekends 11:00 to 16:00, school holidays 11:00 to 17:00. Power Up, the paid video-games gallery, is one floor down by lift F: from £10, closed 16 to 19 November.",
+  "tip": "Space Café is next door: weekdays 11:00 to 15:30, weekends 11:00 to 16:00, school holidays 11:00 to 17:00. Power Up, the paid video-games gallery, is one floor down by lift F: from £10.",
   "ask": [
    "Why is the capsule called Charlie Brown?",
    "How hot did the Soyuz get coming home?",
@@ -146,7 +146,7 @@ export const STORIES = {
    "Your Turn"
   ],
   "walking": [
-   "The West Hall is its own stack of floors. Its first and second floors join the rest of the museum only by way of the ground floor and the third, which is why you are in a lift and not a corridor. The floor in between is Who Am I?, a free gallery about what makes you you. It asks things like: what makes you smarter than a chimp? And what makes you smile? It closes early, at three in the afternoon, on Saturday the fourteenth of November and Saturday the fifth of December. Below you, on Level minus one, is Power Up, the paid games gallery, with a pitch of its own: one hundred and sixty consoles, five decades.",
+   "The West Hall is its own stack of floors. Its first and second floors join the rest of the museum only by way of the ground floor and the third, which is why you are in a lift and not a corridor. The floor in between is Who Am I?, a free gallery about what makes you you. It asks things like: what makes you smarter than a chimp? And what makes you smile? Below you, on Level minus one, is Power Up, the paid games gallery, with a pitch of its own: one hundred and sixty consoles, five decades.",
    "The gallery you are going to, Energy Revolution, opened on Tuesday the twenty-sixth of March 2024, and has since passed a million visitors. It is about one of the biggest questions there is: how to keep the lights on without cooking the planet. From the space race to the energy race, in one lift ride."
   ],
   "tip": "The game here asks you to keep Britain's electricity supply and demand in balance. It is harder than it looks.",
@@ -224,7 +224,7 @@ export const STORIES = {
    "A Plain Steel Watch"
   ],
   "walking": [
-   "On your way east you pass Wonderlab, the museum's paid gallery: fifty hands-on exhibits in seven zones, from maths to sound, and every exhibit, demo and show is screen-free. In its Electricity zone a giant Tesla coil makes real lightning, which the museum describes as Zeus approved. It is best for ages seven to fourteen, tickets start at thirteen pounds fifty, and on Tuesday the eighth of December it closes early, at four. Opposite, the Shake Bar does milkshakes and ice cream, from eleven until four. You have been warned.",
+   "On your way east you pass Wonderlab, the museum's paid gallery: fifty hands-on exhibits in seven zones, from maths to sound, and every exhibit, demo and show is screen-free. In its Electricity zone a giant Tesla coil makes real lightning, which the museum describes as Zeus approved. It is best for ages seven to fourteen, tickets start at thirteen pounds fifty. Opposite, the Shake Bar does milkshakes and ice cream, from eleven until four. You have been warned.",
    "The collection you are about to see belongs to the Worshipful Company of Clockmakers, and it used to live at the Guildhall, in the City of London. Now it has a gallery of its own here, with the engines and the aeroplanes for neighbours. From machines that fly to machines that only have to keep time. That is harder than it sounds."
   ],
   "tip": "Free volunteer tours run here; dates vary. The Gallery Café is closed Monday to Wednesday.",

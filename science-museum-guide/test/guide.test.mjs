@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { CHECKED, MUSEUM, PRACTICAL, STOPS, WALKS } from '../stops.js';
+import { CHECKED, MUSEUM, PRACTICAL, STOPS, WALKS, HOURS } from '../stops.js';
 
 const ROOT = new URL('../', import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), 'utf8');
@@ -64,4 +64,15 @@ test('house style: no em dashes, no impersonation, and the guide says it is unof
   assert.match(read('app.js'), /unofficial/i);
   assert.match(read('index.html'), /unofficial/i);
   assert.ok(CHECKED && PRACTICAL.length);
+});
+
+test('the guide is not tied to particular days: no dated closures, early closings or one-day lines', () => {
+  assert.ok(!HOURS.special && !(HOURS.closedDates || []).length, 'opening hours are the usual ones, every day');
+  for (const s of STOPS) {
+    for (const n of s.notices || (s.notice ? [s.notice] : [])) assert.ok(!n.from, `${s.id}: a notice for particular days`);
+    const words = [s.find, s.arrive, ...(s.story || []), ...(s.walking || []), s.tip || ''].join(' ');
+    // A weekday and date with no year ("on Saturday the fourteenth of November") is a visit date that goes stale; history keeps its year.
+    assert.ok(!/\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),? (the )?\w+(-\w+)?( of)? (January|February|March|April|May|June|July|August|September|October|November|December)\b(?!,? \d{4})/.test(words), `${s.id}: names a particular day`);
+  }
+  assert.match(CHECKED, /^[A-Z][a-z]+ \d{4}$/, 'CHECKED is a month and year, not a day');
 });

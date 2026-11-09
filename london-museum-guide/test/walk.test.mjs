@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import { STOPS } from '../stops.js';
 import { closedOn, london, nextOf, noticeOn, openState, pointsOn, timeCheck, upNext, walkStops } from '../walk.js';
 
-const mammals = STOPS.find((s) => s.id === 'mammals');
+// A made-up stop with a closure, so the rules are tested without tying the guide to real dates.
+const shut = { id: 'shut', notice: { text: 'Closed for three days.', from: '2026-11-10', until: '2026-11-12' } };
 const at = (iso) => new Date(iso);
 
 test('the clock is London time, whatever the phone says', () => {
@@ -29,7 +30,7 @@ test('each walk is real stops in the full walk\'s order, and later stops wait at
 
 test('next passes closed and seen stops, and comes back for one put off till later', () => {
   assert.equal(nextOf('dinosaurs', 'three', { day: '2026-11-09' }).id, 'mammals');
-  assert.equal(nextOf('dinosaurs', 'three', { day: '2026-11-11' }).id, 'darwin');
+  assert.equal(nextOf('dinosaurs', 'three', { day: '2026-11-11' }).id, 'mammals'); // no dated closures: any day is the same
   assert.equal(nextOf('hope', 'hour', { later: ['dinosaurs'] }).id, 'darwin');
   assert.equal(nextOf('sequoia', 'hour', { later: ['dinosaurs'] }).id, 'dinosaurs');
   assert.equal(nextOf('sequoia', 'two').id, 'sophie');
@@ -46,9 +47,9 @@ test('the time check offers a shorter walk when this one will not fit before cle
 });
 
 test('a closure notice shows until its last day, then goes', () => {
-  assert.ok(!closedOn(mammals, '2026-11-09'));
-  assert.ok(closedOn(mammals, '2026-11-10') && closedOn(mammals, '2026-11-12'));
-  assert.ok(noticeOn(mammals, '2026-11-12'));
-  assert.equal(noticeOn(mammals, '2026-11-13'), '');
+  assert.ok(!closedOn(shut, '2026-11-09'));
+  assert.ok(closedOn(shut, '2026-11-10') && closedOn(shut, '2026-11-12'));
+  assert.ok(noticeOn(shut, '2026-11-12'));
+  assert.equal(noticeOn(shut, '2026-11-13'), '');
   assert.deepEqual(pointsOn(['always', { text: 'until Friday', until: '2026-11-13' }], '2026-11-14'), ['always']);
 });

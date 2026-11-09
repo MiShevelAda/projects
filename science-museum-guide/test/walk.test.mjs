@@ -8,23 +8,24 @@ import { closedOn, hoursOn, nextOf, noticeOn, openState, timeCheck, walkStops } 
 const at = (iso) => new Date(iso);
 const byId = (id) => STOPS.find((s) => s.id === id);
 
-test('the museum is closed all day on 11 November, and closes early on 26 November', () => {
-  assert.equal(openState(at('2026-11-11T12:00:00Z')).state, 'closed-day');
-  assert.equal(openState(at('2026-11-10T12:00:00Z')).state, 'open');
-  assert.equal(hoursOn('2026-11-26').close, '17:00');
-  assert.equal(openState(at('2026-11-26T17:10:00Z')).state, 'after');
-  assert.equal(openState(at('2026-11-27T17:10:00Z')).state, 'open');
+test('the usual hours hold on every day but Christmas: the guide is not tied to particular dates', () => {
+  assert.equal(openState(at('2026-11-11T12:00:00Z')).state, 'open');
+  assert.equal(hoursOn('2026-11-26').close, '18:00');
+  assert.equal(openState(at('2026-11-26T17:10:00Z')).state, 'open');
+  assert.equal(openState(at('2026-12-25T12:00:00Z')).state, 'closed-day');
 });
 
 test('only a full closure makes the walk pass a stop by; late openings and partial closures are shown', () => {
-  assert.ok(closedOn(byId('flight'), '2026-11-19'));
-  assert.ok(!closedOn(byId('flight'), '2026-11-18'));
+  // Made-up notices, so the rules are tested without tying the guide to real dates.
+  const shut = { notices: [{ kind: 'closed', from: '2026-11-19', until: '2026-11-19', text: 'Closed all day.' }] };
+  const late = { notices: [{ kind: 'late', from: '2026-11-10', until: '2026-11-10', text: 'Opens at 13:00.' }] };
+  const part = { notices: [{ kind: 'partial', from: '2026-11-16', until: '2026-11-20', text: 'One game is closed.' }] };
+  assert.ok(closedOn(shut, '2026-11-19') && !closedOn(shut, '2026-11-18'));
+  assert.ok(!closedOn(late, '2026-11-10') && /13:00/.test(noticeOn(late, '2026-11-10')));
+  assert.ok(!closedOn(part, '2026-11-17') && /game/.test(noticeOn(part, '2026-11-17')));
+  assert.equal(noticeOn(shut, '2026-11-20'), '');
   assert.equal(nextOf('space', 'three', { day: '2026-11-19' }).id, 'energy-revolution');
-  assert.equal(nextOf('energy-revolution', 'three', { day: '2026-11-19' }).id, 'clockmakers');
-  assert.ok(!closedOn(byId('information-age'), '2026-11-10') && /13:00/.test(noticeOn(byId('information-age'), '2026-11-10')));
-  assert.ok(!closedOn(byId('engineers'), '2026-11-17') && /wind-turbine/.test(noticeOn(byId('engineers'), '2026-11-17')));
   assert.ok(/Ages of Invention/.test(noticeOn(byId('wells-clock'), '2026-11-09')));
-  assert.equal(noticeOn(byId('flight'), '2026-11-20'), '');
 });
 
 test('the walks run from the Energy Hall to the exit, and a late start offers a shorter one', () => {

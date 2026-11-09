@@ -9,7 +9,7 @@
 
 import { STORIES } from './stories.js';
 
-export const CHECKED = '9 November 2026';
+export const CHECKED = 'November 2026';
 
 const NHM = 'https://www.nhm.ac.uk';
 const src = (label, path) => ({ label, url: path.startsWith('http') ? path : NHM + path });
@@ -61,8 +61,6 @@ const RAW = [
   {
     id: 'mammals', title: 'The Blue Whale Model', zone: 'blue', place: 'Blue zone, Mammals Hall, ground floor', minutes: 12, floor: 'G', map: [32, 26],
     pics: [{"src": "img/mammals-whale-model.jpg", "w": 750, "h": 1000, "alt": "The head of the grey blue whale model seen from above, its long mouth line and pleated throat, with other mammals on the balcony behind", "caption": "Walk to the head: the mouth line, the throat pleats, and the blowhole on top.", "credit": "Fernando Losada Rodríguez", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Balaenoptera_musculus.001_-_Natural_History_Museum_of_London.JPG", "chapter": 6}],
-    // Closed from..until: the walk skips the stop on those days. The notice shows from today until then.
-    notice: { text: 'The museum lists the Mammals Hall as closed from Tuesday 10 to Thursday 12 November. The lift to its balcony is out of service.', from: '2026-11-10', until: '2026-11-12' },
     sources: [
       src('Mammals and the blue whale model', '/visit/galleries-and-museum-map/mammals-and-blue-whale.html'),
       src('The history of Hintze Hall', '/discover/museum-history-hintze-hall.html'),
@@ -240,8 +238,7 @@ export const PRACTICAL = [
     'Exhibition Road: into Earth Hall. It is sometimes closed at busy times.',
     'Queen\'s Gate, on the west side: step-free, open until 17:00.',
   ] },
-  { title: 'Closed or different right now', points: [
-    { text: 'Mammals Hall: listed by the museum as closed Tuesday 10 to Thursday 12 November. The walk skips it on those days.', until: '2026-11-12' },
+  { title: 'Closed or different in November 2026', points: [
     'Creepy Crawlies is closed. A new family gallery opens there in autumn 2027.',
     'The Darwin Centre Cocoon can close at short notice.',
     'Archie the giant squid can only be seen on a paid Spirit Collection tour.',
@@ -251,7 +248,7 @@ export const PRACTICAL = [
     'Central Cafe, behind Hintze Hall. T. rex Restaurant, by Fossil Marine Reptiles, from 11:00. Earth Hall Cafe, by the Exhibition Road entrance.',
     'Coats go to the cloakroom at the Exhibition Road entrance. The one at Cromwell Road takes only large bags and suitcases.',
   ] },
-  { title: 'Paid exhibitions now on', points: [
+  { title: 'Paid exhibitions in November 2026', points: [
     { text: 'Jurassic Oceans: Monsters of the Deep, until 3 January 2027.', until: '2027-01-03' },
     { text: 'Wildlife Photographer of the Year, until 11 July 2027.', until: '2027-07-11' },
   ] },

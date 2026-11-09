@@ -27,7 +27,7 @@ On each stop: **Find It** with **You are there when**, the story player, **Look 
 spot, ticked as you find them), an insider **Tip** where there is one, **The Story** lit up paragraph
 by paragraph as it is spoken (tap one to hear it from there), and **Too Busy? Do This Later**, which
 moves the stop to the end of the walk. The **Walk** tab shows whether the museum is open now and
-until when, on London time, anything closed today, and warns if the rest of the walk will not fit
+until when, on London time, and warns if the rest of the walk will not fit
 before the galleries start clearing, offering a shorter walk that does.
 
 Why each of these exists: `JOBS.md`.
@@ -54,7 +54,8 @@ eight hundred and ninety one" and Kobe as one syllable.
 **Changing the words:** edit `stories.js`, then `npm run audio` re-records only the stops whose words
 changed, and `npm test` fails until it has.
 
-**Facts** were checked on 9 November 2026, from the museum's own pages wherever possible; each stop
+**The guide is based on the museum as it was in November 2026**: its galleries, exhibitions and
+opening hours then, with no closures for particular days, so it does not go stale by the week. Facts were checked from the museum's own pages wherever possible; each stop
 lists its sources under **Where these facts come from**. Folklore the museum itself doubts (the
 "Darwin monkeys", the Nakhla dog) is left out, and the amethyst's curse is told as the legend it is.
 

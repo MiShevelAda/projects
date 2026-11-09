@@ -8,6 +8,20 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### Not tied to particular dates: based on the museum in November 2026
+
+> **"Also don't make it date specific maybe tell it's based on November exhibition 2026"**
+
+**What it changed.** Both guides drop everything tied to a particular day: the date at the top of
+the screen, the dated closures, late openings and early closings (Mammals Hall 10 to 12 November;
+the Science Museum's 11 November closure, 26 November early close, Flight on 19 November and
+others), and three spoken lines that named a day. In their place, the top of each screen says
+**"Based on November 2026"**, and the footer and the Visit tab say the guide reflects the museum's
+galleries and exhibitions then. Exhibitions keep their end dates, under "in November 2026". The
+usual opening hours and the live Open Now status stay: they hold on any day. Ask the Guide is told
+the November 2026 basis, so it says things may have changed. **A test now fails** if a dated
+closure, special hours or a weekday-and-date line with no year ever comes back.
+
 ### Each app is named after its museum, not "Walk"
 
 > **"Also chnage name instead of walk it should be the name of the Museeum"**

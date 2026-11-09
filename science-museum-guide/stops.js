@@ -8,7 +8,7 @@
 
 import { STORIES } from './stories.js';
 
-export const CHECKED = '9 November 2026';
+export const CHECKED = 'November 2026';
 
 const SM = 'https://www.sciencemuseum.org.uk';
 const BLOG = 'https://blog.sciencemuseum.org.uk';
@@ -43,7 +43,6 @@ const RAW = [
   {
     id: 'flight', title: 'Flight', zone: 'red', place: 'Level 3, Flight', minutes: 16, floor: '3', map: [40, 24],
     pic: {"src": "img/flight.jpg", "w": 800, "h": 358, "alt": "The Vickers Vimy biplane hanging in Flight", "caption": "The Vickers Vimy that Alcock and Brown flew across the Atlantic in 1919.", "credit": "Andrew Bone", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Vickers_Vimy_(1919)_-_Science_Museum_London_2026-03-30.jpg"},
-    notices: [{ kind: 'closed', from: '2026-11-19', until: '2026-11-19', text: 'Flight is closed all day on Thursday 19 November.' }],
     sources: [src('Flight', '/see-and-do/flight'), src('Refreshed Flight gallery (2024)', `${BLOG}/refreshed-flight-gallery-looks-to-the-skies/`),
       src('The first non-stop transatlantic flight', `${BLOG}/the-first-non-stop-transatlantic-flight/`), src('Wonderful Miss Johnson', `${BLOG}/wonderful-miss-johnson/`),
       src('Spirit of Innovation', `${BLOG}/spirit-of-innovation-the-worlds-fastest-electric-aircraft/`)],
@@ -66,10 +65,6 @@ const RAW = [
   },
   {
     id: 'information-age', title: 'Information Age', zone: 'orange', place: 'Level 2, Information Age', minutes: 14, floor: '2', map: [64, 40],
-    notices: [
-      { kind: 'late', from: '2026-11-10', until: '2026-11-10', text: 'Information Age opens at 13:00 on Tuesday 10 November. Before then, from Mathematics take lift D or stairs D down to Level 1, into Medicine, and come back later.' },
-      { kind: 'late', from: '2026-12-13', until: '2026-12-13', text: 'Information Age opens at 11:00 on Sunday 13 December.' },
-    ],
     sources: [src('Information Age', '/see-and-do/information-age'), src('The Queen sends her first tweet', `${BLOG}/her-majesty-the-queen-sends-her-first-tweet-to-unveil-the-information-age/`),
       src('Rugby Radio Station (Wikipedia)', 'https://en.wikipedia.org/wiki/Rugby_Radio_Station')],
   },
@@ -80,7 +75,6 @@ const RAW = [
   },
   {
     id: 'engineers', title: 'Engineers and Technicians', zone: 'green', place: 'Level 1, east end', minutes: 12, floor: '1', map: [126, 64],
-    notices: [{ kind: 'partial', from: '2026-11-16', until: '2026-11-20', text: 'The wind-turbine game in Technicians is closed 16 to 20 November.' }],
     sources: [src('Engineers', '/see-and-do/engineers'), src('Engineers opens (press release)', '/about-us/press-office/major-new-gallery-engineers-opens-science-museum'),
       src('Technicians', '/see-and-do/technicians-david-sainsbury-gallery'), src("The world's first gallery for technicians", '/about-us/press-office/worlds-first-gallery-dedicated-technicians-opens-science-museum')],
   },
@@ -124,8 +118,6 @@ export const MUSEUM = {
 export const HOURS = {
   open: '10:00', close: '18:00', lastEntry: '17:15', clearing: '17:30',
   closedDays: ['12-24', '12-25', '12-26'],
-  closedDates: ['2026-11-11'],
-  special: { '2026-11-26': { close: '17:00', clearing: '16:30', lastEntry: 'earlier than usual' } },
 };
 export const TICKETS_URL = 'https://www.sciencemuseum.org.uk/visit';
 
@@ -134,8 +126,6 @@ export const PRACTICAL = [
   { title: 'Opening hours', points: [
     'Every day, 10:00 to 18:00. Last entry 17:15. Galleries start to close at 17:30.',
     'Closed 24 to 26 December.',
-    { text: 'Closed all day on Wednesday 11 November.', until: '2026-11-11' },
-    { text: 'Closes at 17:00 on Thursday 26 November.', until: '2026-11-26' },
   ] },
   { title: 'Tickets', points: [
     'Entry is free, but book a free timed ticket: your arrival slot is printed on it.',
@@ -158,15 +148,11 @@ export const PRACTICAL = [
   ] },
   { title: 'Paid, not in free entry', points: [
     'Wonderlab, Level 3: 10:00 to 17:40, from £13.50, ages 7 to 14.',
-    { text: 'Wonderlab closes at 16:00 on Tuesday 8 December.', until: '2026-12-08' },
     'Power Up, Level -1: 10:00 to 17:30, from £10.',
-    { text: 'Power Up is closed 16 to 19 November.', until: '2026-11-19' },
     'IMAX, Level 0, West Hall: from £11.',
   ] },
-  { title: 'Also on', points: [
+  { title: 'Also on in November 2026', points: [
     'Becoming America: How Science Shaped a Nation, Level 2: free, but ticketed.',
     { text: 'The Pokémon Space Trail, until 3 January 2027.', until: '2027-01-03' },
-    { text: 'Who Am I? (Level 1, West Hall) closes at 15:00 on Saturday 14 November.', until: '2026-11-14' },
-    { text: 'Who Am I? closes at 15:00 on Saturday 5 December.', until: '2026-12-05' },
   ] },
 ];
