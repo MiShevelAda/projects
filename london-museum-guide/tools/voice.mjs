@@ -14,10 +14,12 @@ export const VOICE = {
 export const KINDS = ['way', 'story'];
 
 // What a recording says, paragraph by paragraph.
-//   way    the stop's name, then how to find it (played when the story before it ends)
+//   way    the stop's name, how to find it, how you know you are there, and a piece for the walk
 //   story  the stop's name, then the story
 export function spoken(stop, kind) {
-  if (kind === 'way') return [stop.n === 1 ? `First stop: ${stop.title}.` : `Next stop: ${stop.title}.`, stop.find];
+  // The way there: where to go, how you will know you have arrived, then something to listen to
+  // on the walk that needs no looking.
+  if (kind === 'way') return [stop.n === 1 ? `First stop: ${stop.title}.` : `Next stop: ${stop.title}.`, stop.find, stop.arrive, ...(stop.walking || [])].filter(Boolean);
   return [`${stop.title}.`, ...stop.story];
 }
 

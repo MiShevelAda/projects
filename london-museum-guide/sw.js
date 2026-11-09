@@ -8,11 +8,10 @@
 //
 // Every cache name starts with nhm-walk-: all the apps share one origin, and this worker never
 // touches a cache that is not its own. The audio cache name is also used by app.js (saveAll).
-const SHELL = 'nhm-walk-shell-v1';
+const SHELL = 'nhm-walk-shell-v2';
 const AUDIO = 'nhm-walk-audio-v1';
 const MINE = /^nhm-walk-/;
 const CORE = ['./', './index.html', './style.css', './app.js', './walk.js', './stops.js', './manifest.webmanifest',
-  './fonts/caslon-display.woff2', './fonts/source-sans-400.woff2', './fonts/source-sans-700.woff2',
   './icons/icon-192.png', './icons/icon-512.png', './audio/manifest.json'];
 
 self.addEventListener('install', (e) => {

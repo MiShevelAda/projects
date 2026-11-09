@@ -14,7 +14,8 @@ const src = (label, path) => ({ label, url: path.startsWith('http') ? path : NHM
 
 const RAW = [
   {
-    id: 'building', title: 'The building', zone: 'outside', place: 'Outside, Cromwell Road', minutes: 5,
+    id: 'building', title: 'The Building', zone: 'outside', place: 'Outside, Cromwell Road', minutes: 5, floor: 'out',
+    arrive: 'You are there when the whole terracotta front, towers and all, fits in your view.',
     find: 'Stand on the Cromwell Road pavement, facing the main entrance, far enough back to see the whole front of the building.',
     look: [
       'The animals on the walls. On your right, the east wing, they are extinct species. On your left, the west wing, living ones.',
@@ -35,7 +36,8 @@ const RAW = [
     ],
   },
   {
-    id: 'hope', title: 'Hope, the blue whale', zone: 'green', place: 'Green zone, Hintze Hall, ground floor', minutes: 10,
+    id: 'hope', title: 'Hope, the Blue Whale', zone: 'green', place: 'Green zone, Hintze Hall, ground floor', minutes: 10, floor: 'G',
+    arrive: 'You are there when a blue whale skeleton is diving over your head.',
     find: 'Go in through the main entrance. Hope is the whale skeleton hanging over the great hall in front of you.',
     look: [
       'Her lower jaw. Even at its lowest point it is more than four metres above the floor. Stand right underneath it.',
@@ -59,7 +61,8 @@ const RAW = [
     ],
   },
   {
-    id: 'dinosaurs', title: 'Dinosaurs', zone: 'blue', place: 'Blue zone, ground floor', minutes: 25,
+    id: 'dinosaurs', title: 'Dinosaurs', zone: 'blue', place: 'Blue zone, ground floor', minutes: 25, floor: 'G',
+    arrive: 'You are there when skeletons tower round you and a walkway climbs between them.',
     find: 'From Hintze Hall, take the corridor on the left side of the hall, towards the Darwin Centre. The Dinosaurs gallery is the third doorway on the left. At busy times there is a queue.',
     look: [
       'The walkway, which carries you above the floor at the height of the skeletons.',
@@ -80,7 +83,8 @@ const RAW = [
     ],
   },
   {
-    id: 'mammals', title: 'The blue whale model', zone: 'blue', place: 'Blue zone, Mammals Hall, ground floor', minutes: 10,
+    id: 'mammals', title: 'The Blue Whale Model', zone: 'blue', place: 'Blue zone, Mammals Hall, ground floor', minutes: 10, floor: 'G',
+    arrive: 'You are there when a life-size blue whale fills the hall.',
     find: 'Leave Dinosaurs and follow the signs along the Mammals gallery. At its end, turn right for the Mammals Hall.',
     // Closed from..until: the walk skips the stop on those days. The notice shows from today until then.
     notice: { text: 'The museum lists the Mammals Hall as closed from Tuesday 10 to Thursday 12 November. The lift to its balcony is out of service.', from: '2026-11-10', until: '2026-11-12' },
@@ -102,7 +106,8 @@ const RAW = [
     ],
   },
   {
-    id: 'darwin', title: 'Darwin on the stairs', zone: 'green', place: 'Green zone, the main staircase', minutes: 5,
+    id: 'darwin', title: 'Darwin on the Stairs', zone: 'green', place: 'Green zone, the main staircase', minutes: 5, floor: 'G',
+    arrive: 'You are there when a seated statue of Darwin watches the hall from the stairs.',
     find: 'Go back to Hintze Hall and climb the main staircase at its far end. Darwin sits on the landing, halfway up.',
     look: [
       'His face. He sits, a little forward, watching the hall.',
@@ -123,7 +128,8 @@ const RAW = [
     ],
   },
   {
-    id: 'treasures', title: 'Treasures', zone: 'green', place: 'Green zone, first floor', minutes: 15,
+    id: 'treasures', title: 'Treasures', zone: 'green', place: 'Green zone, first floor', minutes: 15, floor: '1',
+    arrive: 'You are there when the cases hold a feathered fossil, a famous book and a piece of the Moon.',
     find: 'Carry on up to the first floor. Treasures has entrances on both sides of the main staircase.',
     look: [
       'Archaeopteryx: a fossil with feathered wings, clawed fingers and a long, bony tail.',
@@ -142,7 +148,8 @@ const RAW = [
     ],
   },
   {
-    id: 'vault', title: 'Minerals and the Vault', zone: 'green', place: 'Green zone, first floor', minutes: 20,
+    id: 'vault', title: 'Minerals and the Vault', zone: 'green', place: 'Green zone, first floor', minutes: 20, floor: '1',
+    arrive: 'You are there when the long oak cabinets of Minerals end at the Vault\'s door.',
     find: 'On the first floor, follow the signs for Minerals along the balcony. Walk the length of the Minerals gallery; the Vault is at its far end.',
     look: [
       'The oak cabinets in Minerals. They are the originals, from 1881.',
@@ -165,7 +172,8 @@ const RAW = [
     ],
   },
   {
-    id: 'sequoia', title: 'The giant sequoia', zone: 'green', place: 'Green zone, Hintze Hall, second floor', minutes: 10,
+    id: 'sequoia', title: 'The Giant Sequoia', zone: 'green', place: 'Green zone, Hintze Hall, second floor', minutes: 10, floor: '2',
+    arrive: 'You are there when a vast slice of tree trunk stands on the top balcony.',
     find: 'Go back to Hintze Hall and climb to the second floor, the top balcony. The great slice of tree trunk stands up there, with Hope below you.',
     look: [
       'The rings, and the timeline beside the slice, which marks what was happening in the world as the tree grew.',
@@ -185,7 +193,8 @@ const RAW = [
     ],
   },
   {
-    id: 'nature-and-us', title: 'Nature and Us', zone: 'green', place: 'Green zone, second floor, new in 2026', minutes: 12,
+    id: 'nature-and-us', title: 'Nature and Us', zone: 'green', place: 'Green zone, second floor, new in 2026', minutes: 12, floor: '2',
+    arrive: 'You are there when you step off the top balcony into the new Nature and Us gallery.',
     find: 'From the sequoia, carry on along the top balcony to the other side of the hall. The entrance is on your left.',
     look: [
       'The room itself. The public had not been inside it for more than eighty years.',
@@ -205,7 +214,8 @@ const RAW = [
     ],
   },
   {
-    id: 'marine-reptiles', title: 'Mary Anning\'s sea dragons', zone: 'green', place: 'Green zone, Fossil Marine Reptiles, ground floor', minutes: 12,
+    id: 'marine-reptiles', title: 'Mary Anning\'s Sea Dragons', zone: 'green', place: 'Green zone, Fossil Marine Reptiles, ground floor', minutes: 12, floor: 'G',
+    arrive: 'You are there when long-necked and dolphin-shaped skeletons line both walls.',
     find: 'Go back down to the ground floor of Hintze Hall. Stand with your back to the main entrance, facing the staircase. Go through the archways on your right, just before the stairs.',
     look: [
       'The skeletons along both walls, behind glass: ichthyosaurs and plesiosaurs.',
@@ -226,7 +236,8 @@ const RAW = [
     ],
   },
   {
-    id: 'human-evolution', title: 'Human Evolution', zone: 'red', place: 'Red zone, East Wing, ground floor', minutes: 12,
+    id: 'human-evolution', title: 'Human Evolution', zone: 'red', place: 'Red zone, East Wing, ground floor', minutes: 12, floor: 'G',
+    arrive: 'You are there when a Neanderthal and an early modern human look back at you.',
     find: 'Follow the signs for the Red Zone, through the Birds and Lasting Impressions galleries, into the East Wing. Human Evolution is next to Earth Hall, close to Sophie the stegosaurus.',
     look: [
       'Gibraltar 1, the first adult Neanderthal skull ever found.',
@@ -247,7 +258,8 @@ const RAW = [
     ],
   },
   {
-    id: 'sophie', title: 'Sophie the stegosaurus', zone: 'red', place: 'Red zone, Earth Hall, ground floor', minutes: 8,
+    id: 'sophie', title: 'Sophie the Stegosaurus', zone: 'red', place: 'Red zone, Earth Hall, ground floor', minutes: 8, floor: 'G',
+    arrive: 'You are there when a stegosaurus stands in a tall hall, below an escalator into a giant globe.',
     find: 'Earth Hall is the tall hall at the heart of the Red Zone, on the ground floor of the East Wing. From Human Evolution it is right next door. From anywhere else, go down to the ground floor of Hintze Hall and follow the signs for the Red Zone and Earth Hall. Sophie stands in the hall.',
     look: [
       'The plates along her back, and the spikes on her tail.',
@@ -269,7 +281,8 @@ const RAW = [
     ],
   },
   {
-    id: 'kobe', title: 'The earthquake room', zone: 'red', place: 'Red zone, Volcanoes and Earthquakes, second floor', minutes: 15,
+    id: 'kobe', title: 'The Earthquake Room', zone: 'red', place: 'Red zone, Volcanoes and Earthquakes, second floor', minutes: 15, floor: '2',
+    arrive: 'You are there when a small Japanese supermarket appears at the back of the gallery.',
     find: 'Ride the escalator up through the globe. At the top, turn left into Volcanoes and Earthquakes. The earthquake room, set up like a Japanese supermarket, is at the back. The museum says it can be upsetting for some people, so skip it if you would rather.',
     look: [
       'The shop shelves, before the shaking starts.',
@@ -288,7 +301,8 @@ const RAW = [
     ],
   },
   {
-    id: 'fern', title: 'Fern, the bronze dinosaur', zone: 'outside', place: 'Outside, the Evolution Garden', minutes: 10,
+    id: 'fern', title: 'Fern, the Bronze Dinosaur', zone: 'outside', place: 'Outside, the Evolution Garden', minutes: 10, floor: 'out',
+    arrive: 'You are there when a bronze Diplodocus stretches out across the garden.',
     find: 'Go back down to the ground floor and leave by the Exhibition Road entrance. Fern stands outside in the Evolution Garden, the museum\'s east garden; staff at the door can point you to her. In icy weather the garden can close at short notice.',
     look: [
       'Her neck and tail, held out in the air with nothing underneath them.',
@@ -314,10 +328,18 @@ const RAW = [
 
 export const STOPS = RAW.map((s, i) => ({ ...s, n: i + 1 }));
 
+// How long have you got? Each walk is the best of the museum for that time, in walking order.
 export const WALKS = {
-  full: { name: 'Full walk', time: 'about 3 hours', ids: STOPS.map((s) => s.id) },
-  short: { name: 'Highlights', time: 'about 2 hours', ids: ['building', 'hope', 'dinosaurs', 'darwin', 'vault', 'sequoia', 'sophie', 'kobe', 'fern'] },
+  hour: { name: '1 Hour', ids: ['building', 'hope', 'dinosaurs', 'darwin', 'sequoia'] },
+  two: { name: '2 Hours', ids: ['building', 'hope', 'dinosaurs', 'darwin', 'vault', 'sequoia', 'sophie', 'kobe', 'fern'] },
+  three: { name: '3 Hours', ids: STOPS.map((s) => s.id) },
 };
+// Minutes to walk from one stop to the next, on average, for the time estimates.
+export const WALK_BETWEEN = 3;
+
+// Opening hours (London time). Galleries start clearing around 17:30.
+export const HOURS = { open: '10:00', close: '17:50', lastEntry: '17:30', clearing: '17:30', closedDays: ['12-24', '12-25', '12-26'] };
+export const TICKETS_URL = 'https://www.nhm.ac.uk/visit.html';
 
 // Before you go. A point with "until" is shown only up to and including that date.
 export const PRACTICAL = [

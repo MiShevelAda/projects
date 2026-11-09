@@ -10,12 +10,12 @@
  "stops": {
   "building": {
    "way": {
-    "file": "352e7c15c5adc6f3.m4a",
-    "seconds": 12.99,
-    "bytes": 78198
+    "file": "92dc2e5dec5f729c.m4a",
+    "seconds": 19.92,
+    "bytes": 116443
    },
    "story": {
-    "file": "89ace4e9ddd20886.m4a",
+    "file": "0cd9d143ec489989.m4a",
     "seconds": 92.98,
     "starts": [
      0.5,
@@ -29,12 +29,12 @@
   },
   "hope": {
    "way": {
-    "file": "10c0686d83a068d5.m4a",
-    "seconds": 13.01,
-    "bytes": 71358
+    "file": "29b85423abb8259b.m4a",
+    "seconds": 19.28,
+    "bytes": 105694
    },
    "story": {
-    "file": "2b3a1f97336d60d2.m4a",
+    "file": "c1bc9ddc334eb37d.m4a",
     "seconds": 110.69,
     "starts": [
      0.5,
@@ -49,9 +49,9 @@
   },
   "dinosaurs": {
    "way": {
-    "file": "92db992a799f1c13.m4a",
-    "seconds": 18.09,
-    "bytes": 105831
+    "file": "5217da7b6e513d9f.m4a",
+    "seconds": 25.21,
+    "bytes": 145668
    },
    "story": {
     "file": "1ca7c43726820e6f.m4a",
@@ -68,12 +68,12 @@
   },
   "mammals": {
    "way": {
-    "file": "d03bf5b766c0ebf5.m4a",
-    "seconds": 13.35,
-    "bytes": 74943
+    "file": "c33b958de05b64bc.m4a",
+    "seconds": 18.9,
+    "bytes": 104339
    },
    "story": {
-    "file": "e88640f631e361ab.m4a",
+    "file": "a7f4854e0c9e1ea0.m4a",
     "seconds": 69.73,
     "starts": [
      0.5,
@@ -87,12 +87,12 @@
   },
   "darwin": {
    "way": {
-    "file": "049766a0b512e493.m4a",
-    "seconds": 13.59,
-    "bytes": 78527
+    "file": "0de9c145576f755b.m4a",
+    "seconds": 20.52,
+    "bytes": 116436
    },
    "story": {
-    "file": "0d058710aff7d701.m4a",
+    "file": "6358948d044a0e3b.m4a",
     "seconds": 73.23,
     "starts": [
      0.5,
@@ -106,9 +106,9 @@
   },
   "treasures": {
    "way": {
-    "file": "3b5eb5877e8e7cf0.m4a",
-    "seconds": 11.75,
-    "bytes": 66740
+    "file": "6abde64ba48029be.m4a",
+    "seconds": 19.62,
+    "bytes": 111501
    },
    "story": {
     "file": "9ee59cb06dc6ef7c.m4a",
@@ -125,9 +125,9 @@
   },
   "vault": {
    "way": {
-    "file": "91fbc9a4dadbe346.m4a",
-    "seconds": 15.55,
-    "bytes": 87323
+    "file": "3fc10c688f99aa75.m4a",
+    "seconds": 22.57,
+    "bytes": 126448
    },
    "story": {
     "file": "984052d49bdc6e2d.m4a",
@@ -144,28 +144,28 @@
   },
   "sequoia": {
    "way": {
-    "file": "6a8d4469ad298db9.m4a",
-    "seconds": 15.31,
-    "bytes": 87516
+    "file": "d22e306c45c1631a.m4a",
+    "seconds": 22.18,
+    "bytes": 124931
    },
    "story": {
-    "file": "25db1096d12bd1e5.m4a",
-    "seconds": 79.07,
+    "file": "4d59ff55d1b30661.m4a",
+    "seconds": 79.16,
     "starts": [
      0.5,
-     3.68,
-     23.96,
-     40.28,
-     60.53
+     3.76,
+     24.05,
+     40.37,
+     60.61
     ],
-    "bytes": 485445
+    "bytes": 484230
    }
   },
   "nature-and-us": {
    "way": {
-    "file": "23772f842b8710f6.m4a",
-    "seconds": 13.24,
-    "bytes": 76196
+    "file": "e686972c7ea800a7.m4a",
+    "seconds": 20.54,
+    "bytes": 117835
    },
    "story": {
     "file": "f4fade487c636570.m4a",
@@ -182,12 +182,12 @@
   },
   "marine-reptiles": {
    "way": {
-    "file": "a939ec94c5898dd3.m4a",
-    "seconds": 18.13,
-    "bytes": 106031
+    "file": "72f7c613f7ee31e4.m4a",
+    "seconds": 25.02,
+    "bytes": 142958
    },
    "story": {
-    "file": "bbcb12df4ea71de3.m4a",
+    "file": "1c2b178c227bd2e0.m4a",
     "seconds": 88.23,
     "starts": [
      0.5,
@@ -202,9 +202,9 @@
   },
   "human-evolution": {
    "way": {
-    "file": "226e66a11ff248bb.m4a",
-    "seconds": 18.58,
-    "bytes": 107117
+    "file": "e815f5b54cf7318e.m4a",
+    "seconds": 25.49,
+    "bytes": 145394
    },
    "story": {
     "file": "296cb37c914f249f.m4a",
@@ -221,12 +221,12 @@
   },
   "sophie": {
    "way": {
-    "file": "06767c9b869b674e.m4a",
-    "seconds": 25.66,
-    "bytes": 152922
+    "file": "000b18941a02f029.m4a",
+    "seconds": 34.75,
+    "bytes": 204645
    },
    "story": {
-    "file": "673f02255a2807a8.m4a",
+    "file": "889392266fc8d9cd.m4a",
     "seconds": 74.72,
     "starts": [
      0.5,
@@ -241,12 +241,12 @@
   },
   "kobe": {
    "way": {
-    "file": "6fe290bf2e05e8de.m4a",
-    "seconds": 23.59,
-    "bytes": 141537
+    "file": "f3d875590163e065.m4a",
+    "seconds": 31.1,
+    "bytes": 182450
    },
    "story": {
-    "file": "67e3db51a517a013.m4a",
+    "file": "b56c58f4fe97c4f8.m4a",
     "seconds": 73.4,
     "starts": [
      0.5,
@@ -260,12 +260,12 @@
   },
   "fern": {
    "way": {
-    "file": "292173638b4a4d87.m4a",
-    "seconds": 23.78,
-    "bytes": 142042
+    "file": "5a3f0eb6f6a0b690.m4a",
+    "seconds": 30.35,
+    "bytes": 176834
    },
    "story": {
-    "file": "c2e3368a8be754a0.m4a",
+    "file": "bb266bcda3bcd159.m4a",
     "seconds": 96.23,
     "starts": [
      0.5,

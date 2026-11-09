@@ -8,6 +8,27 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-09
 
+### The museum guide looks like bike fit, is built around the visitor's jobs, and tells funny, longer stories
+
+> **"The ux ui of bike fit app is perfect here"**
+> **"Just chose one voice mvp is fine rather focus on quality of research and storytelling and functions take executive decisions ur self"**
+> **"Think of a funny widdy way to tell the story and nudge where to look etc"**
+> **"app should be deployable on phone either html or other no macbook should be needed"**
+> **"if ill sepnd 25 min in teh hall i want at least 10min of insights that ghudies me trough teh room"**
+
+**What it changed.** First Walk takes bike-fit's design language whole: iOS system colours, the
+iPhone's own font, white cards, blue capsule buttons, a floating glass tab bar (Walk, Visit), a glass
+back button. The features come from a Jobs to Be Done pass (`london-museum-guide/JOBS.md`): pick 1, 2
+or 3 hours, today's opening and closures, "You are there when", Do This Later, a closing-time check.
+The voice question is closed: George (`bm_george`). The stories are rewritten to be witty and to
+steer the eye, and their length follows the time spent at the stop, about 40% of it narrated, with
+long rooms told as a tour in chapters; each "way there" adds a piece to listen to while walking. It
+stays a web page added to the Home Screen: nothing needs a Mac.
+
+**Next, not yet done:** pictures of the easy-to-miss details ("consider also adding pictures to the
+different sections when pointing out something that could be missed"). Real photos need freely
+licensed images, and Wikimedia Commons is blocked from the session that built this.
+
 ### A museum audio and text guide, in a human voice, for a first visit
 
 > **"Can you create an app as audio guide and text guide make sure audio is not robotic but sound like a real human of Londons national history Museen walk through first time must see things and David attenbourough style explanations and where to look in each sections"**

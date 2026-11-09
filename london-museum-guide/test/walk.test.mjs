@@ -1,34 +1,54 @@
-// The walk's rules: closed stops are passed by, and dated notices disappear on their own.
+// The walk's rules: the time you have picks the walk, closed stops are passed by, later stops wait at
+// the end, dated notices disappear on their own, and the clock is London's.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { STOPS } from '../stops.js';
-import { closedOn, nextOf, noticeOn, pointsOn, today, walkStops } from '../walk.js';
+import { closedOn, london, nextOf, noticeOn, openState, pointsOn, timeCheck, upNext, walkStops } from '../walk.js';
 
 const mammals = STOPS.find((s) => s.id === 'mammals');
+const at = (iso) => new Date(iso);
 
-test('the day is the phone\'s own date', () => {
-  assert.equal(today(new Date(2026, 10, 9, 23, 30)), '2026-11-09');
+test('the clock is London time, whatever the phone says', () => {
+  assert.deepEqual(london(at('2026-11-09T14:30:00Z')), { day: '2026-11-09', mins: 14 * 60 + 30 });
+  assert.deepEqual(london(at('2026-07-01T09:00:00Z')), { day: '2026-07-01', mins: 10 * 60 }); // summer time
 });
 
-test('next follows the walk, and passes a stop the museum has closed that day', () => {
-  assert.equal(nextOf('dinosaurs', 'full', '2026-11-09').id, 'mammals');
-  assert.equal(nextOf('dinosaurs', 'full', '2026-11-11').id, 'darwin');
-  assert.equal(nextOf('dinosaurs', 'full', '2026-11-13').id, 'mammals');
-  assert.equal(nextOf('dinosaurs', 'short', '2026-11-09').id, 'darwin');
-  assert.equal(nextOf('sequoia', 'short').id, 'sophie');
-  assert.equal(nextOf('fern', 'full'), null);
-  // Opened from a link though not on the Highlights walk: carries on to the next Highlights stop.
-  assert.equal(nextOf('treasures', 'short').id, 'vault');
+test('open, before, after and the Christmas closure', () => {
+  assert.equal(openState(at('2026-11-09T09:00:00Z')).state, 'before');
+  assert.deepEqual(openState(at('2026-11-09T17:00:00Z')), { state: 'open', mins: 50 });
+  assert.equal(openState(at('2026-11-09T18:00:00Z')).state, 'after');
+  assert.equal(openState(at('2026-12-25T12:00:00Z')).state, 'closed-day');
+});
+
+test('each walk is real stops in the full walk\'s order, and later stops wait at the end', () => {
+  assert.deepEqual(walkStops('hour').map((s) => s.id), ['building', 'hope', 'dinosaurs', 'darwin', 'sequoia']);
+  assert.equal(walkStops('three').length, STOPS.length);
+  assert.equal(walkStops('nonsense').length, STOPS.length);
+  assert.deepEqual(walkStops('hour', ['dinosaurs']).map((s) => s.id), ['building', 'hope', 'darwin', 'sequoia', 'dinosaurs']);
+});
+
+test('next passes closed and seen stops, and comes back for one put off till later', () => {
+  assert.equal(nextOf('dinosaurs', 'three', { day: '2026-11-09' }).id, 'mammals');
+  assert.equal(nextOf('dinosaurs', 'three', { day: '2026-11-11' }).id, 'darwin');
+  assert.equal(nextOf('hope', 'hour', { later: ['dinosaurs'] }).id, 'darwin');
+  assert.equal(nextOf('sequoia', 'hour', { later: ['dinosaurs'] }).id, 'dinosaurs');
+  assert.equal(nextOf('sequoia', 'two').id, 'sophie');
+  assert.equal(nextOf('treasures', 'two').id, 'vault'); // opened from a link, not on this walk
+  assert.equal(nextOf('fern', 'three', { seen: Object.fromEntries(STOPS.map((s) => [s.id, true])) }), null);
+  assert.equal(upNext('two', { seen: { building: true, hope: true } }).id, 'dinosaurs');
+});
+
+test('the time check offers a shorter walk when this one will not fit before clearing', () => {
+  const late = timeCheck('three', { d: at('2026-11-09T15:00:00Z') });
+  assert.ok(late.short && late.shorter);
+  assert.equal(timeCheck('hour', { d: at('2026-11-09T10:00:00Z') }).short, false);
+  assert.equal(timeCheck('two', { d: at('2026-11-09T20:00:00Z') }).state, 'after');
 });
 
 test('a closure notice shows until its last day, then goes', () => {
   assert.ok(!closedOn(mammals, '2026-11-09'));
   assert.ok(closedOn(mammals, '2026-11-10') && closedOn(mammals, '2026-11-12'));
-  assert.ok(noticeOn(mammals, '2026-11-09') && noticeOn(mammals, '2026-11-12'));
+  assert.ok(noticeOn(mammals, '2026-11-12'));
   assert.equal(noticeOn(mammals, '2026-11-13'), '');
   assert.deepEqual(pointsOn(['always', { text: 'until Friday', until: '2026-11-13' }], '2026-11-14'), ['always']);
-});
-
-test('an unknown walk falls back to the full walk', () => {
-  assert.equal(walkStops('nonsense').length, STOPS.length);
 });

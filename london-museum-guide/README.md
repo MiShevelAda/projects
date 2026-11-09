@@ -54,4 +54,4 @@ changed, and `npm test` fails until it has.
 lists its sources under **Where these facts come from**. Folklore the museum itself doubts (the
 "Darwin monkeys", the Nakhla dog) is left out, and the amethyst's curse is told as the legend it is.
 
-Fonts: Libre Caslon Display and Source Sans 3, both SIL Open Font License, in `fonts/`.
+The design follows the bike-fit app's: iOS system colours and the iPhone's own font, so it needs no font files.
