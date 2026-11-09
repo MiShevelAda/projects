@@ -55,6 +55,10 @@ const byId = (id) => STOPS.find((s) => s.id === id);
 const clip = (id, kind) => manifest.stops[id]?.[kind];
 const here = () => (byId(location.hash.slice(1)) ? location.hash.slice(1) : null);
 
+// Photos: a stop's `pics` each belong to a Look For item ({ look: i }) or a chapter ({ chapter: i }).
+const picFor = (s, kind, i) => (s.pics || []).find((p) => p[kind] === i);
+const figure = (p, cls) => `<figure class="${cls}"><img src="${esc(p.src)}" alt="${esc(p.alt)}" loading="lazy" width="${p.w}" height="${p.h}"><figcaption>${esc(p.caption)} <a href="${esc(p.page)}" target="_blank" rel="noopener">Photo: ${esc(p.credit)}, ${esc(p.license)}</a></figcaption></figure>`;
+
 // Which chapter of a stop's story a moment in its recording falls in (0 before it starts).
 // starts[0] is the spoken title, starts[i + 1] chapter i.
 function chapterAt(id, t) {
@@ -300,8 +304,8 @@ function stopView(s) {
       </section>
       <section class="card flat look" aria-labelledby="lookH">
         <div class="head between"><span class="kicker" id="lookH">Look For</span><span class="kicker" data-count>${found.size} of ${s.look.length}</span></div>
-        ${s.pic ? `<figure class="pic"><img src="${esc(s.pic.src)}" alt="${esc(s.pic.alt)}" loading="lazy" width="${s.pic.w}" height="${s.pic.h}"><figcaption>${esc(s.pic.caption)} <a href="${esc(s.pic.page)}" target="_blank" rel="noopener">Photo: ${esc(s.pic.credit)}, ${esc(s.pic.license)}</a></figcaption></figure>` : ''}
-        <ul class="list">${s.look.map((l, i) => `<li><button type="button" aria-pressed="${found.has(i)}" data-look="${i}"><span class="box" aria-hidden="true"></span><span class="txt">${esc(l)}</span></button></li>`).join('')}</ul>
+        ${s.pic ? figure(s.pic, 'pic') : ''}
+        <ul class="list">${s.look.map((l, i) => { const lp = picFor(s, 'look', i); return `<li class="${lp ? 'has-thumb' : ''}"><button type="button" aria-pressed="${found.has(i)}" data-look="${i}"><span class="box" aria-hidden="true"></span><span class="txt">${esc(l)}</span></button>${lp ? `<button type="button" class="thumb" data-zoom="${esc(lp.src)}" aria-label="See a photo: ${esc(lp.alt)}"><img src="${esc(lp.src)}" alt="" loading="lazy"></button>` : ''}</li>`; }).join('')}</ul>
       </section>
       ${s.tip ? `<p class="note tip"><span><b>Tip.</b> ${esc(s.tip)}</span></p>` : ''}
       ${s.video ? `<a class="card watch" href="${esc(s.video.url)}" target="_blank" rel="noopener">
@@ -309,7 +313,7 @@ function stopView(s) {
         <span class="wt"><span class="kicker">Watch</span><b>${esc(s.video.title)}</b><span class="small">${esc(s.video.channel)}${s.video.minutes ? `, ${s.video.minutes} min` : ''}${s.video.views ? `, ${esc(s.video.views)}` : ''}. Opens YouTube.</span></span>${ICON.chev}</a>` : ''}
       <section class="card story" aria-labelledby="storyH">
         <span class="kicker" id="storyH">The Story</span>
-        ${s.story.map((p, i) => `${s.chapters?.[i] ? `<h3 class="chap" data-c="${i}">${i + 1}. ${esc(s.chapters[i])}</h3>` : ''}<p data-p="${i}">${esc(p)}</p>`).join('')}
+        ${s.story.map((p, i) => { const cp = picFor(s, 'chapter', i); return `${s.chapters?.[i] ? `<h3 class="chap" data-c="${i}">${i + 1}. ${esc(s.chapters[i])}</h3>` : ''}${cp ? figure(cp, 'cpic') : ''}<p data-p="${i}">${esc(p)}</p>`; }).join('')}
       </section>
       ${s.sources?.length ? `<details class="card sources"><summary>Where These Facts Come From</summary><ul>${s.sources.map((u) => `<li><a href="${esc(u.url)}" rel="noopener" target="_blank">${esc(u.label)}</a></li>`).join('')}</ul></details>` : ''}
       ${!state.seen[s.id] && pos >= 0 && nx ? `<button type="button" class="plain" data-later>${state.later.includes(s.id) ? 'Put It Back in Order' : 'Too Busy? Do This Later'}</button>` : ''}
@@ -351,6 +355,14 @@ function stopView(s) {
     audio.currentTime = at;
     if (audio.paused) play(s.id, 'story');
   }));
+  main.querySelectorAll('[data-zoom]').forEach((t) => t.addEventListener('click', () => {
+    const p = (s.pics || []).find((x) => x.src === t.dataset.zoom);
+    if (!p) return;
+    const z = $('#zoom');
+    z.querySelector('[data-zoom-body]').innerHTML = figure(p, 'zpic');
+    z.hidden = false;
+    z.querySelector('.close').focus();
+  }));
   main.querySelector('[data-later]')?.addEventListener('click', () => {
     state.later = state.later.includes(s.id) ? state.later.filter((x) => x !== s.id) : [...state.later, s.id];
     store.set('later', state.later);
@@ -390,7 +402,7 @@ function visitView() {
 async function saveAll() {
   const out = main.querySelector('[data-progress]');
   const files = [...Object.values(manifest.stops).flatMap((x) => [x.way?.file, x.story?.file]).filter(Boolean).map((f) => `audio/${f}`),
-    ...STOPS.filter((s) => s.pic).map((s) => s.pic.src)];
+    ...STOPS.flatMap((s) => [s.pic, ...(s.pics || [])]).filter(Boolean).map((p) => p.src)];
   if (!('caches' in window)) { out.textContent = 'This browser cannot save the walk. It will play while you have signal.'; return; }
   try {
     const c = await caches.open('nhm-walk-audio-v1');
@@ -477,10 +489,13 @@ function toast(msg) {
 }
 
 $('#dock-play').addEventListener('click', toggle);
+$('#zoom').addEventListener('click', (e) => { if (e.target.closest('.close') || e.target.id === 'zoom') $('#zoom').hidden = true; });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#zoom').hidden = true; });
 
 // On a change of screen, focus moves to the new screen so a screen reader starts reading there; on
 // first load it stays put, so the first Tab still reaches "Skip to content".
 function show(moved = true) {
+  $('#zoom').hidden = true;
   route();
   window.scrollTo(0, 0);
   if (moved) main.focus({ preventScroll: true });

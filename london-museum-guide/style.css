@@ -203,3 +203,18 @@ a.watch { display: grid; grid-template-columns: 44px minmax(0, 1fr) 10px; gap: 1
 /* Once a stop has scrolled, a fade under the glass back button keeps it clear of the text (bike-fit's .ftopfade) */
 .topfade { position: fixed; left: 0; right: 0; top: 0; height: calc(env(safe-area-inset-top, 0px) + 72px); background: linear-gradient(var(--bg) 60%, var(--bg-clear)); opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 11; }
 body.scrolled .topfade { opacity: 1; }
+
+/* Photos for Look For items (a thumbnail on the row) and chapters (full width above the text) */
+.look li.has-thumb { display: grid; grid-template-columns: minmax(0, 1fr) 76px; align-items: center; }
+.look .thumb { appearance: none; border: 0; padding: 0; margin-right: 14px; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background: var(--fill); }
+.look .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cpic { margin: 2px 0 4px; }
+.cpic img { display: block; width: 100%; height: auto; border-radius: 14px; background: var(--fill); }
+.cpic figcaption, .zpic figcaption { margin-top: 6px; font-size: 0.765rem; line-height: 1.38; color: var(--sec); }
+.cpic figcaption a, .zpic figcaption a { color: var(--sec); }
+.zoom { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,0.88); display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 64px) 16px calc(env(safe-area-inset-bottom, 0px) + 24px); }
+.zoom[hidden] { display: none; }
+.zoom .close { left: auto; right: max(16px, env(safe-area-inset-right)); }
+.zoom [data-zoom-body] { max-width: 600px; width: 100%; }
+.zpic img { display: block; width: 100%; height: auto; max-height: 70vh; object-fit: contain; border-radius: 12px; }
+.zpic figcaption { color: #d1d1d6; } .zpic figcaption a { color: #d1d1d6; }
