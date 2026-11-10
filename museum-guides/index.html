@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Museum Guides</title>
+<meta name="description" content="Free, unofficial audio guides to London's Natural History Museum and Science Museum, with a demo and a sample to listen to.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Museum Guides">
+<meta property="og:description" content="Free, unofficial audio guides to London's Natural History Museum and Science Museum. Watch the demo, hear a sample.">
+<meta property="og:image" content="https://mishevelada.github.io/projects/museum-guides/demo-poster.jpg">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../london-museum-guide/icons/icon-192.png">
+<link rel="apple-touch-icon" href="../london-museum-guide/icons/icon-180.png">
+<style>
+/* The public landing page for the museum guides. It uses the guides' own design tokens
+   (london-museum-guide/style.css): iOS system colours, the phone's own font, white cards on grouped
+   grey, so the page and the app it opens look like one thing. */
+:root {
+  --bg: #F2F2F7; --card: #FFFFFF; --label: #000000; --sec: #6C6C70; --sep: rgba(60,60,67,0.18);
+  --blue: #0088FF; --blue-text: #0066D6; --blue-fill: #0066D6; --blue-bg: rgba(0,136,255,0.12);
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+  --font: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #000000; --card: #1C1C1E; --label: #FFFFFF; --sec: #AEAEB2; --sep: rgba(84,84,88,0.6);
+    --blue: #0091FF; --blue-text: #409CFF; --blue-fill: #0A74DA; --blue-bg: rgba(0,145,255,0.2); --shadow: none;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #000000; --card: #1C1C1E; --label: #FFFFFF; --sec: #AEAEB2; --sep: rgba(84,84,88,0.6);
+  --blue: #0091FF; --blue-text: #409CFF; --blue-fill: #0A74DA; --blue-bg: rgba(0,145,255,0.2); --shadow: none; color-scheme: dark;
+}
+html { font-size: 106.25%; -webkit-text-size-adjust: 100%; }
+@supports (font: -apple-system-body) { html { font: -apple-system-body; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--label); font-family: var(--font); font-size: 1rem; line-height: 1.3; }
+h1, h2, h3, p { margin: 0; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+main { max-width: 560px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 40px) 16px calc(env(safe-area-inset-bottom) + 32px); display: flex; flex-direction: column; gap: 16px; }
+.eyebrow { font-size: 0.765rem; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--sec); }
+.large { font-size: 2rem; line-height: 1.2; font-weight: 700; }
+.lede { color: var(--sec); font-size: 1.06rem; line-height: 1.4; }
+.panel { background: var(--card); border-radius: 22px; padding: 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px; }
+.panel h2 { font-size: 1.18rem; font-weight: 600; line-height: 1.25; }
+.panel p { color: var(--sec); font-size: 0.941rem; line-height: 1.38; }
+/* The demo is a phone screen: it keeps its 9:16 shape and never grows taller than most of the
+   window, so on a laptop it sits in the middle of the card rather than filling the page. */
+.demo { display: block; width: min(100%, calc(70vh * 9 / 16)); aspect-ratio: 9 / 16; margin: 4px auto 0; border-radius: 18px; background: #040814; }
+audio { width: 100%; margin-top: 2px; }
+details summary { color: var(--blue-text); font-weight: 600; font-size: 0.941rem; cursor: pointer; padding: 6px 0; }
+details p { color: var(--label); margin-top: 8px; }
+details p.t { font-weight: 600; }
+.list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.list li { color: var(--sec); font-size: 0.941rem; line-height: 1.38; padding-left: 18px; position: relative; }
+.list li::before { content: ""; position: absolute; left: 2px; top: 0.55em; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); }
+.list b { color: var(--label); font-weight: 600; }
+.card { background: var(--card); border-radius: 22px; padding: 16px 18px; box-shadow: var(--shadow); display: flex; gap: 14px; align-items: center; color: inherit; text-decoration: none; }
+.card img { width: 64px; height: 64px; border-radius: 15px; flex: none; }
+.card .txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.card h2 { font-size: 1.18rem; font-weight: 600; line-height: 1.25; }
+.card p { color: var(--sec); font-size: 0.882rem; line-height: 1.33; }
+.card .go { color: var(--blue-text); font-weight: 600; font-size: 0.941rem; }
+.card.main { box-shadow: var(--shadow), inset 0 0 0 2px var(--blue); }
+.card:active { transform: scale(0.99); }
+/* On a computer, a code to open the guide on the phone in your hand. Phones never see it: they
+   tap the card above instead. */
+.scan { display: none; }
+@media (min-width: 700px) and (hover: hover) {
+  .scan { display: flex; flex-direction: row; align-items: center; gap: 18px; }
+  .scan svg { width: 132px; height: 132px; flex: none; border-radius: 10px; }
+}
+.foot { font-size: 0.765rem; line-height: 1.38; color: var(--sec); text-align: center; margin: 8px 4px 0; }
+@media (prefers-reduced-motion: reduce) { .card:active { transform: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Based on November 2026</p>
+    <h1 class="large">Museum Guides</h1>
+  </header>
+  <p class="lede">Free audio guides for a first visit to two London museums. Pick a walk, put your headphones in, and a narrator tells you where to go, what to look for, and the story behind it.</p>
+
+  <section class="panel" aria-labelledby="demoH">
+    <h2 id="demoH">Watch the Demo</h2>
+    <p>Sound on: this is the guide's real narration, at the blue whale in Hintze Hall.</p>
+    <video class="demo" src="demo.mp4" poster="demo-poster.jpg" controls playsinline preload="none" aria-describedby="demoNote"></video>
+    <p id="demoNote">The voice is an AI narrator reading the guide's own words. Captions are on the video.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="listenH">
+    <h2 id="listenH">Listen to the Opening</h2>
+    <p>The opening of the Natural History Museum guide's story of Hope, the blue whale, as you would hear it standing underneath her.</p>
+    <audio src="hope-sample.m4a" controls preload="none" aria-label="Hope, the blue whale: the opening"></audio>
+    <details>
+      <summary>Read Along</summary>
+      <p class="t">Hope, the Blue Whale.</p>
+      <p>Stand just inside the door and look up. Higher. Not that high, that is the ceiling. There she is: a blue whale, the largest animal ever known to have lived, caught in the middle of a dive. Twenty-five metres long, two hundred and twenty-one bones, and a name. Hope. She is the largest of the museum's more than eighty million specimens. It was never close.</p>
+      <p>Look along her, tail to head, and go back to 1891. On the twenty-fifth of March she stranded on Swantons Bank, at the mouth of Wexford Harbour, in Ireland, and was stuck there for two days. A lifeboat pilot in his twenties, Ned Wickham, led the men who rowed out to her, and the next day he ended her suffering with an improvised harpoon.</p>
+    </details>
+  </section>
+
+  <a class="card main" href="../london-museum-guide/">
+    <img src="../london-museum-guide/icons/icon-512.png" alt="" width="64" height="64">
+    <span class="txt">
+      <h2>Natural History Museum</h2>
+      <p>Hope the blue whale, the dinosaurs, a stone from Mars and a 1,300-year-old tree. 14 stops, about 1 hour 50 minutes of stories.</p>
+      <span class="go">Open the guide</span>
+    </span>
+  </a>
+
+  <section class="panel scan" aria-label="Open it on your phone">
+    <svg role="img" aria-label="QR code that opens the Natural History Museum guide" viewBox="0 0 37 37" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h37v37H0z"/><path stroke="#000000" d="M2 2.5h7m1 0h1m2 0h1m5 0h4m1 0h2m2 0h7M2 3.5h1m5 0h1m1 0h1m3 0h1m1 0h1m1 0h3m2 0h4m1 0h1m5 0h1M2 4.5h1m1 0h3m1 0h1m3 0h1m2 0h3m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M2 5.5h1m1 0h3m1 0h1m1 0h1m8 0h1m6 0h1m1 0h1m1 0h3m1 0h1M2 6.5h1m1 0h3m1 0h1m2 0h1m2 0h2m2 0h1m2 0h2m3 0h1m1 0h1m1 0h3m1 0h1M2 7.5h1m5 0h1m5 0h1m1 0h3m2 0h3m2 0h1m1 0h1m5 0h1M2 8.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 9.5h1m1 0h2m3 0h4m5 0h1M2 10.5h1m1 0h2m1 0h3m4 0h1m1 0h5m2 0h1m1 0h1m2 0h1m2 0h1m1 0h2M5 11.5h1m1 0h1m1 0h2m1 0h1m2 0h2m1 0h1m2 0h2m2 0h1m2 0h2m1 0h2m1 0h1M3 12.5h2m1 0h1m1 0h3m1 0h4m2 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h2M13 13.5h1m4 0h1m1 0h1m1 0h1m5 0h2m1 0h1m2 0h1M2 14.5h2m1 0h1m1 0h2m2 0h1m4 0h1m2 0h1m1 0h1m2 0h4m1 0h3m1 0h2M2 15.5h1m6 0h3m2 0h3m2 0h3m4 0h1m4 0h3M5 16.5h1m1 0h2m2 0h2m1 0h3m3 0h3m5 0h2m2 0h1M2 17.5h2m3 0h1m1 0h1m1 0h2m1 0h2m2 0h1m1 0h1m1 0h3m2 0h3m1 0h2M2 18.5h1m1 0h2m1 0h3m2 0h2m3 0h1m2 0h1m1 0h4m1 0h2m1 0h3M5 19.5h1m1 0h1m1 0h1m4 0h1m2 0h1m5 0h6m1 0h2m1 0h2M4 20.5h2m1 0h6m2 0h3m4 0h3m2 0h4m1 0h2M2 21.5h3m5 0h4m3 0h4m1 0h1m1 0h1m3 0h1m1 0h1M3 22.5h1m3 0h2m1 0h2m1 0h2m2 0h7m5 0h1m1 0h3M2 23.5h4m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m2 0h4m1 0h2m2 0h1m2 0h2m1 0h1M4 24.5h1m2 0h2m2 0h2m1 0h3m1 0h2m4 0h2m1 0h1m5 0h2M3 25.5h1m2 0h1m4 0h3m7 0h2m1 0h3m2 0h3m2 0h1M2 26.5h1m2 0h1m2 0h4m2 0h1m1 0h2m1 0h1m4 0h7m3 0h1M10 27.5h1m2 0h5m2 0h2m4 0h1m3 0h2m1 0h1M2 28.5h7m1 0h4m1 0h2m1 0h1m2 0h1m3 0h2m1 0h1m1 0h1M2 29.5h1m5 0h1m1 0h2m1 0h1m1 0h1m6 0h5m3 0h3M2 30.5h1m1 0h3m1 0h1m2 0h1m1 0h4m3 0h1m1 0h9m1 0h1m1 0h1M2 31.5h1m1 0h3m1 0h1m1 0h3m4 0h1m4 0h1m2 0h1m3 0h1m4 0h1M2 32.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h4m4 0h2m4 0h2m1 0h1M2 33.5h1m5 0h1m3 0h2m2 0h1m1 0h5m1 0h4m1 0h2m3 0h1M2 34.5h7m1 0h3m2 0h2m1 0h4m1 0h1m1 0h1m2 0h1m1 0h3"/></svg>
+    <div>
+      <h2>On a Computer?</h2>
+      <p>Scan this with your phone's camera to open the Natural History Museum guide there, where it belongs: in your pocket, with headphones in.</p>
+    </div>
+  </section>
+
+  <a class="card" href="../science-museum-guide/">
+    <img src="../science-museum-guide/icons/icon-512.png" alt="" width="64" height="64">
+    <span class="txt">
+      <h2>Science Museum</h2>
+      <p>Steam engines, a capsule that came back from space, Alcock and Brown's aeroplane, and the codebreakers. 12 stops, about an hour of stories.</p>
+      <span class="go">Open the guide</span>
+    </span>
+  </a>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What Is in Each Guide</h2>
+    <ul class="list">
+      <li><b>Three walks,</b> each showing its real length, in an order that does not double back.</li>
+      <li><b>A narrator in your ear:</b> the way to each stop, then its story, in chapters you can pick.</li>
+      <li><b>What to look for</b> at every stop, with photos, and one fact worth remembering.</li>
+      <li><b>Works offline</b> once saved, because some galleries have no signal.</li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-labelledby="tipH">
+    <h2 id="tipH">Before You Go</h2>
+    <p>Open a guide on your phone, then add it to the Home Screen (in Safari: Share, then Add to Home Screen). On its Visit tab, save the walk for offline while you have good signal. Both museums are free: book a free timed ticket on the museum's website.</p>
+  </section>
+
+  <p class="foot">Unofficial guides, not made by or connected to either museum, based on their galleries and exhibitions in November 2026. Galleries close and things move: check the museum's own website before you go. Built with Claude Code.</p>
+</main>
+</body>
+</html>
