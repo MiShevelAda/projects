@@ -8,6 +8,17 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-10
 
+### A public landing page with a demo and something to listen to
+
+> **"Can we create a github landing page and include a demo of the national history app including audio sample"**
+
+**What it changed.** `museum-guides/` is a new public page at
+`https://mishevelada.github.io/projects/museum-guides/`: the 32 second demo video, the opening of the
+Hope story to listen to (55 seconds, with the words to read along), a card for each guide, and on a
+computer a QR code that opens the guide on a phone. **Assumed, say so if wrong:** the LinkedIn QR
+still opens the app directly, by his ruling below ("land directly at the app"); this page is the
+link to send in a DM, or to anyone who wants to see and hear it before they go.
+
 ### One number per fact: "Choose Your Walk" with each walk's real length
 
 > **"Why does it say 3h and 3h 41 that's confusing remember if you confuse you loose"**
