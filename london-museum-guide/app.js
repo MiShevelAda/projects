@@ -15,7 +15,7 @@
 
 import { CHECKED, HOURS, MUSEUM, PRACTICAL, STOPS, TICKETS_URL, WALKS, WALK_BETWEEN } from './stops.js';
 import { askCard, wireAsk } from './ask.js';
-import { closedOn, hoursOn, london, nextOf as nextIn, noticeOn, openState, pointsOn, timeCheck, upNext as upNextIn, walkStops as walkOf } from './walk.js';
+import { closedOn, findThings, hoursOn, london, nextOf as nextIn, noticeOn, openState, pointsOn, timeCheck, upNext as upNextIn, walkMinutes, walkStops as walkOf } from './walk.js';
 
 let swReady = Promise.resolve(false); // true once the offline helper is running
 const KEY = MUSEUM.key; // every saved setting and cache carries this museum's prefix: all the apps share one origin
@@ -61,6 +61,22 @@ const here = () => (byId(location.hash.slice(1)) ? location.hash.slice(1) : null
 const picFor = (s, kind, i) => (s.pics || []).find((p) => p[kind] === i);
 const figure = (p, cls) => `<figure class="${cls}"><img src="${esc(p.src)}" alt="${esc(p.alt)}" loading="lazy" width="${p.w}" height="${p.h}"><figcaption>${esc(p.caption)} <a href="${esc(p.page)}" target="_blank" rel="noopener">Photo: ${esc(p.credit)}, ${esc(p.license)}</a></figcaption></figure>`;
 
+// Go Deeper: where each link opens, said before the tap, and an icon for what it is.
+const KIND = { video: 'Video', podcast: 'Podcast', article: 'Article' };
+const DEEP = {
+  video: '<svg viewBox="0 0 24 24"><path d="M9 7.5v9l7.5-4.5z" fill="currentColor"/></svg>',
+  podcast: '<svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="13" width="5" height="7" rx="2" fill="currentColor"/><rect x="16" y="13" width="5" height="7" rx="2" fill="currentColor"/></svg>',
+  article: '<svg viewBox="0 0 24 24"><path d="M6 5h12M6 10h12M6 15h12M6 20h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+};
+function opens(url) {
+  try {
+    const u = new URL(url), h = u.hostname.replace(/^www\./, '');
+    if (/(^|\.)youtube\.com$|^youtu\.be$/.test(h)) return 'YouTube';
+    if (h === 'bbc.co.uk' && u.pathname.startsWith('/sounds/')) return 'BBC Sounds';
+    return h;
+  } catch { return 'a website'; }
+}
+
 // Which chapter of a stop's story a moment in its recording falls in (0 before it starts).
 // starts[0] is the spoken title, starts[i + 1] chapter i.
 function chapterAt(id, t) {
@@ -94,7 +110,7 @@ function mapArt(stop) {
 function floorsArt(stop) {
   const fl = MUSEUM.floors; // top to bottom, e.g. ['2', '1', 'G', 'out']
   const h = 15, gap = 3;
-  return `<svg class="floors" viewBox="0 0 46 ${fl.length * (h + gap)}" style="height:${fl.length * 14}px" aria-hidden="true">
+  return `<svg class="floors" viewBox="0 0 46 ${fl.length * (h + gap)}" aria-hidden="true">
     ${fl.map((f, i) => { const y = i * (h + gap); const on = f === stop.floor; return `<rect x="0" y="${y}" width="46" height="${h}" rx="5" class="${on ? 'on' : ''}"/><text x="23" y="${y + 11.5}" text-anchor="middle" class="${on ? 'on' : ''}">${esc(MUSEUM.floorShort?.[f] || f)}</text>`; }).join('')}
   </svg>`;
 }
@@ -160,10 +176,12 @@ audio.addEventListener('ended', () => {
     markSeen(id);
     const nx = nextOf(id);
     if (nx && clip(nx.id, 'way')) {
-      // A breath, then the way to the next stop; the screen follows the voice.
+      // A breath, then the way to the next stop; the screen follows the voice. Someone reading further
+      // down the page is not pulled away from it: the Next bar offers the way there instead.
       clearTimeout(advance);
       advance = setTimeout(() => {
         if (state.now?.id !== id || !audio.paused) return;
+        if (location.hash === `#${id}` && !document.hidden && reading()) { offerNext(nx); return; }
         if (location.hash === `#${id}`) location.hash = `#${nx.id}`;
         play(nx.id, 'way');
       }, 2000);
@@ -171,6 +189,18 @@ audio.addEventListener('ended', () => {
   }
   paint();
 });
+// Reading: the player has scrolled off the top of the stop's page, so the visitor is looking at the
+// text further down (the story, Look For). At the top, or with the phone locked, the walk moves on.
+function reading() {
+  const pl = main.querySelector('.player');
+  return !!pl && pl.getBoundingClientRect().bottom < 0;
+}
+function offerNext(nx) {
+  const b = main.querySelector('[data-next]');
+  if (!b) return;
+  b.href = `#${nx.id}`; b.dataset.next = nx.id;
+  b.innerHTML = `Play the Way to ${esc(nx.title)}<small>The story has ended. Go when you are ready.</small>`;
+}
 for (const ev of ['play', 'pause', 'loadedmetadata', 'ratechange']) audio.addEventListener(ev, () => { paint(); mediaState(); });
 audio.addEventListener('timeupdate', () => { paintTime(); if (state.now?.kind === 'story' && audio.currentTime > 60 && !state.seen[state.now.id]) markSeen(state.now.id); });
 audio.addEventListener('error', () => { if (state.now) toast('The sound did not load. With no signal, the words are all on the screen.'); });
@@ -274,7 +304,7 @@ function walkView() {
   const list = walkStops();
   const nx = upNext();
   const started = list.some((s) => state.seen[s.id]);
-  const total = list.reduce((a, s) => a + s.minutes, 0) + (list.length - 1) * WALK_BETWEEN;
+  const total = walkMinutes(list);
   const tc = timeCheck(state.walk, opts());
   // Minutes of stories on this walk, from the recordings, so the version on the phone is easy to tell.
   const narrated = Math.round(list.reduce((a, s) => a + (clip(s.id, 'story')?.seconds || 0), 0) / 60);
@@ -284,7 +314,7 @@ function walkView() {
     ${todayCard()}
     <h2 class="h2" id="howlong">How Long Have You Got?</h2>
     <div class="seg" role="radiogroup" aria-labelledby="howlong">
-      ${Object.entries(WALKS).map(([k, w]) => `<button type="button" role="radio" aria-checked="${k === state.walk}" data-walk="${k}">${esc(w.name)}</button>`).join('')}
+      ${Object.entries(WALKS).map(([k, w]) => `<button type="button" role="radio" aria-checked="${k === state.walk}" data-walk="${k}">${esc(w.name)}<small><span class="vh">, about </span>${hrs(walkMinutes(walkOf(k)))}</small></button>`).join('')}
     </div>
     ${tc.short ? `<div class="note" role="note"><span>${tc.avail > 0 ? `About ${hrs(tc.need)} of walk left, and the galleries start clearing in ${hrs(tc.avail)}.` : 'The galleries are already clearing for closing time. The walk is best started on another day.'}</span>${tc.shorter ? `<button type="button" class="soft" data-walk="${tc.shorter}">Switch to ${esc(WALKS[tc.shorter].name)}</button>` : ''}</div>` : ''}
     ${nx ? `<section class="card assess" data-zone="${nx.zone}" aria-labelledby="upnext">
@@ -298,6 +328,12 @@ function walkView() {
         <a class="primary" href="#${nx.id}" data-start="${nx.id}">${started ? 'Carry On' : 'Start the Walk'}</a>
       </div>
     </section>` : started ? doneCard(list) : `<section class="card"><p class="title1">That Is the Walk</p><p class="small">${esc(MUSEUM.doneNote)}</p></section>`}
+    <form class="card find" role="search" data-find>
+      <h2 class="cardh"><label for="findq">Find Something</label></h2>
+      <input id="findq" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder="An object, a gallery, a name" aria-describedby="findn" aria-controls="findres">
+      <p class="small" id="findn" role="status"></p>
+      <ul class="list findres" id="findres"></ul>
+    </form>
     <section class="card flat" aria-label="The stops"><ul class="list route">
       ${list.map((s, i) => `<li class="${state.seen[s.id] ? 'seen' : ''} ${closedOn(s) ? 'closed' : ''}" data-zone="${s.zone}"><a href="#${s.id}">
         <span class="num">${state.seen[s.id] ? '<span class="vh">Seen. </span>' : ''}${i + 1}</span>
@@ -308,11 +344,34 @@ function walkView() {
     <p class="foot">An unofficial guide, not made by or connected to the ${esc(MUSEUM.name)}, based on its galleries and exhibitions in ${esc(CHECKED)}. Galleries close and things move: check the museum's website before you go.</p>
   </div>`;
   main.querySelectorAll('[data-walk]').forEach((b) => b.addEventListener('click', () => { state.walk = b.dataset.walk; store.set('walk', state.walk); walkView(); }));
+  // Find something: the list under the box changes as you type; the box itself never moves.
+  const fq = main.querySelector('#findq');
+  fq.value = findQ; findList();
+  fq.addEventListener('input', () => { findQ = fq.value; findList(); });
+  main.querySelector('[data-find]').addEventListener('submit', (e) => { e.preventDefault(); fq.blur(); });
+  // While typing, the keyboard takes the bottom of the screen and the floating bars step aside, as in Ask.
+  fq.addEventListener('focus', () => document.body.classList.add('typing'));
+  fq.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== fq) document.body.classList.remove('typing'); }, 400));
   const start = main.querySelector('[data-start]');
   // Starting from the route plays the way to the stop, inside the tap.
   start?.addEventListener('click', () => play(start.dataset.start, 'way'));
   main.querySelector('[data-a2hs-hide]')?.addEventListener('click', () => { store.set('a2hs', 'hidden'); walkView(); });
   main.querySelector('[data-sharevisit]')?.addEventListener('click', () => shareText(visitText(list)));
+}
+
+// The results of Find Something: each thing found and the stop it is at, a link that opens the stop.
+let findQ = '';
+const FIND_MAX = 8;
+function findList() {
+  const all = findThings(findQ);
+  const onWalk = new Set(walkStops().map((s) => s.id));
+  const where = (r) => (r.kind === 'title' ? esc(r.stop.place) : `${r.kind === 'look' ? 'Look For' : `Chapter ${r.i + 1}`}, ${esc(r.stop.title)}`);
+  main.querySelector('#findres').innerHTML = all.slice(0, FIND_MAX).map((r) => `<li data-zone="${r.stop.zone}"><a href="#${r.stop.id}">
+    <span class="t"><b>${esc(r.text)}</b><span>${where(r)}${onWalk.has(r.stop.id) ? '' : ', not on this walk'}</span></span>${ICON.chev}</a></li>`).join('');
+  main.querySelector('#findn').textContent = findQ.trim().length < 2 ? ''
+    : !all.length ? 'Nothing found. Try another word, or look through the stops below.'
+      : all.length > FIND_MAX ? `${all.length} found, the first ${FIND_MAX} shown. Type more to narrow it down.`
+        : `${all.length} found.`;
 }
 
 // Safari on an iPhone, not yet on the Home Screen: three steps, like bike-fit's card.
@@ -377,18 +436,23 @@ function stopView(s) {
         ${s.pic ? figure(s.pic, 'pic') : ''}
         <ul class="list">${s.look.map((l, i) => { const lp = picFor(s, 'look', i); return `<li class="${lp ? 'has-thumb' : ''}"><button type="button" aria-pressed="${found.has(i)}" data-look="${i}"><span class="box" aria-hidden="true"></span><span class="txt">${esc(l)}</span></button>${lp ? `<button type="button" class="thumb" data-zoom="${esc(lp.src)}" aria-label="See a photo: ${esc(lp.alt)}"><img src="${esc(lp.src)}" alt="" loading="lazy"></button>` : ''}</li>`; }).join('')}</ul>
       </section>
+      ${s.kids?.q ? `<section class="card kids" aria-labelledby="kidsH"><span class="kicker" id="kidsH">For Children</span><p class="kq">${esc(s.kids.q)}</p>${s.kids.a ? `<details><summary>See the Answer</summary><p>${esc(s.kids.a)}</p></details>` : ''}</section>` : ''}
       ${s.remember ? `<section class="card remember" aria-labelledby="remH"><span class="kicker" id="remH">The One to Remember</span><p class="rem">${esc(s.remember)}</p><button type="button" class="soft" data-share>Share This</button></section>` : ''}
       ${s.tip ? `<p class="note tip"><span><b>Tip.</b> ${esc(s.tip)}</span></p>` : ''}
       ${s.video ? `<a class="card watch" href="${esc(s.video.url)}" target="_blank" rel="noopener">
         <span class="wicon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 7.5v9l7.5-4.5z" fill="currentColor"/></svg></span>
         <span class="wt"><span class="kicker">Watch</span><b>${esc(s.video.title)}</b><span class="small">${esc(s.video.channel)}${s.video.minutes ? `, ${s.video.minutes} min` : ''}${s.video.views ? `, ${esc(s.video.views)}` : ''}. Opens YouTube.</span></span>${ICON.chev}</a>` : ''}
+      ${s.deeper?.length ? `<section class="card flat deeper" aria-labelledby="deepH">
+        <div class="head between"><span class="kicker" id="deepH">Go Deeper</span><span class="kicker">Needs signal</span></div>
+        <ul class="list">${s.deeper.map((d) => `<li><a href="${esc(d.url)}" target="_blank" rel="noopener"><span class="wicon" aria-hidden="true">${DEEP[d.kind] || DEEP.article}</span><span class="wt"><b>${esc(d.title)}</b><span class="small">${esc(d.who)}${d.minutes ? `, ${d.minutes} min` : ''}. ${KIND[d.kind] || KIND.article}. Opens ${esc(opens(d.url))}.</span></span>${ICON.chev}</a></li>`).join('')}</ul>
+      </section>` : ''}
       <section class="card story" aria-labelledby="storyH">
         <span class="kicker" id="storyH">The Story</span>
         ${s.story.map((p, i) => { const cp = picFor(s, 'chapter', i); return `${s.chapters?.[i] ? `<h3 class="chap" data-c="${i}">${i + 1}. ${esc(s.chapters[i])}</h3>` : ''}${cp ? figure(cp, 'cpic') : ''}<p data-p="${i}">${esc(p)}</p>`; }).join('')}
       </section>
       ${s.sources?.length ? `<details class="card sources"><summary>Where These Facts Come From</summary><ul>${s.sources.map((u) => `<li><a href="${esc(u.url)}" rel="noopener" target="_blank">${esc(u.label)}</a></li>`).join('')}</ul></details>` : ''}
     </div>
-    <div class="bottombar">
+    <div class="bottombar" aria-live="polite">
       ${nx ? `<a class="primary" href="#${nx.id}" data-next="${nx.id}">Next: ${esc(nx.title)}<small>${nx.hook ? esc(nx.hook) : 'Plays the way there'}</small></a>`
         : '<a class="primary" href="#walk" data-last>Finish the Walk</a>'}
     </div>
@@ -423,28 +487,42 @@ function stopView(s) {
     b.setAttribute('aria-pressed', String(found.has(i)));
     main.querySelector('[data-count]').textContent = `${found.size} of ${s.look.length}`;
   }));
-  // Tap a paragraph to hear it from there.
-  main.querySelectorAll('[data-p], [data-c]').forEach((p) => p.addEventListener('click', () => {
-    const at = story?.starts?.[Number(p.dataset.p ?? p.dataset.c) + 1];
-    if (at == null) return;
-    if (!(state.now?.id === s.id && state.now.kind === 'story')) load(s.id, 'story');
-    audio.currentTime = at;
-    if (audio.paused) play(s.id, 'story');
+  // A tap on a paragraph or its chapter title only offers "Play from Here", so one person can read
+  // back on a shared phone without moving the sound under the other's earbuds. The button plays from
+  // there. The text under the finger stays where it was while the button comes and goes.
+  const from = document.createElement('button');
+  from.type = 'button'; from.className = 'soft playfrom';
+  let fromAt = -1;
+  const steady = (el, change) => { const y = el.getBoundingClientRect().top; change(); window.scrollBy(0, el.getBoundingClientRect().top - y); };
+  main.querySelectorAll('[data-p], [data-c]').forEach((el) => el.addEventListener('click', () => {
+    const i = Number(el.dataset.p ?? el.dataset.c);
+    if (story?.starts?.[i + 1] == null) return;
+    steady(el, () => {
+      if (fromAt === i && from.isConnected) { from.remove(); fromAt = -1; return; }
+      fromAt = i;
+      from.innerHTML = `${ICON.play}Play from Here<span class="vh">: chapter ${i + 1}</span>`;
+      if (el.dataset.c != null) el.after(from); else el.before(from);
+    });
   }));
+  from.addEventListener('click', () => {
+    const at = story.starts[fromAt + 1];
+    steady(main.querySelector(`[data-p="${fromAt}"]`), () => { from.remove(); fromAt = -1; });
+    load(s.id, 'story'); audio.currentTime = at; play(s.id, 'story');
+  });
   main.querySelectorAll('[data-zoom]').forEach((t) => t.addEventListener('click', () => {
     const p = (s.pics || []).find((x) => x.src === t.dataset.zoom);
     if (!p) return;
-    const z = $('#zoom');
-    z.querySelector('[data-zoom-body]').innerHTML = figure(p, 'zpic');
-    z.hidden = false;
-    z.querySelector('.close').focus();
+    zoomFrom = t;
+    zoom.querySelector('[data-zoom-body]').innerHTML = figure(p, 'zpic');
+    zoom.showModal();
+    zoom.querySelector('.close').focus();
   }));
   main.querySelector('[data-later]')?.addEventListener('click', () => {
     state.later = state.later.includes(s.id) ? state.later.filter((x) => x !== s.id) : [...state.later, s.id];
     store.set('later', state.later);
     if (state.later.includes(s.id)) { toast(`${s.title} moved to the end of the walk.`); location.hash = `#${nx.id}`; play(nx.id, 'way'); } else stopView(s);
   });
-  main.querySelector('[data-next]')?.addEventListener('click', () => { markSeen(s.id); play(nx.id, 'way'); });
+  main.querySelector('[data-next]')?.addEventListener('click', (e) => { markSeen(s.id); play(e.currentTarget.dataset.next, 'way'); });
   // Ask the Guide: shown only where the viewer can ask Claude (the private link).
   wireAsk(main, {
     stop: s, museum: MUSEUM.name, toast, walkList: () => walkStops(),
@@ -588,13 +666,25 @@ function toast(msg) {
 }
 
 $('#dock-play').addEventListener('click', toggle);
-$('#zoom').addEventListener('click', (e) => { if (e.target.closest('.close') || e.target.id === 'zoom') $('#zoom').hidden = true; });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#zoom').hidden = true; });
+// The photo viewer is a modal <dialog>: focus stays in it while it is open, Escape closes it, and focus
+// goes back to the photo that opened it. A page that still has the old <div id="zoom"> is given one.
+const zoom = (() => {
+  const z = $('#zoom');
+  if (z.tagName === 'DIALOG') return z;
+  const d = document.createElement('dialog');
+  d.id = 'zoom'; d.className = 'zoom'; d.setAttribute('aria-label', 'Photo');
+  d.append(...z.childNodes); z.replaceWith(d);
+  return d;
+})();
+let zoomFrom = null;
+zoom.addEventListener('click', (e) => { if (e.target.closest('.close') || e.target === zoom) zoom.close(); });
+zoom.addEventListener('close', () => { if (zoomFrom?.isConnected) zoomFrom.focus(); zoomFrom = null; });
 
 // On a change of screen, focus moves to the new screen so a screen reader starts reading there; on
 // first load it stays put, so the first Tab still reaches "Skip to content".
 function show(moved = true) {
-  $('#zoom').hidden = true;
+  if (zoom.open) { zoomFrom = null; zoom.close(); }
+  document.body.classList.remove('typing'); // a new screen has no box being typed in
   route();
   window.scrollTo(0, 0);
   if (moved) main.focus({ preventScroll: true });

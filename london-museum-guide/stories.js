@@ -41,7 +41,11 @@ export const STORIES = {
    "Why are the extinct animals on the right?"
   ],
   "hook": "Who stood above the main door until the Second World War?",
-  "remember": "The clay animals on the front were cast in Staffordshire, at a factory whose usual line was sanitary pipes."
+  "remember": "The clay animals on the front were cast in Staffordshire, at a factory whose usual line was sanitary pipes.",
+  "kids": {
+   "q": "Look at the clay animals. Which side has kinds that are still alive today?",
+   "a": "Your left, as you face the door. Look for lions and wolves there. The right is for extinct animals, like a clay pterodactyl. It is the one with wings that is not a pigeon."
+  }
  },
  "hope": {
   "find": "Go in through the main entrance. Hope is the whale skeleton hanging over the great hall in front of you. If you have found a whale, you have found her.",
@@ -96,7 +100,31 @@ export const STORIES = {
    "Why is she called Hope?"
   ],
   "hook": "How did a whale with a six-metre skull fit through the door?",
-  "remember": "The museum estimates about two hundred and fifty thousand blue whales in the 1800s, just four hundred by 1966, and about twenty thousand today."
+  "remember": "The museum estimates about two hundred and fifty thousand blue whales in the 1800s, just four hundred by 1966, and about twenty thousand today.",
+  "kids": {
+   "q": "Look back at the doors. How did a whale this big get in here?",
+   "a": "Her skull alone is six metres long. So the team took the doors off their hinges and turned the skull on its side. It fitted, with a few centimetres to spare."
+  },
+  "deeper": [
+   {
+    "title": "The Wexford blue whale: a journey of discovery",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=8a2VZz0EgH4",
+    "kind": "video"
+   },
+   {
+    "title": "Dippy about the whale",
+    "who": "Richard Sabin, Principal Curator of Mammals, and Lorraine Cornish, Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=B3YeXqgF8lc",
+    "kind": "video"
+   },
+   {
+    "title": "How do we move a blue whale skeleton?",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=NekXGq25lrk",
+    "kind": "video"
+   }
+  ]
  },
  "dinosaurs": {
   "find": "From Hintze Hall, take the corridor on the left side of the hall, towards the Darwin Centre. The Dinosaurs gallery is the third doorway on the left. At busy times there is a queue. Count the doorways: one, two, dinosaurs.",
@@ -148,7 +176,31 @@ export const STORIES = {
    "Could I outrun a T. rex?"
   ],
   "hook": "Who would win a race: you or a T. rex?",
-  "remember": "This jaw was first named Dynamosaurus, until in 1906 Tyrannosaurus won: children queue for a T. rex instead."
+  "remember": "This jaw was first named Dynamosaurus, until in 1906 Tyrannosaurus won: children queue for a T. rex instead.",
+  "kids": {
+   "q": "Look at the T. rex's legs. Do you think you could outrun one?",
+   "a": "Probably, just. A museum scientist says the latest research suggests T. rex could barely run faster than a human. Please do not test this."
+  },
+  "deeper": [
+   {
+    "title": "How do dinosaur fossils form?",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=87E8bQrX4Wg",
+    "kind": "video"
+   },
+   {
+    "title": "Your dinosaur questions answered",
+    "who": "Professor Paul Barrett, dinosaur researcher, Natural History Museum",
+    "url": "https://www.nhm.ac.uk/discover/your-dinosaur-questions-answered.html",
+    "kind": "article"
+   },
+   {
+    "title": "Why scan one of the most complete British dinosaurs?",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=Gf53DC136mY",
+    "kind": "video"
+   }
+  ]
  },
  "mammals": {
   "find": "Leave Dinosaurs and follow the signs along the Mammals gallery. At its end, turn right for the Mammals Hall. Don't stop for the smaller mammals on the way. The big one is waiting.",
@@ -193,7 +245,19 @@ export const STORIES = {
    "Is there really a phone book inside?"
   ],
   "hook": "Why is the whale model so much fatter than a real blue whale?",
-  "remember": "According to the museum's own history, a telephone directory and some coins were left inside the model before it was sealed."
+  "remember": "According to the museum's own history, a telephone directory and some coins were left inside the model before it was sealed.",
+  "kids": {
+   "q": "This whale model has a sealed trapdoor. What do you think was left inside?",
+   "a": "The museum's own history says a phone book and some coins were left inside before the trapdoor was sealed. Nobody has needed to look anything up yet."
+  },
+  "deeper": [
+   {
+    "title": "When whales walked on four legs",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=qeuNYBtSMlo",
+    "kind": "video"
+   }
+  ]
  },
  "darwin": {
   "find": "Go back to Hintze Hall and climb the main staircase at its far end. Darwin sits on the landing, halfway up. He has been expecting you.",
@@ -230,7 +294,31 @@ export const STORIES = {
    "Who is the man in the portrait beside him?"
   ],
   "hook": "Who took Darwin's place on the stairs while he was away?",
-  "remember": "Darwin's statue came with a disclaimer, read out at its unveiling by his own champion, Huxley."
+  "remember": "Darwin's statue came with a disclaimer, read out at its unveiling by his own champion, Huxley.",
+  "kids": {
+   "q": "Darwin once had to move off this landing. Guess what needed the room?",
+   "a": "Elephants, the usual account says. By 1924 the hall had four of them. Darwin got his landing back in 2008, for his two hundredth birthday. Musical chairs, played very slowly, by statues."
+  },
+  "deeper": [
+   {
+    "title": "Bill Bailey on Alfred Russel Wallace",
+    "who": "Bill Bailey, for the Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=KT2YbugYcjQ",
+    "kind": "video"
+   },
+   {
+    "title": "Untold stories: who taught Darwin taxidermy?",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=2RNsY6mjd7Q",
+    "kind": "video"
+   },
+   {
+    "title": "What is natural selection?",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=UKETe78t5p8",
+    "kind": "video"
+   }
+  ]
  },
  "treasures": {
   "find": "Carry on up to the first floor. For the lift, go through the archways into Fossil Marine Reptiles, on the right just before the main staircase, then through the doorway on your right; on the first floor, follow the balcony round to the staircase. Treasures has an entrance on each side of the main staircase. Take the one on your left as you face Darwin, if you can: a giant extinct bird is waiting just inside. Either door will do, though. The treasures are not fussy.",
@@ -280,7 +368,25 @@ export const STORIES = {
    "Is Archaeopteryx a bird or a dinosaur?"
   ],
   "hook": "Why is there a piece of the Moon in a natural history museum?",
-  "remember": "Darwin never used the word evolution in the first edition of On the Origin of Species; its very last word is evolved."
+  "remember": "Darwin never used the word evolution in the first edition of On the Origin of Species; its very last word is evolved.",
+  "kids": {
+   "q": "Look at the giant moa. Do you think this bird could fly?",
+   "a": "No. It was an enormous bird that could not fly. Richard Owen guessed that from one scrap of bone, about fifteen centimetres long. Four years later more bones turned up. He was right."
+  },
+  "deeper": [
+   {
+    "title": "Priceless Blaschka models on display",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=aI83KEkUrTE",
+    "kind": "video"
+   },
+   {
+    "title": "Untold stories: Hans Sloane and hot chocolate",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=8Ci9uKWdlw4",
+    "kind": "video"
+   }
+  ]
  },
  "vault": {
   "find": "On the first floor, follow the signs for Minerals along the balcony. Coming up by lift, take the one through the archways into Fossil Marine Reptiles, on the right just before the main staircase, then through the doorway on your right: on the first floor it comes out by Minerals. Walk the length of the Minerals gallery; the Vault is at its far end. They have saved the shiny ones for last.",
@@ -333,7 +439,19 @@ export const STORIES = {
    "Why does the top diamond change colour?"
   ],
   "hook": "Why was a purple stone sealed away in seven boxes?",
-  "remember": "The smudge in one tiny vial is millions of diamonds, made around dying stars before the solar system existed."
+  "remember": "The smudge in one tiny vial is millions of diamonds, made around dying stars before the solar system existed.",
+  "kids": {
+   "q": "Find the Nakhla stone. Which planet do you think it fell from?",
+   "a": "Mars. It came down near a village in Egypt in 1911, as a shower of about forty stones. How do we know? Gas trapped in stones like it matches the air of Mars."
+  },
+  "deeper": [
+   {
+    "title": "The search for life on Mars",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=CtPfAh52bVc",
+    "kind": "video"
+   }
+  ]
  },
  "sequoia": {
   "find": "Go back to Hintze Hall and climb to the second floor, the top balcony. The lift is by the entrance to Minerals on the first floor; on the ground floor, it is through the archways into Fossil Marine Reptiles, then the doorway on your right. On the second floor, go through the doorway onto the top balcony. The great slice of tree trunk stands up there, with Hope below you. Yes, more climbing. The view is worth it.",
@@ -377,7 +495,19 @@ export const STORIES = {
    "Who was Graman Kwasi?"
   ],
   "hook": "How long did it take to dust a tree thirteen centuries old?",
-  "remember": "This sequoia was more than thirteen hundred years old when it was felled: one thousand, three hundred and forty-one years, the museum says."
+  "remember": "This sequoia was more than thirteen hundred years old when it was felled: one thousand, three hundred and forty-one years, the museum says.",
+  "kids": {
+   "q": "Find a wide ring and a thin ring. Which one grew in a wet year?",
+   "a": "The wide one. Each ring is one year. In a wet year a ring is wide, and in a hard year, thin. This tree kept a weather diary for thirteen hundred years."
+  },
+  "deeper": [
+   {
+    "title": "Untold stories: who was Graman Kwasi?",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=Xuap8ZvrlqY",
+    "kind": "video"
+   }
+  ]
  },
  "nature-and-us": {
   "find": "From the sequoia, carry on along the top balcony to the other side of the hall. The entrance is on your left. Hope will keep you company on the way.",
@@ -425,7 +555,11 @@ export const STORIES = {
   ],
   "tip": "Soon after it opened, one review found part of this room screened off. If you meet a barrier, skip what you cannot reach; the rest still works.",
   "hook": "Why was this gallery closed to visitors for over eighty years?",
-  "remember": "Jenny, advertised as a talking fish, was, the museum says, a monk seal trained to say mama and papa."
+  "remember": "Jenny, advertised as a talking fish, was, the museum says, a monk seal trained to say mama and papa.",
+  "kids": {
+   "q": "Find the dog jaw you can touch. How long ago did this dog live?",
+   "a": "About fourteen thousand three hundred years ago, in what is now Somerset. It was one of the earliest known dogs to live with people, and ate much the same food as they did. This copy is for touching."
+  }
  },
  "marine-reptiles": {
   "find": "Go back down to the ground floor of Hintze Hall. The lift, through a doorway off the top balcony near the sequoia, brings you out just inside this gallery. By the stairs, stand with your back to the main entrance, facing the staircase. Go through the archways on your right, just before the stairs. If you reach the stairs, you have gone a step too far.",
@@ -473,7 +607,31 @@ export const STORIES = {
    "Why was Mary not at the Geological Society meeting?"
   ],
   "hook": "Why did Europe's most famous anatomist suspect a fake?",
-  "remember": "Cuvier doubted Mary Anning's plesiosaur, then, the museum says, she sold him one for three times the price."
+  "remember": "Cuvier doubted Mary Anning's plesiosaur, then, the museum says, she sold him one for three times the price.",
+  "kids": {
+   "q": "Look at this long skull. How old was Mary Anning when it was found?",
+   "a": "Twelve. Her brother Joseph, who was fifteen, found the skull. Then Mary dug out the skeleton. Everyone in town thought she had found a monster."
+  },
+  "deeper": [
+   {
+    "title": "Mary Anning's First Ichthyosaur",
+    "who": "Jurassic Coast Trust",
+    "url": "https://www.youtube.com/watch?v=PZfkkwFQi8M",
+    "kind": "video"
+   },
+   {
+    "title": "When Ichthyosaurs Led a Revolution in the Seas",
+    "who": "PBS Eons",
+    "url": "https://www.youtube.com/watch?v=V342aXQs9XY",
+    "kind": "video"
+   },
+   {
+    "title": "The true story of Mary Anning",
+    "who": "BBC Ideas",
+    "url": "https://www.youtube.com/watch?v=BEbgTpdwRgI",
+    "kind": "video"
+   }
+  ]
  },
  "human-evolution": {
   "find": "Follow the signs for the Red Zone, through the Birds and Lasting Impressions galleries, into the East Wing. Human Evolution is next to Earth Hall, close to Sophie the stegosaurus. If you meet a stegosaurus, you are very close. Stop at the entrance before you go in: the first thing to see is on the wall outside.",
@@ -524,7 +682,31 @@ export const STORIES = {
   ],
   "tip": "By the handaxe you can touch, the museum's own guide describes a film of a flint-knapper making a handaxe and then butchering a deer. With small children, or a delicate stomach, keep your eyes on the handaxe.",
   "hook": "Why did the most famous man from Cheddar never taste the cheese?",
-  "remember": "Our species sometimes had children with Neanderthals, so many of us carry a percent or two of Neanderthal DNA."
+  "remember": "Our species sometimes had children with Neanderthals, so many of us carry a percent or two of Neanderthal DNA.",
+  "kids": {
+   "q": "Find the Neanderthal and the modern man. What is in the modern man's mouth?",
+   "a": "A twig. He is chewing it, and it is his paintbrush. He is painting his legs with patterns copied from carvings on mammoth bone. It is not a cigarette."
+  },
+  "deeper": [
+   {
+    "title": "The Neanderthal within us",
+    "who": "Professor Chris Stringer, Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=TKyTm_xaX6Y",
+    "kind": "video"
+   },
+   {
+    "title": "The making of our Neanderthal and early Homo sapiens models",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=8fBREcw7RfU",
+    "kind": "video"
+   },
+   {
+    "title": "The Cannibals of Gough's Cave",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=8bmxUZA2zFU",
+    "kind": "video"
+   }
+  ]
  },
  "sophie": {
   "find": "Earth Hall is the tall hall at the heart of the Red Zone, on the ground floor of the East Wing. From Human Evolution it is right next door. From anywhere else, go down to the ground floor of Hintze Hall and follow the signs for the Red Zone and Earth Hall. If you need the lift, it is through a doorway off the top balcony, near the sequoia, and it comes out just inside Fossil Marine Reptiles, on the way. Sophie stands in the hall. She is the one with plates down her back.",
@@ -567,7 +749,31 @@ export const STORIES = {
    "Did Stegosaurus have two brains?"
   ],
   "hook": "Which part of a Stegosaurus is named after a cartoon?",
-  "remember": "T. rex lived closer in time to you than to Sophie the Stegosaurus."
+  "remember": "T. rex lived closer in time to you than to Sophie the Stegosaurus.",
+  "kids": {
+   "q": "Look at Sophie's small head. Are her teeth bigger than your little fingernail?",
+   "a": "No. Her teeth are no bigger than your little fingernail. Hold yours up and compare. Her bite was strong enough for tough plants. She was a plant eater, not a hunter."
+  },
+  "deeper": [
+   {
+    "title": "Secrets of the stegosaurus skeleton",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=dIAZ5S7vkZw",
+    "kind": "video"
+   },
+   {
+    "title": "Assembling the most complete Stegosaurus in the world",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=vQx9HfUlHi8",
+    "kind": "video"
+   },
+   {
+    "title": "Stegosaurs: Tiny Brains & Thagomizers",
+    "who": "PBS Eons",
+    "url": "https://www.youtube.com/watch?v=Nsf5xCbZ7us",
+    "kind": "video"
+   }
+  ]
  },
  "kobe": {
   "find": "Ride the escalator up through the globe. At the top, turn left into Volcanoes and Earthquakes. If you need a lift instead, there is one beside the Earth Hall Cafe, up to the second floor. The story starts at the very beginning of the gallery and walks you through it; the earthquake room, set up like a Japanese supermarket, is at the back. The museum says that room can be upsetting for some people, so skip it if you would rather.",
@@ -620,7 +826,11 @@ export const STORIES = {
    "Does Britain get earthquakes?"
   ],
   "hook": "How fast are the Earth's plates drifting?",
-  "remember": "Britain has a few hundred small earthquakes a year; the biggest, on Dogger Bank in 1931, was felt as far as Norway."
+  "remember": "Britain has a few hundred small earthquakes a year; the biggest, on Dogger Bank in 1931, was felt as far as Norway.",
+  "kids": {
+   "q": "Before it shakes, look at the shelves. What food can you spot?",
+   "a": "Noodles and soy sauce. You can see bowls, chopsticks and bamboo steamers too. Now hold the handrail and stand with your feet a little apart."
+  }
  },
  "fern": {
   "find": "Go back down to the ground floor and leave by the Exhibition Road entrance. The lift beside the Earth Hall Cafe takes you down, and the entrance has a lift between the galleries and its lobby. Fern stands outside in the Evolution Garden, the museum's east garden; staff at the door can point you to her. In icy weather the garden can close at short notice. She is the large bronze dinosaur. You will know.",
@@ -665,6 +875,18 @@ export const STORIES = {
    "What did Diplodocus eat?"
   ],
   "hook": "Which of Dippy's bones was upside down for over a century?",
-  "remember": "On the garden path through time, our whole species fits in the last six centimetres, about a palm's width."
+  "remember": "On the garden path through time, our whole species fits in the last six centimetres, about a palm's width.",
+  "kids": {
+   "q": "Look under Fern's long neck and tail. What is holding them up?",
+   "a": "Nothing underneath. Steel cables run through the bronze and pull her neck and tail up, the kind of cables used in bridges. On a windy day she bends a little. If she wobbles, it is working."
+  },
+  "deeper": [
+   {
+    "title": "The biggest dinosaurs ever: why did titanosaurs grow so large?",
+    "who": "Natural History Museum",
+    "url": "https://www.youtube.com/watch?v=yw9lLMDGROA",
+    "kind": "video"
+   }
+  ]
  }
 };

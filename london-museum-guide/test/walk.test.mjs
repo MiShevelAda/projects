@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { STOPS } from '../stops.js';
-import { closedOn, london, nextOf, noticeOn, openState, pointsOn, timeCheck, upNext, walkStops } from '../walk.js';
+import { closedOn, findThings, london, nextOf, noticeOn, openState, pointsOn, timeCheck, upNext, walkMinutes, walkStops } from '../walk.js';
 
 // A made-up stop with a closure, so the rules are tested without tying the guide to real dates.
 const shut = { id: 'shut', notice: { text: 'Closed for three days.', from: '2026-11-10', until: '2026-11-12' } };
@@ -57,4 +57,35 @@ test('a closure notice shows until its last day, then goes', () => {
   assert.ok(noticeOn(shut, '2026-11-12'));
   assert.equal(noticeOn(shut, '2026-11-13'), '');
   assert.deepEqual(pointsOn(['always', { text: 'until Friday', until: '2026-11-13' }], '2026-11-14'), ['always']);
+});
+
+test('a walk\'s length is its stops\' minutes plus the walks between them, as the picker shows it', () => {
+  assert.equal(walkMinutes([]), 0);
+  assert.equal(walkMinutes([{ minutes: 10 }]), 10);
+  assert.equal(walkMinutes([{ minutes: 10 }, { minutes: 5 }]), 10 + 5 + 3);
+  // At opening, with nothing seen and nothing closed, the time check needs exactly the picker's length.
+  for (const w of ['hour', 'two', 'three']) assert.equal(timeCheck(w, { d: at('2026-11-09T10:00:00Z') }).need, walkMinutes(walkStops(w)), w);
+  // The names say 1, 2 and 3 hours; the real lengths are longer, which is why the picker shows them.
+  assert.ok(walkMinutes(walkStops('hour')) > 60 && walkMinutes(walkStops('three')) > walkMinutes(walkStops('two')));
+});
+
+test('find something: titles, Look For items and chapter titles from every stop, forgiving of how it is typed', () => {
+  const fake = [
+    { id: 'a', title: 'Hope, the Blue Whale', look: ['The T. rex jaw, lower left.'], chapters: ["Owen's New Word"] },
+    { id: 'b', title: 'Café Mégalodon', look: [], chapters: ['A Blue Tit'] },
+  ];
+  assert.deepEqual(findThings('', fake), []);
+  assert.deepEqual(findThings('a', fake), [], 'one letter finds nothing yet');
+  for (const q of ['trex', 't rex', 'T. Rex', '  T REX ']) assert.deepEqual(findThings(q, fake).map((r) => [r.stop.id, r.kind, r.i]), [['a', 'look', 0]], q);
+  assert.deepEqual(findThings('blue', fake).map((r) => [r.stop.id, r.kind]), [['a', 'title'], ['b', 'chapter']], 'titles first');
+  assert.deepEqual(findThings('whale blue', fake).map((r) => r.kind), ['title'], 'every word, in any order');
+  assert.equal(findThings('cafe megalodon', fake)[0].stop.id, 'b', 'accents do not count');
+  assert.equal(findThings('owens', fake)[0].kind, 'chapter', 'punctuation does not count');
+  assert.deepEqual(findThings('zebra', fake), []);
+  // Every stop is found by its own title, and every Look For item by its own words, on any walk.
+  for (const s of STOPS) {
+    assert.ok(findThings(s.title).some((r) => r.kind === 'title' && r.stop === s), `${s.id}: title`);
+    s.look.forEach((l, i) => assert.ok(findThings(l).some((r) => r.kind === 'look' && r.stop === s && r.i === i), `${s.id}: look ${i}`));
+  }
+  assert.ok(findThings('trex').some((r) => r.stop.id === 'dinosaurs' && r.kind === 'look'), 'the T. rex is found');
 });

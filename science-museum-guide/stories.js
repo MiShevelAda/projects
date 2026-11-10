@@ -41,7 +41,11 @@ export const STORIES = {
    "What did the Lap Engine actually do?"
   ],
   "hook": "Which engine here was given a devil's name, and why?",
-  "remember": "The Burnley Mill Engine was still at work in 1970, the year after people walked on the Moon."
+  "remember": "The Burnley Mill Engine was still at work in 1970, the year after people walked on the Moon.",
+  "kids": {
+   "q": "Look at the huge red engine. How many machines do you think it ran?",
+   "a": "Well over a thousand looms, the machines that weave cloth. All of them ran off this one engine, in a cotton mill in Burnley. Imagine the noise of a thousand looms at once."
+  }
  },
  "wells-clock": {
   "find": "From the Energy Hall, walk straight on, west, along the long corridor and past the bank of lifts, lift D, into Making the Modern World. The south side of the gallery is behind screens marked closed for refurbishment. The Wells clock is in the open part. If you cannot see it, ask a member of staff: the museum says it is on display, but not where. A clock, keeping you waiting.",
@@ -77,7 +81,11 @@ export const STORIES = {
    "What is the ship doing in this gallery?"
   ],
   "hook": "Can a clock from about 1390 still strike the hours?",
-  "remember": "The Wells clock's face stayed at work in Somerset, and its brains came to London."
+  "remember": "The Wells clock's face stayed at work in Somerset, and its brains came to London.",
+  "kids": {
+   "q": "This clock has wheels but no face. Where do you think its face is?",
+   "a": "Still at Wells Cathedral, in Somerset. Its dials, hands and moving figures stayed there. So the face stayed at work, and the clock's brains came to London."
+  }
  },
  "space": {
   "find": "Keep walking west to the far end of Making the Modern World, past lift E and stairs E, into the West Hall at the back of the museum, following the signs for Space. It is next to the IMAX ticket desk. Space, for once, is closer than you think.",
@@ -125,7 +133,31 @@ export const STORIES = {
    "Is the Moon rock real?"
   ],
   "hook": "If Apollo 10's capsule is Charlie Brown, where is Snoopy now?",
-  "remember": "The museum says Apollo 10 remains the fastest crewed vehicle ever: nearly forty thousand kilometres an hour on the way home."
+  "remember": "The museum says Apollo 10 remains the fastest crewed vehicle ever: nearly forty thousand kilometres an hour on the way home.",
+  "kids": {
+   "q": "Look up at the huge parachute. How wide do you think it is?",
+   "a": "It is 25 metres across. The museum says that is as wide as an Olympic swimming pool. It slowed the capsule from 287 kilometres an hour to just 22. Sewing, it turns out, is rocket science."
+  },
+  "deeper": [
+   {
+    "title": "How NASA rehearsed for the Moon landing: the story of Apollo 10",
+    "who": "Science Museum",
+    "url": "https://www.youtube.com/watch?v=CeeHXyNqeUI",
+    "kind": "video"
+   },
+   {
+    "title": "Mission to Mercury: BepiColombo's incredible journey",
+    "who": "Science Museum",
+    "url": "https://www.youtube.com/watch?v=TFg1h-qSLmY",
+    "kind": "video"
+   },
+   {
+    "title": "Apollo 10's Lunar Module Snoopy Is Lost In Space: Could We Bring it Home?",
+    "who": "Scott Manley, astrophysicist",
+    "url": "https://www.youtube.com/watch?v=jXVYZm9epmU",
+    "kind": "video"
+   }
+  ]
  },
  "energy-revolution": {
   "find": "From Space, take lift F or stairs F, at the north side of the West Hall by the Space Café, up to Level 2. Energy Revolution is the whole of this floor of the West Hall. You cannot walk here from Information Age: this hall connects to the rest of the museum only on Levels 0 and 3. It keeps itself to itself.",
@@ -163,7 +195,11 @@ export const STORIES = {
    "How big is a full turbine blade?"
   ],
   "hook": "What became of the great fusion headline of 1958?",
-  "remember": "The museum calls the Bersey cab the first electric taxi hailed by Londoners: in 1897, in Queen Victoria's reign."
+  "remember": "The museum calls the Bersey cab the first electric taxi hailed by Londoners: in 1897, in Queen Victoria's reign.",
+  "kids": {
+   "q": "Find the old Bersey cab. Did it run on petrol or on electricity?",
+   "a": "Electricity. The museum calls it the first electric taxi that Londoners hailed, in 1897, when Queen Victoria was on the throne. So electric taxis are not such a new idea."
+  }
  },
  "flight": {
   "find": "Back to lift F or stairs F, and up one more floor to Level 3. The West Hall on this floor is closed for refurbishment, so follow the corridor from the lift towards the main building, past lift E, into the west end of Flight. On the one-hour and two-hour walks, take lift F straight up from Space. Either way, you are going up. It seems appropriate.",
@@ -207,7 +243,19 @@ export const STORIES = {
    "Which aircraft here is the fastest?"
   ],
   "hook": "Where did the first non-stop flight across the Atlantic land?",
-  "remember": "Amy Johnson set out for Australia when her longest flight had been London to Hull, and planned her route with a ruler."
+  "remember": "Amy Johnson set out for Australia when her longest flight had been London to Hull, and planned her route with a ruler.",
+  "kids": {
+   "q": "This is the third floor. How do you think the aeroplanes got up here?",
+   "a": "Not by flying. They took the windows out, took the planes partly apart and lifted them up from the road with a crane. Then they built them again inside. Every one came in through a window."
+  },
+  "deeper": [
+   {
+    "title": "The history of aviation in 11 incredible objects",
+    "who": "Science Museum",
+    "url": "https://www.youtube.com/watch?v=UvZd6CGvIX0",
+    "kind": "video"
+   }
+  ]
  },
  "clockmakers": {
   "find": "Walk the length of Flight and leave by its east end, by lift D. Keep going east past lift C: Wonderlab's entrance and ticket desk are just beyond it. Carry on past the Shake Bar and the picnic area to lift A and stairs A in the far corner. Go down one floor to Level 2. The Gallery Café is just ahead of you; the Clockmakers' Museum is the gallery beside the lifts, in the north-east corner of the floor. You are right on time.",
@@ -245,7 +293,19 @@ export const STORIES = {
    "Did Hillary's watch really go to the top?"
   ],
   "hook": "Which watch here does the museum say went to the top of the world?",
-  "remember": "Tompion's grandfather clock runs four months on a single winding: wind it at New Year and forget it until May."
+  "remember": "Tompion's grandfather clock runs four months on a single winding: wind it at New Year and forget it until May.",
+  "kids": {
+   "q": "Find the plain steel watch by the photo of a climber. Where did it go?",
+   "a": "To the top of the world, the museum says. It was Sir Edmund Hillary's watch. He and Tenzing Norgay reached the top of Everest in 1953. Its numbers glow, and it was made ready for the cold."
+  },
+  "deeper": [
+   {
+    "title": "How we change the clocks at the Science Museum",
+    "who": "Science Museum",
+    "url": "https://www.youtube.com/watch?v=94ES5yD7eUY",
+    "kind": "video"
+   }
+  ]
  },
  "science-city": {
   "find": "Science City is next door, filling the middle of this end of the floor, south of the Clockmakers' Museum. Follow its walkway round. The clocks will keep.",
@@ -283,7 +343,19 @@ export const STORIES = {
    "What did Hooke see under his microscope?"
   ],
   "hook": "What did Robert Hooke see that gave us the word cell?",
-  "remember": "By 1800 London was a world centre of science, yet it had no university until the 1820s."
+  "remember": "By 1800 London was a world centre of science, yet it had no university until the 1820s.",
+  "kids": {
+   "q": "Find the stone beside Henry Sutton's compass. What do you think it can do?",
+   "a": "It is a lodestone, a stone that is magnetic all by itself. A tired compass needle was touched to it, and became magnetic again. Its name means, more or less, a stone that shows you the way."
+  },
+  "deeper": [
+   {
+    "title": "A Tour of London, Science City, 1550 to 1800",
+    "who": "Alexandra Rose, lead curator of Science City 1550 to 1800, Science Museum",
+    "url": "https://www.youtube.com/watch?v=CLBy1-69zJ0",
+    "kind": "video"
+   }
+  ]
  },
  "mathematics": {
   "find": "Walk west out of Science City past lift C and stairs C. Mathematics is the next room. Coming straight from Flight on the two-hour walk? Walk east from Flight to lift C or stairs C and go down one floor: Mathematics is just west of them. If the room has an aeroplane in it, you have done your sums right.",
@@ -323,7 +395,31 @@ export const STORIES = {
    "How did the Enigma machine work?"
   ],
   "hook": "Which aircraft lost a prize, yet the winner flew on its idea?",
-  "remember": "Kazuo Ishiguro's father kept an electronic model of the North Sea in his garage; Kazuo has said it looked like the inside of a Tardis."
+  "remember": "Kazuo Ishiguro's father kept an electronic model of the North Sea in his garage; Kazuo has said it looked like the inside of a Tardis.",
+  "kids": {
+   "q": "Look at the curvy ceiling. What do you think its shape is copying?",
+   "a": "The air flowing round the aeroplane in the middle, worked out with the maths of flying. The whole room is shaped like it. So you are standing in a plane's slipstream. Mind the bumps."
+  },
+  "deeper": [
+   {
+    "title": "10 Objects Mathematics: The Winton Gallery",
+    "who": "Science Museum",
+    "url": "https://www.youtube.com/watch?v=XjLNwSs5isY",
+    "kind": "video"
+   },
+   {
+    "title": "Watch the Handley Page Gugnunc aircraft re-assembled",
+    "who": "Science Museum",
+    "url": "https://www.youtube.com/watch?v=mTr4bVGoEGs",
+    "kind": "video"
+   },
+   {
+    "title": "158,962,555,217,826,360,000 (Enigma Machine)",
+    "who": "Numberphile",
+    "url": "https://www.youtube.com/watch?v=G2_Q9FoD-oQ",
+    "kind": "video"
+   }
+  ]
  },
  "information-age": {
   "find": "Keep going west out of Mathematics, past lift D and stairs D. Information Age is the next gallery. Just inside the entrance, look for a cactus. Yes, a cactus. Indoors. In London.",
@@ -365,7 +461,25 @@ export const STORIES = {
    "What are the two objects from 1985?"
   ],
   "hook": "What did the Queen take off to send her first tweet?",
-  "remember": "The tall cactus by the entrance is not a cactus: it is a mobile phone mast in disguise."
+  "remember": "The tall cactus by the entrance is not a cactus: it is a mobile phone mast in disguise.",
+  "kids": {
+   "q": "Look at the cactus by the door. Is it a real plant?",
+   "a": "No. It is a mobile phone mast dressed up as a cactus, with three aerials hiding inside. Look closely for its fake scars and woodpecker holes. Somebody was paid to add those."
+  },
+  "deeper": [
+   {
+    "title": "6 Stories celebrating the Information Age",
+    "who": "Science Museum",
+    "url": "https://www.youtube.com/watch?v=YSbPgH76LQA",
+    "kind": "video"
+   },
+   {
+    "title": "The satellite broadcast seen by 700 million people",
+    "who": "Science Museum",
+    "url": "https://www.youtube.com/watch?v=hnD78Rcd13k",
+    "kind": "video"
+   }
+  ]
  },
  "medicine": {
   "find": "Cross Information Age to its far, west end and take stairs E or lift E down one floor to Level 1. You come out at Faith, Hope and Fear, the west end of Medicine: The Wellcome Galleries. This stop walks you east through all five rooms. You are coming in at the back. Nobody will mind.",
@@ -411,7 +525,11 @@ export const STORIES = {
    "Who took Photo 51?"
   ],
   "hook": "What did the Oxford team grow penicillin in?",
-  "remember": "In Illinois, Mary Hunt found a rotting cantaloupe whose mould made six times more penicillin than Fleming's."
+  "remember": "In Illinois, Mary Hunt found a rotting cantaloupe whose mould made six times more penicillin than Fleming's.",
+  "kids": {
+   "q": "A mouldy fruit helped make more of this medicine. Which fruit do you think?",
+   "a": "A melon. A lab helper called Mary Hunt found a rotting cantaloupe melon. Its mould made six times more penicillin than Fleming's. So the hero of this story is a mouldy melon."
+  }
  },
  "engineers": {
   "find": "Leave Medicine and Bodies by its east end, past lift C and stairs C. Technicians: The David Sainsbury Gallery is ahead of you; Engineers is beyond it, in the north-east corner by lift A. Two galleries, and neither costs a penny.",
@@ -451,7 +569,25 @@ export const STORIES = {
    "Which engineer here should I know?"
   ],
   "hook": "Which breakfast leftover helped build the Engineers gallery?",
-  "remember": "The Virtual Heart was built by the bioengineer Dr Jazmin Aguado Sierra from scans of her own heart."
+  "remember": "The Virtual Heart was built by the bioengineer Dr Jazmin Aguado Sierra from scans of her own heart.",
+  "kids": {
+   "q": "Part of this gallery is made from something you eat out of. Guess what?",
+   "a": "Yoghurt pots. The gallery was built partly from a recycled plastic made mostly of yoghurt pots. So somewhere in this room are a great many breakfasts."
+  },
+  "deeper": [
+   {
+    "title": "Engineers: Curator Introduction to the Gallery",
+    "who": "Science Museum",
+    "url": "https://www.youtube.com/watch?v=uOjRcgNnCTc",
+    "kind": "video"
+   },
+   {
+    "title": "Technicians: The David Sainsbury Gallery, an introduction",
+    "who": "Science Museum",
+    "url": "https://www.youtube.com/watch?v=e2UaTNZLPvM",
+    "kind": "video"
+   }
+  ]
  },
  "watt-workshop": {
   "find": "Take lift A or stairs A, in the corner of Engineers, down to Level 0. You come out in the corner of the Energy Hall where you started. James Watt and Our World is right beside you, on the north side of the hall. From Medicine on the two-hour walk, keep walking east through Technicians to lift A. From Flight on the one-hour walk, walk east along Level 3 past Wonderlab to lift A, and go down to Level 0. Yes, you have been here before. That was the plan.",
@@ -486,6 +622,10 @@ export const STORIES = {
    "What did Watt make besides engines?"
   ],
   "hook": "What does James Watt's steam engine have to do with teacups?",
-  "remember": "James Watt's attic workshop is preserved as it was when he died in 1819, with eight thousand four hundred and thirty objects."
+  "remember": "James Watt's attic workshop is preserved as it was when he died in 1819, with eight thousand four hundred and thirty objects.",
+  "kids": {
+   "q": "Peer into the attic. How many things do you think are in there?",
+   "a": "8,430 objects, all left just as they were. Count what you can, then stop. You will not finish."
+  }
  }
 };

@@ -35,10 +35,10 @@
     <svg viewBox="0 0 28 24" aria-hidden="true"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h17A2.5 2.5 0 0 1 25 5.5v3a3.5 3.5 0 0 0 0 7v3a2.5 2.5 0 0 1-2.5 2.5h-17A2.5 2.5 0 0 1 3 18.5v-3a3.5 3.5 0 0 0 0-7z" fill="currentColor"/><path d="M17 6v12" stroke="var(--card)" stroke-width="1.8" stroke-dasharray="2 2"/></svg>
     Visit</a>
 </nav>
-<div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-label="Photo" hidden>
+<dialog class="zoom" id="zoom" aria-label="Photo">
   <button class="glass close" type="button" aria-label="Close the photo"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3 3 13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
   <div data-zoom-body></div>
-</div>
+</dialog>
 <div class="toast" id="toast" role="status" hidden></div>
 <audio id="audio" preload="none" playsinline></audio>
 <script type="module" src="app.js"></script>

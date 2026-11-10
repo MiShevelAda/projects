@@ -5,8 +5,9 @@ through the must-sees in order, tells you where to look at each one, and has a n
 in the same voice and manner as the Natural History Museum Guide next door: unhurried,
 curious, a little dry, and always pointing you at something real.
 
-**Private.** Like the Natural History Museum guide, this is opened from a private claude.ai link,
-not a public website.
+**Open it on your phone:** https://mishevelada.github.io/projects/science-museum-guide/ (public, no
+password). Ask the Guide is not on this version: it runs on Alex's own Claude account, so it
+appears only on his private claude.ai link.
 
 Not made by or connected to the Science Museum. Galleries close and objects move: check the
 museum's own website on the day.

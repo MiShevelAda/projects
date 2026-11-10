@@ -136,9 +136,9 @@
   },
   "treasures": {
    "way": {
-    "file": "2cb892129fa50958.m4a",
-    "seconds": 100.96,
-    "bytes": 616786
+    "file": "6e7572b7e836f793.m4a",
+    "seconds": 111.67,
+    "bytes": 680822
    },
    "story": {
     "file": "09410aa2a2dc105c.m4a",
@@ -163,9 +163,9 @@
   },
   "vault": {
    "way": {
-    "file": "50ced891032440c5.m4a",
-    "seconds": 111.55,
-    "bytes": 674181
+    "file": "57fe59204211d872.m4a",
+    "seconds": 124.69,
+    "bytes": 768878
    },
    "story": {
     "file": "73d3f7abe81fb56d.m4a",
@@ -191,25 +191,25 @@
   },
   "sequoia": {
    "way": {
-    "file": "190031777b7fea82.m4a",
-    "seconds": 106.59,
-    "bytes": 641446
+    "file": "1d22d33819f2ac7e.m4a",
+    "seconds": 120.31,
+    "bytes": 735209
    },
    "story": {
-    "file": "80e77a0d69fcfcba.m4a",
-    "seconds": 416.22,
+    "file": "b234ed69dfc2dadd.m4a",
+    "seconds": 418.73,
     "starts": [
      0.5,
      3.76,
-     50.75,
-     95.53,
-     142.97,
-     174.39,
-     235.54,
-     292.36,
-     334.95
+     51.71,
+     96.49,
+     143.93,
+     175.35,
+     236.5,
+     293.32,
+     337.47
     ],
-    "bytes": 2591900
+    "bytes": 2607878
    }
   },
   "nature-and-us": {
@@ -239,9 +239,9 @@
   },
   "marine-reptiles": {
    "way": {
-    "file": "d6bd63cd59793840.m4a",
-    "seconds": 105.33,
-    "bytes": 643451
+    "file": "a82a177a300eda94.m4a",
+    "seconds": 113.23,
+    "bytes": 695095
    },
    "story": {
     "file": "a3e723e7bbb9b863.m4a",
@@ -292,9 +292,9 @@
   },
   "sophie": {
    "way": {
-    "file": "ff51211a0a07dfec.m4a",
-    "seconds": 115.68,
-    "bytes": 703983
+    "file": "f93a06f60b3a8df0.m4a",
+    "seconds": 122.98,
+    "bytes": 752537
    },
    "story": {
     "file": "a9e9d073bb157660.m4a",
@@ -315,9 +315,9 @@
   },
   "kobe": {
    "way": {
-    "file": "6eb7db0e330587f8.m4a",
-    "seconds": 106.53,
-    "bytes": 649323
+    "file": "d6fa506a3445f188.m4a",
+    "seconds": 110.88,
+    "bytes": 678710
    },
    "story": {
     "file": "4690b8e5409cc10b.m4a",
@@ -343,26 +343,26 @@
   },
   "fern": {
    "way": {
-    "file": "2fe3c45731a5e002.m4a",
-    "seconds": 112.66,
-    "bytes": 692287
+    "file": "28161163f9bce441.m4a",
+    "seconds": 118.64,
+    "bytes": 727357
    },
    "story": {
-    "file": "84fdeddb42cd6d8e.m4a",
-    "seconds": 413.07,
+    "file": "a64ef5432f405e60.m4a",
+    "seconds": 412.86,
     "starts": [
      0.5,
      4.4,
-     54.99,
-     92.63,
-     140.64,
-     192.23,
-     251.04,
-     283.21,
-     333.16,
-     385.73
+     54.78,
+     92.42,
+     140.43,
+     192.02,
+     250.82,
+     282.99,
+     332.94,
+     385.52
     ],
-    "bytes": 2575975
+    "bytes": 2571093
    }
   }
  }

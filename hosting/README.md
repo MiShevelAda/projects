@@ -2,8 +2,10 @@
 
 How the museum guides are served at **https://trucora.de/museum-guides/**, on Alex's own server (live
 since 9 November 2026, installed by Alex and checked from outside the same evening),
-behind a password of their own (username `museum`). Not an app: nothing here is published on
-GitHub Pages.
+behind a password of their own (username `museum`). Not an app: nothing in this folder is published
+on GitHub Pages. The guides themselves are also public there, with no password, by Alex's ruling of
+10 November 2026 (`DECISIONS.md`): https://mishevelada.github.io/projects/london-museum-guide/ and
+https://mishevelada.github.io/projects/science-museum-guide/.
 
 | File | What it is |
 |---|---|

@@ -6,6 +6,28 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ---
 
+## 2026-11-10
+
+### Public after all: the QR lands on the app itself
+
+> **"option 1 is best but copy can be improved"**
+> **"piublic git hub will it work i want people to land directly at the app"**
+
+Offered three ways for LinkedIn readers to reach the guide without a password, he chose option 1,
+the public GitHub Pages site, and then said where a scan should land: on the app, not on a landing
+page or a login box.
+
+**This reverses "can u make it private ?" (2026-11-09, below).** That ruling kept the pull request
+unmerged; this one merges it, and the guides go public at
+`https://mishevelada.github.io/projects/london-museum-guide/` and `.../science-museum-guide/`.
+**What did not change:** nobody can spend his Claude usage. Ask the Guide runs only inside a
+claude.ai viewer, so the public site never shows it; the private claude.ai links keep it.
+
+**The rule underneath.** A call to action goes straight to the thing it promises, in one step. The
+QR in the post opens the Natural History Museum guide directly, and the post must not promise
+readers what the public version does not have (Ask the Guide). trucora.de/museum-guides stays as it
+is, behind its password.
+
 ## 2026-11-09
 
 ### Chapters you can see and pick

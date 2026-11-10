@@ -76,6 +76,27 @@ export function upNext(walk, { later = [], seen = {}, day = today() } = {}) {
   return inOrder.slice(furthest + 1).find(ok) || list.find(ok) || null;
 }
 
+// How long a walk takes: the minutes at each stop, and WALK_BETWEEN for each walk between two of them.
+export const walkMinutes = (list) => list.reduce((a, s) => a + s.minutes, 0) + Math.max(0, list.length - 1) * WALK_BETWEEN;
+
+// Find something: the stop titles, Look For items and chapter titles, from every stop, that hold every
+// word typed. Case, accents and punctuation do not count, so "t rex" and "trex" both find "T. rex".
+// Titles come first, then Look For, then chapters, each in the order of the full walk.
+const fold = (t) => String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const KINDS = ['title', 'look', 'chapter'];
+export function findThings(query, stops = STOPS) {
+  const words = fold(query).split(' ').filter(Boolean);
+  if (words.join('').length < 2) return [];
+  const has = (text) => { const f = fold(text); return words.every((w) => f.includes(w)) || f.replace(/ /g, '').includes(words.join('')); };
+  const out = [];
+  for (const s of stops) {
+    if (has(s.title)) out.push({ stop: s, kind: 'title', text: s.title });
+    (s.look || []).forEach((text, i) => { if (has(text)) out.push({ stop: s, kind: 'look', text, i }); });
+    (s.chapters || []).forEach((text, i) => { if (has(text)) out.push({ stop: s, kind: 'chapter', text, i }); });
+  }
+  return out.sort((a, b) => KINDS.indexOf(a.kind) - KINDS.indexOf(b.kind));
+}
+
 // Will the rest of the walk fit before the galleries start clearing? Minutes needed for what is
 // left, against minutes until clearing starts (HOURS.clearing). Only meaningful while open.
 export function timeCheck(walk, { later = [], seen = {}, d = new Date() } = {}) {

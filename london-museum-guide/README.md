@@ -5,8 +5,9 @@ walks you through the must-sees in order, tells you where to look at each one, a
 in your ear, written in the manner of a classic British nature documentary: unhurried, curious, and
 always pointing you at something real.
 
-**Open it on your phone:** https://mishevelada.github.io/projects/london-museum-guide/ (live once
-this folder is on `main`).
+**Open it on your phone:** https://mishevelada.github.io/projects/london-museum-guide/ (public, no
+password). Ask the Guide is not on this version: it runs on Alex's own Claude account, so it
+appears only on his private claude.ai link.
 
 Not made by or connected to the Natural History Museum. Galleries close and specimens move: check
 the museum's own website on the day.

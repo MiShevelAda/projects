@@ -84,3 +84,19 @@ test('every stop has a question for the Next button and one fact to remember', (
     for (const t of [s.hook, s.remember]) assert.ok(!/[—–()!]/.test(t), `${s.id}: house style`);
   }
 });
+
+test('a question for children and things to go deeper into, where a stop has them', () => {
+  for (const s of STOPS) {
+    if (s.kids) {
+      assert.ok(typeof s.kids.q === 'string' && s.kids.q.trim().length > 3 && typeof s.kids.a === 'string' && s.kids.a.trim().length > 1, `${s.id}: kids needs a question (q) and an answer (a)`);
+      assert.ok(!/[\u2014\u2013]/.test(s.kids.q + s.kids.a), `${s.id}: kids: no em or en dashes`);
+    }
+    if (s.deeper != null) assert.ok(Array.isArray(s.deeper), `${s.id}: deeper is a list`);
+    for (const d of s.deeper || []) {
+      assert.ok(d.title && d.who && /^https:\/\//.test(d.url), `${s.id}: deeper needs a title, who made it and an https link`);
+      assert.ok(['video', 'podcast', 'article'].includes(d.kind), `${s.id}: deeper kind is video, podcast or article, not ${d.kind}`);
+      assert.ok(d.minutes == null || (Number.isFinite(d.minutes) && d.minutes > 0), `${s.id}: deeper minutes is a number`);
+      assert.ok(!/[\u2014\u2013]/.test(d.title + d.who), `${s.id}: deeper: no em or en dashes`);
+    }
+  }
+});

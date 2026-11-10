@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { STOPS } from '../stops.js';
-import { closedOn, hoursOn, nextOf, noticeOn, openState, timeCheck, walkStops } from '../walk.js';
+import { closedOn, findThings, hoursOn, nextOf, noticeOn, openState, timeCheck, walkMinutes, walkStops } from '../walk.js';
 
 const at = (iso) => new Date(iso);
 const byId = (id) => STOPS.find((s) => s.id === id);
@@ -33,4 +33,24 @@ test('the walks run from the Energy Hall to the exit, and a late start offers a 
   assert.equal(walkStops('three').length, STOPS.length);
   const late = timeCheck('three', { d: at('2026-11-12T15:00:00Z') });
   assert.ok(late.short && late.shorter);
+});
+
+test('a walk\'s length is its stops\' minutes plus the walks between them, as the picker shows it', () => {
+  assert.equal(walkMinutes([]), 0);
+  assert.equal(walkMinutes([{ minutes: 10 }, { minutes: 5 }]), 10 + 5 + 3);
+  // At opening on an ordinary day, the time check needs exactly the picker's length.
+  for (const w of ['hour', 'two', 'three']) assert.equal(timeCheck(w, { d: at('2026-11-12T10:00:00Z') }).need, walkMinutes(walkStops(w)), w);
+});
+
+test('find something: titles, Look For items and chapter titles from every stop, on any walk', () => {
+  assert.deepEqual(findThings(''), []);
+  assert.deepEqual(findThings('h'), [], 'one letter finds nothing yet');
+  for (const s of STOPS) {
+    assert.ok(findThings(s.title).some((r) => r.kind === 'title' && r.stop === s), `${s.id}: title`);
+    s.look.forEach((l, i) => assert.ok(findThings(l).some((r) => r.kind === 'look' && r.stop === s && r.i === i), `${s.id}: look ${i}`));
+  }
+  // Harrison's H5 is not on the 2-hour walk, and is found all the same.
+  assert.ok(!walkStops('two').some((s) => s.id === 'clockmakers'));
+  assert.ok(findThings('h5').some((r) => r.stop.id === 'clockmakers' && r.kind === 'look'));
+  assert.ok(findThings('VIMY').some((r) => r.stop.id === 'flight'), 'case does not count');
 });
