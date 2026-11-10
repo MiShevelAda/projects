@@ -8,7 +8,7 @@ History Museum guide on a phone. No logic, so no tests.
 | File | What it is |
 |---|---|
 | `index.html` | The page, in the guides' own design tokens (`london-museum-guide/style.css`), light and dark |
-| `demo.mp4` | The 32 second demo made for LinkedIn, 720x1280: the real Hope narration with captions, ending on the QR card |
+| `demo.mp4` | The 34 second demo (video A2), 720x1280: the way to Hope and "There she is ... and a name. Hope." in the real voice, his photos, the app's Find It card, ending on the QR card. No captions |
 | `demo-poster.jpg` | Its first frame, shown before it plays and as the link preview image |
 | `hope-sample.m4a` | 28 seconds: the way to Hope (the start of its "way" recording) and two sentences of her story, joined at a pause |
 
