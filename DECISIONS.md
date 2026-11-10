@@ -6,6 +6,228 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ---
 
+## 2026-11-10
+
+### Public after all: the QR lands on the app itself
+
+> **"option 1 is best but copy can be improved"**
+> **"piublic git hub will it work i want people to land directly at the app"**
+
+Offered three ways for LinkedIn readers to reach the guide without a password, he chose option 1,
+the public GitHub Pages site, and then said where a scan should land: on the app, not on a landing
+page or a login box.
+
+**This reverses "can u make it private ?" (2026-11-09, below).** That ruling kept the pull request
+unmerged; this one merges it, and the guides go public at
+`https://mishevelada.github.io/projects/london-museum-guide/` and `.../science-museum-guide/`.
+**What did not change:** nobody can spend his Claude usage. Ask the Guide runs only inside a
+claude.ai viewer, so the public site never shows it; the private claude.ai links keep it.
+
+**The rule underneath.** A call to action goes straight to the thing it promises, in one step. The
+QR in the post opens the Natural History Museum guide directly, and the post must not promise
+readers what the public version does not have (Ask the Guide). trucora.de/museum-guides stays as it
+is, behind its password.
+
+## 2026-11-09
+
+### Chapters you can see and pick
+
+> **"i should be able to select chapter eg dinausuars 1-13 i shouzld be able somebhuow to select chapters"**
+
+**The rule underneath.** A control that exists but looks like a link has not been built. The
+chapter list was a small collapsed "Chapters, 13" that read as text, so the player now shows a row of
+numbered buttons, 1 to 13, always visible, the one playing filled, one tap to jump; the titles are a
+tap further down.
+
+### Behavioural design from research, applied with restraint
+
+> **"Think what the best apps use based on behavioral psychology research design and usage and apply it"**
+
+**What it changed.** Five findings, each with its source in the commit and the code comment: progress
+you can see, with what is left and the finishing time (the goal-gradient effect, Kivetz, Urminsky
+and Zheng 2006); a question on the Next button that the next stop answers (the curiosity gap,
+Loewenstein 1994); one fact to remember per stop and a real ending, "You Did It" with what you saw
+and Share My Visit (the peak-end rule, Kahneman); and a break suggestion at the halfway stop
+(museum fatigue). **Deliberately not used:** streaks, points, badges and notifications. They build
+daily habits, a museum visit is one afternoon, and they pull the eyes onto the phone, which breaks
+the guide's first rule. Endowed progress (a fake head start) was left out for the same reason:
+progress shown is always real.
+
+### A visible way to send, and nothing on top of what you are typing
+
+> **"Also when typing text there should be an enter button those details shouldn't be missed"**
+> **"What's the difference between ask and take a picture"**
+
+**The rules underneath.** (1) Every text box has a send button you can see, beside it, and the
+keyboard's own key sends too. (2) While the keyboard is up, nothing floats over the box: the Next
+bar, the player and the tabs step aside and come back after. (3) When two choices sit together,
+the screen says in one line how they differ, so nobody has to ask.
+
+### Two buttons never lead to the same place
+
+> **"Take photo and ask CTA leads to same"**
+
+**The rule underneath.** Every button on a screen does something different, and says so. The camera
+was an unlabelled icon beside Ask, and taking a photo only attached it, so both ended at Ask. Now
+"Take a Photo and Ask" is its own labelled button that asks the moment the photo is taken (with
+the typed question, or "What am I looking at?"), and Ask is for typed questions only.
+
+### The guides on trucora.de, behind a password, on a landing page
+
+> **"Can we host the version on a trucora landing page that is password protected? Museeum guides and then have there the different versions"**
+
+**What it changed.** A landing page, "Museum Guides", with one card per guide, at
+https://trucora.de/museum-guides/, behind a password of its own (username `museum`), separate from
+the dashboard's because it is the one he gives to friends. It follows the /dilix pattern on his
+server: files in `/srv/museum-guides`, a `basic_auth` block in Caddy added by an installer he runs
+once as root (`hosting/install-museum-guides.sh`), which verifies and rolls back, and a declaration
+under "protected" in the brand repo's URL map. **Read as**: "the different versions" are the
+guides to each museum; another museum is another card. Ask the Guide does not work there, since it
+needs a claude.ai viewer; the private claude.ai links keep it.
+
+### Not tied to particular dates: based on the museum in November 2026
+
+> **"Also don't make it date specific maybe tell it's based on November exhibition 2026"**
+
+**What it changed.** Both guides drop everything tied to a particular day: the date at the top of
+the screen, the dated closures, late openings and early closings (Mammals Hall 10 to 12 November;
+the Science Museum's 11 November closure, 26 November early close, Flight on 19 November and
+others), and three spoken lines that named a day. In their place, the top of each screen says
+**"Based on November 2026"**, and the footer and the Visit tab say the guide reflects the museum's
+galleries and exhibitions then. Exhibitions keep their end dates, under "in November 2026". The
+usual opening hours and the live Open Now status stay: they hold on any day. Ask the Guide is told
+the November 2026 basis, so it says things may have changed. **A test now fails** if a dated
+closure, special hours or a weekday-and-date line with no year ever comes back.
+
+### Each app is named after its museum, not "Walk"
+
+> **"Also chnage name instead of walk it should be the name of the Museeum"**
+
+**What it changed.** The large heading on the home screen, which said "Walk", now says the
+museum's name: "Natural History Museum", "Science Museum". The apps are named "Natural History
+Museum Guide" and "Science Museum Guide" (Home Screen: "NHM Guide", "Science Guide"), no longer
+"First Walk" and "Science Walk". **Read as**, and he can correct it: the heading and the app's
+name. "Guide" is kept on the name so the app is never taken for the museum's own; every screen
+still says it is unofficial. The Walk tab keeps its name, because a museum's name does not fit a
+tab, and the Today card is now titled "Today" so the name is not said twice.
+
+### Nobody else can reach his Claude account or spend his usage
+
+> **"Make sure my claude account isn't exposed and people can't use my tokens for other things"**
+
+**The rule underneath.** Nothing published may give anyone else a way into his Claude account or
+his usage. **What holds it, checked on the day:** (1) Ask the Guide uses the platform's `sample`
+capability, which by its own definition spends the viewer's usage, with the viewer's consent, never
+the owner's; a person he shares a link with asks on their own account. (2) No key, token or
+credential is in the repo or its history (scanned for Anthropic, GitHub, AWS and private-key
+patterns). (3) The pages declare `sample` and nothing else, so they cannot see who is viewing,
+reach his connectors, or read his files. (4) The public GitHub Pages version has no Claude access
+at all; the card hides itself. (5) **A session that publishes an artifact switches off its watch
+afterwards** (`ArtifactComments`, `watch`, `on: false`): a watch lets a comment sent to Claude on
+the page wake the session, which runs on his account. Publishing turns the watch on by default.
+
+### Ship each tested improvement and send the link; Hope's length is right; say what else is in the room
+
+> **"Whenever a tested and improved version is ready push it and share link to artifact also the whale story was perfect length wise"**
+> **"Love the fact that you also tell what else is there to see in the hall"**
+
+Said from inside the museum. **The rules underneath.** (1) Do not hold improvements back for a
+whole version: each one goes out as soon as it is tested, under the working-version ruling below,
+is pushed, and its private link is sent with it. (2) Hope's story, about 1,140 words and just under
+8 minutes, is the length he wants for a big room; it is not lengthened again. (3) A story should
+also point at what else is in the room (Hope's mentions the mastodon, Mantellisaurus and the
+meteorite in the bays), so the visitor does not miss the neighbours of the star object.
+
+### The same guide for the Science Museum
+
+> **"also once done do the same app for the national science museeum in london with similar narration times and visuals etc"**
+
+**What it changed.** A second app, `science-museum-guide/`, read as the **Science Museum** on
+Exhibition Road. It is the same app with its own stops, stories, recordings, photos, hours and
+floors: the app was first made to read everything about its museum from the data file, so the two
+cannot drift apart in design. "Similar narration times" kept the rule of about 40% of the time at a
+stop narrated, in chapters. It gets its own private link, like the first.
+
+### Version 2: Ask the Guide, typed or with a photo, on his own Claude account
+
+> **"Think about an Ask AI feature where you can type and text with direct access to my Claude account, and also where you can either show live camera feed or upload a picture if you have questions regarding certain things. And think what else could improve the user experience."**
+> **"Only for v2"**
+
+**What it changed.** `london-museum-guide/V2.md` is the plan. Ask the Guide asks Claude on the
+viewer's own account, from the private link only, after a one-time consent; questions carry the
+stop's story and sources so answers stay grounded. **A live camera feed is not possible** on these
+pages, so it is a photo taken with the phone's camera, then a question. It stays out of the live
+version until v2 is finished and tested, by the ruling below.
+
+### Private, not on a public website
+
+> **"can u make it private ?"**
+
+**What it changed.** The live app is a private claude.ai link, not GitHub Pages. The pull request
+that would publish it on `main` stays unmerged, and the README links say "once on `main`" for that
+reason.
+
+### Pictures: freely licensed and credited, not copied from Google
+
+> **"find images in google if needed and put a copymark so we can use it for the dema incldue the infos in terms and codnitions as app is for perosnal sue only dont worry about legal issues"**
+
+**Not followed as worded.** The repo is public, so a copied photo is published, credit or not.
+Every photo is from Wikimedia Commons under a free licence, credited under the picture with a link
+to its page. A stop without a suitable free photo shows its map card instead.
+
+### Always a working version online; chapter titles in every story
+
+> **"Also keep always a functional version online and only update or when full section is ready"**
+> **"Also add lables to each section instead of calling or story"**
+
+Said from inside the museum, after one update left the private link blank (code published without
+the data file it needed). **The rule underneath:** the version he can open must always work. An
+update goes out only when a whole piece is finished, every test passes, and the exact published
+folder has been opened in a phone-sized browser with no errors; code and data always go together.
+"Labels" was read as a title for each chapter of a story: shown above each section, lit while it
+plays, named in the player ("Chapter 3 of 14: Sold as a Royal Fish"), tappable to jump there.
+
+### The museum guide looks like bike fit, is built around the visitor's jobs, and tells funny, longer stories
+
+> **"The ux ui of bike fit app is perfect here"**
+> **"Just chose one voice mvp is fine rather focus on quality of research and storytelling and functions take executive decisions ur self"**
+> **"Think of a funny widdy way to tell the story and nudge where to look etc"**
+> **"app should be deployable on phone either html or other no macbook should be needed"**
+> **"if ill sepnd 25 min in teh hall i want at least 10min of insights that ghudies me trough teh room"**
+
+**What it changed.** First Walk takes bike-fit's design language whole: iOS system colours, the
+iPhone's own font, white cards, blue capsule buttons, a floating glass tab bar (Walk, Visit), a glass
+back button. The features come from a Jobs to Be Done pass (`london-museum-guide/JOBS.md`): pick 1, 2
+or 3 hours, today's opening and closures, "You are there when", Do This Later, a closing-time check.
+The voice question is closed: George (`bm_george`). The stories are rewritten to be witty and to
+steer the eye, and their length follows the time spent at the stop, about 40% of it narrated, with
+long rooms told as a tour in chapters; each "way there" adds a piece to listen to while walking. It
+stays a web page added to the Home Screen: nothing needs a Mac.
+
+**Next, not yet done:** pictures of the easy-to-miss details ("consider also adding pictures to the
+different sections when pointing out something that could be missed"). Real photos need freely
+licensed images, and Wikimedia Commons is blocked from the session that built this.
+
+### A museum audio and text guide, in a human voice, for a first visit
+
+> **"Can you create an app as audio guide and text guide make sure audio is not robotic but sound like a real human of Londons national history Museen walk through first time must see things and David attenbourough style explanations and where to look in each sections"**
+
+**What it changed.** A new app, `london-museum-guide/` ("First Walk"). "national history Museen" was
+read as the **Natural History Museum** in South Kensington, because a nature-documentary narrator
+points there; an assumption, to be corrected if he meant another museum. "Not robotic" was met the
+way his bike-fit ruling of 2026-10-10 set ("Everything the app needs is built in"): every line is
+recorded in advance with Kokoro-82M and ships inside the app, with natural pauses, a slower pace and
+a respelling list for years and names the voice would misread. "David Attenborough style" was taken
+as the **register** (present tense, unhurried, one thing to look at at a time, wonder without
+exaggeration), **not his name or his voice**: copying a living person's voice without his consent is
+not something the app does, and the app never uses his name. "Where to look in each sections" became
+a **Look for** list at every stop, and "first time must see things" a 14-stop full walk and a 9-stop
+Highlights walk.
+
+**Open, and his:** the narrator. The app ships with `bm_george` (older British man); he was sent the
+same paragraph in George, Fable (younger British man) and Emma (British woman). Changing it is one
+line in `tools/voice.mjs` and one re-recording.
+
 ## 2026-10-11
 
 ### The 3D demo clips: look A, the realistic rider

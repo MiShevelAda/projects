@@ -1,0 +1,279 @@
+{
+ "voice": {
+  "model": "kokoro-82m-v1.0-q8",
+  "voice": "bm_george",
+  "lang": "en-gb",
+  "speed": 0.82
+ },
+ "encoding": "AAC-LC in .m4a, 48 kb/s, mono, 24 kHz, loudness -18 LUFS",
+ "note": "Made by tools/build-audio.mjs.",
+ "stops": {
+  "energy-hall": {
+   "way": {
+    "file": "ef2a32a758fc9ce9.m4a",
+    "seconds": 99.48,
+    "bytes": 611987
+   },
+   "story": {
+    "file": "6a6efd2077a274fb.m4a",
+    "seconds": 304.53,
+    "starts": [
+     0.5,
+     3.42,
+     35.16,
+     76.5,
+     133.34,
+     182.5,
+     229.91,
+     274.82
+    ],
+    "bytes": 1900153
+   }
+  },
+  "wells-clock": {
+   "way": {
+    "file": "8f342d6509798756.m4a",
+    "seconds": 111.75,
+    "bytes": 692406
+   },
+   "story": {
+    "file": "a1da239a05329c05.m4a",
+    "seconds": 202.61,
+    "starts": [
+     0.5,
+     4.19,
+     42.38,
+     74.13,
+     114.67,
+     158.97
+    ],
+    "bytes": 1257194
+   }
+  },
+  "space": {
+   "way": {
+    "file": "6f5fe3a72c756615.m4a",
+    "seconds": 96.04,
+    "bytes": 593795
+   },
+   "story": {
+    "file": "de99d3109277cccf.m4a",
+    "seconds": 456.5,
+    "starts": [
+     0.5,
+     2.78,
+     42.09,
+     83.72,
+     115.25,
+     156.85,
+     200.34,
+     238.36,
+     278.18,
+     321.62,
+     351.9,
+     405.41
+    ],
+    "bytes": 2832888
+   }
+  },
+  "energy-revolution": {
+   "way": {
+    "file": "5aaeecf57cbe4fd7.m4a",
+    "seconds": 97.6,
+    "bytes": 590698
+   },
+   "story": {
+    "file": "12c84cd60fc45fd4.m4a",
+    "seconds": 244.16,
+    "starts": [
+     0.5,
+     3.72,
+     42.66,
+     81.41,
+     113.62,
+     162.25,
+     202.94
+    ],
+    "bytes": 1515190
+   }
+  },
+  "flight": {
+   "way": {
+    "file": "48f50a4e5d786d0c.m4a",
+    "seconds": 97.04,
+    "bytes": 595339
+   },
+   "story": {
+    "file": "14c659c37b6a1adb.m4a",
+    "seconds": 395.17,
+    "starts": [
+     0.5,
+     2.72,
+     32.45,
+     71.78,
+     101.58,
+     144.64,
+     193.42,
+     239.46,
+     289.05,
+     342.33
+    ],
+    "bytes": 2459025
+   }
+  },
+  "clockmakers": {
+   "way": {
+    "file": "79f82a40a0f752b3.m4a",
+    "seconds": 96.01,
+    "bytes": 587055
+   },
+   "story": {
+    "file": "4e03ecb1af2ffb43.m4a",
+    "seconds": 308.15,
+    "starts": [
+     0.5,
+     4.34,
+     45.93,
+     129.32,
+     155.36,
+     207.42,
+     259.55
+    ],
+    "bytes": 1920845
+   }
+  },
+  "science-city": {
+   "way": {
+    "file": "77c741471821b8a7.m4a",
+    "seconds": 93.14,
+    "bytes": 570771
+   },
+   "story": {
+    "file": "c1eddae3754ab272.m4a",
+    "seconds": 286.96,
+    "starts": [
+     0.5,
+     3.23,
+     53.03,
+     97.35,
+     144.59,
+     188.59,
+     235.19
+    ],
+    "bytes": 1788357
+   }
+  },
+  "mathematics": {
+   "way": {
+    "file": "c933b75f82e5fc0a.m4a",
+    "seconds": 101.36,
+    "bytes": 622309
+   },
+   "story": {
+    "file": "d37a755621c89d0f.m4a",
+    "seconds": 322.65,
+    "starts": [
+     0.5,
+     3.31,
+     34.08,
+     81.36,
+     124.95,
+     169.7,
+     221.74,
+     278.88
+    ],
+    "bytes": 2008101
+   }
+  },
+  "information-age": {
+   "way": {
+    "file": "779f8b08979cbbaa.m4a",
+    "seconds": 98.05,
+    "bytes": 597081
+   },
+   "story": {
+    "file": "0f3dd242eeb79f94.m4a",
+    "seconds": 369.51,
+    "starts": [
+     0.5,
+     3.81,
+     55.27,
+     85.31,
+     132.93,
+     185.29,
+     231.55,
+     279.09,
+     327.59
+    ],
+    "bytes": 2293836
+   }
+  },
+  "medicine": {
+   "way": {
+    "file": "912cd6dea9ddef36.m4a",
+    "seconds": 110.68,
+    "bytes": 687115
+   },
+   "story": {
+    "file": "36c1bf0535194f43.m4a",
+    "seconds": 469.26,
+    "starts": [
+     0.5,
+     2.91,
+     55.4,
+     101.61,
+     152.99,
+     182.67,
+     233.15,
+     278.86,
+     321.68,
+     374.45,
+     423.14
+    ],
+    "bytes": 2918245
+   }
+  },
+  "engineers": {
+   "way": {
+    "file": "87b23a3265943734.m4a",
+    "seconds": 94.73,
+    "bytes": 576502
+   },
+   "story": {
+    "file": "0c6aa4cfadf3405a.m4a",
+    "seconds": 302.84,
+    "starts": [
+     0.5,
+     4.53,
+     48.81,
+     92.16,
+     133.24,
+     171.99,
+     215.03,
+     260.03
+    ],
+    "bytes": 1875224
+   }
+  },
+  "watt-workshop": {
+   "way": {
+    "file": "9596a293d7ef1b73.m4a",
+    "seconds": 106.22,
+    "bytes": 652095
+   },
+   "story": {
+    "file": "b2aa2ee3f49a431a.m4a",
+    "seconds": 144.2,
+    "starts": [
+     0.5,
+     3.93,
+     32.67,
+     58.74,
+     88.41,
+     113.5
+    ],
+    "bytes": 894354
+   }
+  }
+ }
+}

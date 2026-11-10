@@ -1,0 +1,4 @@
+# The voice model, its Python and any scratch recordings stay on the build machine (tools/README.md).
+tools/.venv/
+tools/.models/
+*.wav
