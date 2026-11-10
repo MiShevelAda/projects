@@ -233,7 +233,7 @@ export const STORIES = {
   "remember": "Darwin's statue came with a disclaimer, read out at its unveiling by his own champion, Huxley."
  },
  "treasures": {
-  "find": "Carry on up to the first floor. Treasures has an entrance on each side of the main staircase. Take the one on your left as you face Darwin, if you can: a giant extinct bird is waiting just inside. Either door will do, though. The treasures are not fussy.",
+  "find": "Carry on up to the first floor. For the lift, go through the archways into Fossil Marine Reptiles, on the right just before the main staircase, then through the doorway on your right; on the first floor, follow the balcony round to the staircase. Treasures has an entrance on each side of the main staircase. Take the one on your left as you face Darwin, if you can: a giant extinct bird is waiting just inside. Either door will do, though. The treasures are not fussy.",
   "arrive": "You are there when a feathered fossil and a first edition by Darwin share one room.",
   "look": [
    "The moa by the left-hand door: a giant flightless bird, predicted from one scrap of bone.",
@@ -283,7 +283,7 @@ export const STORIES = {
   "remember": "Darwin never used the word evolution in the first edition of On the Origin of Species; its very last word is evolved."
  },
  "vault": {
-  "find": "On the first floor, follow the signs for Minerals along the balcony. Walk the length of the Minerals gallery; the Vault is at its far end. They have saved the shiny ones for last.",
+  "find": "On the first floor, follow the signs for Minerals along the balcony. Coming up by lift, take the one through the archways into Fossil Marine Reptiles, on the right just before the main staircase, then through the doorway on your right: on the first floor it comes out by Minerals. Walk the length of the Minerals gallery; the Vault is at its far end. They have saved the shiny ones for last.",
   "arrive": "You are there when rows of old oak cabinets full of minerals stretch ahead of you.",
   "look": [
    "The oak cabinets in Minerals: the originals from 1881, still on duty.",
@@ -336,7 +336,7 @@ export const STORIES = {
   "remember": "The smudge in one tiny vial is millions of diamonds, made around dying stars before the solar system existed."
  },
  "sequoia": {
-  "find": "Go back to Hintze Hall and climb to the second floor, the top balcony. The great slice of tree trunk stands up there, with Hope below you. Yes, more climbing. The view is worth it.",
+  "find": "Go back to Hintze Hall and climb to the second floor, the top balcony. The lift is by the entrance to Minerals on the first floor; on the ground floor, it is through the archways into Fossil Marine Reptiles, then the doorway on your right. On the second floor, go through the doorway onto the top balcony. The great slice of tree trunk stands up there, with Hope below you. Yes, more climbing. The view is worth it.",
   "arrive": "You are there when a huge slice of tree trunk stands on the top balcony.",
   "look": [
    "The rings, and the timeline beside them: empires and plagues come and go; the tree just grows.",
@@ -345,13 +345,13 @@ export const STORIES = {
    "The ceiling, close enough now to see the painted plants. See if you can find the orange tree."
   ],
   "story": [
-   "Stand in front of the slice and find the very centre. That is where it began. This was a giant sequoia, felled in California in 1891, and it was more than thirteen hundred years old: the conservators counted one thousand, three hundred and forty-one rings. It is very probably from the tree known as the Mark Twain Tree, in what is now Kings Canyon National Park. Slices went to New York, and to the British Museum in London, whose natural history collections were by then in this building. It has been here since 1893, more than a century indoors, which for a tree is a very unusual retirement.",
+   "Stand in front of the slice and find the very centre. That is where it began. This was a giant sequoia, felled in California, in 1891 by most accounts, and it was more than thirteen hundred years old: one thousand, three hundred and forty-one years, the museum says. It is very probably from the tree known as the Mark Twain Tree, in what is now Kings Canyon National Park. Slices went to New York, and to the British Museum in London, whose natural history collections were by then in this building. It has been here since 1893, more than a century indoors, which for a tree is a very unusual retirement.",
    "Now look at the bark at the edge, and think about the saw. By the usual account, it took four men thirteen days to bring it down. It's said the shipping was paid for by Collis P. Huntington, of the Southern Pacific railroad, at a time when a good many people simply did not believe trees that large existed. Its stump survives in California, and a photograph from the time reportedly shows fifty men standing on it. Fifty men on one stump. Nobody seems to have asked the tree. So that is how you prove a giant was real. You cut it down and ship it to New York and London.",
    "Follow the rings outwards. Each one is a year. In a wet year a ring is wide; in a hard one, thin. Read the right way, this is a diary of the weather, kept for thirteen centuries by something that never once moved, and the science of reading it is called dendrochronology. You can read it again thanks to the conservators. They stripped off old, cloudy varnish, and on the top sections found dust an inch thick. The bark was so fragile they fixed it with resin, drop by drop, from a pipette. Three conservators, twelve weeks, in 2016. Twelve weeks to un-dust thirteen centuries. Most of us cannot manage a bookshelf.",
    "Now find the timeline beside the slice, made new after that clean. It marks empires, wars, plagues, discoveries and inventions, and how many people were alive in each century. Read it for yourself; it is better than any summary. When this tree was a seedling, the Roman Empire in the west had already fallen. Empires rise and fall along that timeline, plagues sweep through, and the tree simply adds one more ring a year and keeps its opinions to itself.",
    "Stay at the slice, because the name is a story too. British botanists described the species in 1853, and one of them, John Lindley, got rather carried away. What tree is this, he wrote. Of what portentous aspect and almost fabulous antiquity! He named it Wellingtonia, after the Duke of Wellington. Unfortunately, the name was taken. The Americans proposed Washingtonia, never got round to publishing it, and the name went to a palm. In Britain it is still often called wellingtonia anyway. The name that stuck, Sequoia, was coined by the botanist Stephan Endlicher, who never said why. It probably honours Sequoyah, the Cherokee man who invented a way of writing his language, a syllabary of eighty-five characters, adopted in 1825, after which Cherokee literacy outstripped the settlers'. So the biggest tree on Earth is probably named after a man who never saw it.",
    "Look at the bark again. Giant sequoias are built for fire. The bark is thick and resists it, the cones open after a fire, and the seeds do best on freshly burned ground. A tree that uses fire to plant its children. They are the biggest trees on Earth by volume, and the biggest of all, General Sherman, still stands in California. The tallest tree is a different redwood, a coast redwood called Hyperion, nearly a hundred and sixteen metres. Now the hard part. In 2020 one fire, the Castle Fire, killed an estimated ten to fourteen percent of all the large sequoias there are. With two more fires in 2021, three fires in about fifteen months killed an estimated thirteen to nineteen percent. This one survived thirteen centuries of fires. It fell to a saw.",
-   "Now notice that year again: 1891. That same year a blue whale, Hope, stranded on a sandbar in Ireland. Turn round, lean on the balustrade, and look down. Two giants of the same year, in the same hall. The museum recommends this balcony for photographs of her, so take one. She will hold still. And the museum says a bronze statue of Alfred Russel Wallace stands on this balcony too, unveiled on the hundredth anniversary of his death in 2013. Darwin got the stairs. Wallace got the top floor, and the better view.",
+   "Now notice that year again: 1891, by most accounts. That same year a blue whale, Hope, stranded on a sandbar in Ireland. Turn round, lean on the balustrade, and look down. Two giants of the same year, very probably, in the same hall. The museum recommends this balcony for photographs of her, so take one. She will hold still. And the museum says a bronze statue of Alfred Russel Wallace stands on this balcony too, unveiled on the hundredth anniversary of his death in 2013. Darwin got the stairs. Wallace got the top floor, and the better view.",
    "Now look up. You are close to the ceiling here: a hundred and sixty-two panels from 1881, by the Manchester firm Best and Lea, probably painted by Charles James Lea on scaffolding. Nobody knows why it was in the design. It was cut to save money, and put back because Waterhouse insisted. In 2017 conservators found silver leaf that earlier repairs had painted over. Look for the cargoes of empire: tobacco, opium poppies, tea, cotton, nutmeg. The museum notes that enslaved African women used cotton bark to control their fertility, and that the lure of nutmeg sent Columbus west. Above the main staircase is Quassia amara. It is named after Graman Kwasi, an enslaved man from Ghana who became a healer in Suriname. Kwasi was the first to describe the plant scientifically, and Linnaeus named it after him. He also helped the Dutch hunt escaped Maroons, and was given a golden breastplate engraved Quassie, faithful to the whites. The Saramaka, a Maroon people of Suriname, remember him as a traitor. A ceiling with a balance sheet, and the museum now reads it out."
   ],
   "chapters": [
@@ -377,7 +377,7 @@ export const STORIES = {
    "Who was Graman Kwasi?"
   ],
   "hook": "How long did it take to dust a tree thirteen centuries old?",
-  "remember": "This sequoia was more than thirteen hundred years old when it was felled: the conservators counted one thousand, three hundred and forty-one rings."
+  "remember": "This sequoia was more than thirteen hundred years old when it was felled: one thousand, three hundred and forty-one years, the museum says."
  },
  "nature-and-us": {
   "find": "From the sequoia, carry on along the top balcony to the other side of the hall. The entrance is on your left. Hope will keep you company on the way.",
@@ -428,7 +428,7 @@ export const STORIES = {
   "remember": "Jenny, advertised as a talking fish, was, the museum says, a monk seal trained to say mama and papa."
  },
  "marine-reptiles": {
-  "find": "Go back down to the ground floor of Hintze Hall. Stand with your back to the main entrance, facing the staircase. Go through the archways on your right, just before the stairs. If you reach the stairs, you have gone a step too far.",
+  "find": "Go back down to the ground floor of Hintze Hall. The lift, through a doorway off the top balcony near the sequoia, brings you out just inside this gallery. By the stairs, stand with your back to the main entrance, facing the staircase. Go through the archways on your right, just before the stairs. If you reach the stairs, you have gone a step too far.",
   "arrive": "You are there when skeletons of sea reptiles line both walls, behind glass.",
   "look": [
    "The skeletons along both walls, behind glass: ichthyosaurs, shaped like dolphins, and plesiosaurs, mostly neck.",
@@ -527,7 +527,7 @@ export const STORIES = {
   "remember": "Our species sometimes had children with Neanderthals, so many of us carry a percent or two of Neanderthal DNA."
  },
  "sophie": {
-  "find": "Earth Hall is the tall hall at the heart of the Red Zone, on the ground floor of the East Wing. From Human Evolution it is right next door. From anywhere else, go down to the ground floor of Hintze Hall and follow the signs for the Red Zone and Earth Hall. Sophie stands in the hall. She is the one with plates down her back.",
+  "find": "Earth Hall is the tall hall at the heart of the Red Zone, on the ground floor of the East Wing. From Human Evolution it is right next door. From anywhere else, go down to the ground floor of Hintze Hall and follow the signs for the Red Zone and Earth Hall. If you need the lift, it is through a doorway off the top balcony, near the sequoia, and it comes out just inside Fossil Marine Reptiles, on the way. Sophie stands in the hall. She is the one with plates down her back.",
   "arrive": "You are there when you see a stegosaurus, and an escalator climbing into a giant globe.",
   "look": [
    "Her nineteen plates and four tail spikes, the most complete set ever found. Admire the tail from a respectful distance.",
@@ -570,7 +570,7 @@ export const STORIES = {
   "remember": "T. rex lived closer in time to you than to Sophie the Stegosaurus."
  },
  "kobe": {
-  "find": "Ride the escalator up through the globe. At the top, turn left into Volcanoes and Earthquakes. The story starts at the very beginning of the gallery and walks you through it; the earthquake room, set up like a Japanese supermarket, is at the back. The museum says that room can be upsetting for some people, so skip it if you would rather.",
+  "find": "Ride the escalator up through the globe. At the top, turn left into Volcanoes and Earthquakes. If you need a lift instead, there is one beside the Earth Hall Cafe, up to the second floor. The story starts at the very beginning of the gallery and walks you through it; the earthquake room, set up like a Japanese supermarket, is at the back. The museum says that room can be upsetting for some people, so skip it if you would rather.",
   "arrive": "You are there when you walk into Volcanoes and Earthquakes and find a big world map with three buttons in front of it.",
   "look": [
    "The world map with three buttons. Press all three and watch the planet's cracks line up.",
@@ -623,7 +623,7 @@ export const STORIES = {
   "remember": "Britain has a few hundred small earthquakes a year; the biggest, on Dogger Bank in 1931, was felt as far as Norway."
  },
  "fern": {
-  "find": "Go back down to the ground floor and leave by the Exhibition Road entrance. Fern stands outside in the Evolution Garden, the museum's east garden; staff at the door can point you to her. In icy weather the garden can close at short notice. She is the large bronze dinosaur. You will know.",
+  "find": "Go back down to the ground floor and leave by the Exhibition Road entrance. The lift beside the Earth Hall Cafe takes you down, and the entrance has a lift between the galleries and its lobby. Fern stands outside in the Evolution Garden, the museum's east garden; staff at the door can point you to her. In icy weather the garden can close at short notice. She is the large bronze dinosaur. You will know.",
   "arrive": "You are there when a bronze Diplodocus stretches out in the garden, neck and tail in mid-air.",
   "look": [
    "Her neck and tail, held out in the air with nothing underneath. Check. Really, nothing.",
@@ -632,7 +632,7 @@ export const STORIES = {
    "The bronze Diplodocus skull on a boulder along the path. Feel the teeth. It doesn't mind."
   ],
   "story": [
-   "Stand beside her and look along that neck. Now look underneath it. Nothing. No props, no pillars. This is Fern, and the museum calls her the first life-size bronze Diplodocus able to hold herself up. Steel cables run through the bronze, anchored at her hips, and pull her neck and tail up. The museum calls them post-tensioned cables, the kind you would see in a bridge, which is the most engineering anyone has ever said about a dinosaur. She is over twenty-five metres long, with fifteen metres of tail in the air, tapering to the width of a human finger. On a windy day she flexes like a suspension bridge, head and tail moving in tandem. If she wobbles, it is working.",
+   "Stand beside her and look along that neck. Now look underneath it. Nothing. No props, no pillars. This is Fern, and the museum calls her the first life-size bronze Diplodocus able to hold herself up. Steel cables run through the bronze, anchored at her hips, and pull her neck and tail up. The museum calls them post-tensioned cables, the kind you would see in a bridge, which is the most engineering anyone has ever said about a dinosaur. She is about twenty-five metres long, with fifteen metres of tail in the air, tapering to the width of a human finger. On a windy day she flexes like a suspension bridge, head and tail moving in tandem. If she wobbles, it is working.",
    "Now look at her feet. Diplodocus, says the museum's Paul Barrett, were a bit like ballerinas: they walked around on their toes. Fern's feet are arched where Dippy's were flat, because a big pad of fat sat under them, as under an elephant's. Her hips have been brought together, and Dippy's slightly knock-kneed stance corrected. And at the top of her neck, just behind the skull, the first bone is the right way up. On Dippy it was upside down for more than a century. Even a copy, it seems, can evolve.",
    "Now look along the joints of her spine. The first tests hit a problem: the bronze bones were too heavy and touched over too small an area, so the cast would simply break apart. The fix was hollow bones with struts inside, like the air-filled bones of real sauropods, and bronze discs standing in for cartilage. In Barrett's words, the engineers' solutions were essentially biological solutions to the same problem a living Diplodocus would have had. The engineers had reinvented the dinosaur. She was cast at a foundry in Madrid, the whole project took three years, and local schoolchildren chose her name. Nobody asked me.",
    "Go to her head and look back along her. She is a copy, and the original has a story. In 1899 railroad workers in Wyoming dug up a Diplodocus. Andrew Carnegie, the American industrialist, acquired it, and the species was named carnegii, after him. In 1902 King Edward VII saw a sketch of the bones at Carnegie's castle in Scotland, and Carnegie agreed to give London a cast. Two hundred and ninety-two bones came in thirty-six crates, and on the twelfth of May 1905 Dippy was unveiled: the first Diplodocus on display anywhere in the world. In the Second World War he was taken apart and hidden in the basement. A gift from a castle, hidden in a cellar.",
