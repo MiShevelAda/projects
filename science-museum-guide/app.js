@@ -3,7 +3,7 @@
 // every museum.
 //
 // Two tabs and a pushed page, chosen by the address (plain #names, so a stop can be bookmarked):
-//   #walk (or none)   how long have you got, today's hours, what is up next, the route
+//   #walk (or none)   choose your walk, today's hours, what is up next, the route
 //   #visit            tickets, entrances, food, coats, closures, offline, about
 //   #<stop id>        one stop: find it, play the story, look for, the story to read, next
 // Each stop has two recordings (audio/manifest.json, made by tools/build-audio.mjs):
@@ -36,6 +36,9 @@ const RATES = [1, 1.15, 0.9];
 const mmss = (s) => { s = Math.max(0, Math.round(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 const mins = (s) => `${Math.max(1, Math.round(s / 60))} min`;
 const hrs = (m) => (m >= 60 ? `${Math.floor(m / 60)} h ${m % 60 ? `${m % 60} min` : ''}`.trim() : `${m} min`);
+// A walk's length, as the picker shows it: the real estimate rounded to five minutes. The same number
+// everywhere it appears, so a walk is never "3 Hours" on one line and "3 h 41 min" on the next.
+const walkLen = (k) => hrs(Math.round(walkMinutes(walkOf(k)) / 5) * 5);
 
 const audio = $('#audio');
 const state = {
@@ -284,7 +287,7 @@ function bestOf(list) {
 }
 function visitText(list) {
   const seen = seenOn(list), spotted = list.reduce((a, s) => a + (state.found[s.id]?.length || 0), 0), best = bestOf(list)[0];
-  return `I spent ${WALKS[state.walk].name.toLowerCase()} at the ${MUSEUM.name}: ${seen} stops, ${spotted} things spotted.${best ? ` The one to remember: ${best.remember}` : ''}`;
+  return `I just visited the ${MUSEUM.name}: ${seen} stops, ${spotted} things spotted.${best ? ` The one to remember: ${best.remember}` : ''}`;
 }
 function doneCard(list) {
   const seen = list.filter((s) => state.seen[s.id]);
@@ -304,23 +307,22 @@ function walkView() {
   const list = walkStops();
   const nx = upNext();
   const started = list.some((s) => state.seen[s.id]);
-  const total = walkMinutes(list);
-  const tc = timeCheck(state.walk, opts());
+    const tc = timeCheck(state.walk, opts());
   // Minutes of stories on this walk, from the recordings, so the version on the phone is easy to tell.
   const narrated = Math.round(list.reduce((a, s) => a + (clip(s.id, 'story')?.seconds || 0), 0) / 60);
   const pos = nx ? list.indexOf(nx) + 1 : 0;
   main.innerHTML = `<div class="tab">
     <div><p class="eyebrow">Based on ${esc(CHECKED)}</p><h1 class="large">${esc(MUSEUM.name)}</h1></div>
     ${todayCard()}
-    <h2 class="h2" id="howlong">How Long Have You Got?</h2>
+    <h2 class="h2" id="howlong">Choose Your Walk</h2>
     <div class="seg" role="radiogroup" aria-labelledby="howlong">
-      ${Object.entries(WALKS).map(([k, w]) => `<button type="button" role="radio" aria-checked="${k === state.walk}" data-walk="${k}">${esc(w.name)}<small><span class="vh">, about </span>${hrs(walkMinutes(walkOf(k)))}</small></button>`).join('')}
+      ${Object.entries(WALKS).map(([k, w]) => `<button type="button" role="radio" aria-checked="${k === state.walk}" data-walk="${k}">${walkLen(k)}<small><span class="vh">, </span>${w.ids.length === STOPS.length ? 'All ' : ''}${w.ids.length} stops</small></button>`).join('')}
     </div>
-    ${tc.short ? `<div class="note" role="note"><span>${tc.avail > 0 ? `About ${hrs(tc.need)} of walk left, and the galleries start clearing in ${hrs(tc.avail)}.` : 'The galleries are already clearing for closing time. The walk is best started on another day.'}</span>${tc.shorter ? `<button type="button" class="soft" data-walk="${tc.shorter}">Switch to ${esc(WALKS[tc.shorter].name)}</button>` : ''}</div>` : ''}
+    ${tc.short ? `<div class="note" role="note"><span>${tc.avail > 0 ? `About ${hrs(tc.need)} of walk left, and the galleries start clearing in ${hrs(tc.avail)}.` : 'The galleries are already clearing for closing time. The walk is best started on another day.'}</span>${tc.shorter ? `<button type="button" class="soft" data-walk="${tc.shorter}">Switch to the ${walkLen(tc.shorter)} Walk</button>` : ''}</div>` : ''}
     ${nx ? `<section class="card assess" data-zone="${nx.zone}" aria-labelledby="upnext">
       <div class="art">${heroArt(nx)}</div>
       <div class="body">
-        <span class="kicker">${started ? `Up Next, Stop ${pos} of ${list.length}` : `${list.length} Stops, About ${hrs(total)}${narrated ? `, ${narrated} min of Stories` : ''}`}</span>
+        <span class="kicker">${started ? `Up Next, Stop ${pos} of ${list.length}` : `${list.length} Stops, About ${walkLen(state.walk)}${narrated ? `, ${narrated} min of Stories` : ''}`}</span>
         ${started ? `${progressBar(seenOn(list), list.length, 'Stops seen on this walk')}<span class="small">${seenOn(list)} of ${list.length} stops seen, about ${hrs(minsLeft(list))} to go${finishAt(list)}</span>` : ''}
         <p class="title" id="upnext">${esc(nx.title)}</p>
         ${nx.hook ? `<p class="hook">${esc(nx.hook)}</p>` : ''}

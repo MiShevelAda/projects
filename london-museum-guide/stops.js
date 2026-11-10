@@ -188,11 +188,12 @@ const RAW = [
 
 export const STOPS = RAW.map((s, i) => ({ ...s, ...STORIES[s.id], n: i + 1 }));
 
-// How long have you got? Each walk is the best of the museum for that time, in walking order.
+// Choose your walk: three lengths, each the best of the museum for its time, in walking order. The
+// app shows each walk's real estimated length (stops plus the walking between), never a round label.
 export const WALKS = {
-  hour: { name: '1 Hour', ids: ['building', 'hope', 'dinosaurs', 'darwin', 'sequoia'] },
-  two: { name: '2 Hours', ids: ['building', 'hope', 'dinosaurs', 'darwin', 'vault', 'sequoia', 'sophie', 'kobe', 'fern'] },
-  three: { name: '3 Hours', ids: STOPS.map((s) => s.id) },
+  hour: { name: 'Short Walk', ids: ['building', 'hope', 'dinosaurs', 'darwin', 'sequoia'] },
+  two: { name: 'Medium Walk', ids: ['building', 'hope', 'dinosaurs', 'darwin', 'vault', 'sequoia', 'sophie', 'kobe', 'fern'] },
+  three: { name: 'Full Walk', ids: STOPS.map((s) => s.id) },
 };
 // Minutes to walk from one stop to the next, on average, for the time estimates.
 export const WALK_BETWEEN = 3;
