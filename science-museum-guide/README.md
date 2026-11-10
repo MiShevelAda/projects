@@ -15,7 +15,8 @@ museum's own website on the day.
 ## Using it
 
 1. Open the link on your phone and add it to the Home Screen.
-2. On **Walk**, answer **How Long Have You Got?** (1, 2 or 3 hours) and tap **Start the Walk**.
+2. On **Walk**, under **Choose Your Walk**, pick a length (each button shows its real time and number of stops)
+   and tap **Start the Walk**.
    Headphones in. The voice tells you the way, gives you something to listen to while you walk,
    and tells you how you will know you have arrived. Then press play.
 3. When a story ends, the way to the next stop plays by itself, then it waits for you again.

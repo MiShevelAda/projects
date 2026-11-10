@@ -8,6 +8,18 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-10
 
+### One number per fact: "Choose Your Walk" with each walk's real length
+
+> **"Why does it say 3h and 3h 41 that's confusing remember if you confuse you loose"**
+> **"Also review text how long have you got? Not super customer friendly"**
+
+**The rule underneath.** If you confuse, you lose: a fact appears as one number, the same everywhere
+it is shown, and a label never promises a round figure the content does not meet. The picker said
+"3 Hours" with "3 h 41 min" underneath. It is now **Choose Your Walk**, and each button shows the
+walk's real length, rounded to five minutes, and its stops ("3 h 40 min, All 14 stops"); the walk
+card underneath repeats the same number. The walks are named Short, Medium and Full in the code, and
+the shared "Your Visit" text no longer claims a time ("I just visited the ...").
+
 ### Public after all: the QR lands on the app itself
 
 > **"option 1 is best but copy can be improved"**

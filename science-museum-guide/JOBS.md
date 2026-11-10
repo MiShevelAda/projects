@@ -14,7 +14,7 @@ exists because of one of these jobs; anything that serves none of them stays out
 | When I... | I want to... | So the app has |
 |---|---|---|
 | decide whether to go now | know it is open, and until when | **Today** card: Open Now, closes at 18:00, last entry 17:15, Book a Free Ticket |
-| have a fixed amount of time | see the best things that fit, in an order that does not double back | **How Long Have You Got?** 1, 2 or 3 hours, each a walk of its own |
+| have a fixed amount of time | see the best things that fit, in an order that does not double back | **Choose Your Walk**: three walks, each showing its real length and number of stops |
 | am walking to the next thing | be told the way, and use the walk to learn something | **The way there**: spoken directions, then **On the way**, a short piece that needs no looking |
 | think I have arrived | know I am in the right place | **You are there when...**, one visual cue per stop, and a floor picture |
 | stand in front of it | know where to look and why it matters, and enjoy it | **The story**: witty, with nudges ("look up, further, there"), read along on screen, tap a paragraph to replay it |
