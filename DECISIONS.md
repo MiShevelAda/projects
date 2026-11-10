@@ -8,6 +8,17 @@ interpretation. Rulings about his brand and job search live in `MiShevelAda/Alex
 
 ## 2026-11-10
 
+### A clip heard out of context must make sense out of context
+
+> **"Don't like the audio snipped that was chosen for the video the higher not so hight or the it was never close...what? What was never close? It confuses people and if u confuse u lose"**
+
+**The rule underneath.** "If you confuse, you lose" reaches the narration too. A line that works
+standing in the hall ("Higher. Not that high, that is the ceiling.", "It was never close.") confuses
+anyone hearing it on a phone at home, so any excerpt used outside the walk (the landing page sample,
+a video) is chosen to make sense on its own. The landing page now plays the way to Hope and "There
+she is: a blue whale ... and a name. Hope." (28 s). The guide itself keeps its words, which are heard
+in the room they describe.
+
 ### A public landing page with a demo and something to listen to
 
 > **"Can we create a github landing page and include a demo of the national history app including audio sample"**
